@@ -9,7 +9,7 @@ public class InputManager {
     private DisplayManager displayManager;
     private boolean f11Pressed = false;
 
-    private double lastX = 400;
+    private double lastX = 400;   // Centro della finestra
     private double lastY = 300;
     private boolean firstMouse = true;
 
@@ -19,15 +19,17 @@ public class InputManager {
     }
 
     public void pollInput(Camera camera) {
-        // Movement input
+
+
+        // Movimento WASD
         boolean forward = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS;
         boolean back = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS;
         boolean left = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS;
         boolean right = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS;
-        boolean up = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS;
-        boolean down = GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS;
 
-        camera.move(forward, back, left, right, up, down);
+        //System.out.println("Keys pressed: W=" + forward + " S=" + back + " A=" + left + " D=" + right);
+
+        camera.move(forward, back, left, right);
 
         // Mouse input
         double[] xpos = new double[1];
@@ -48,7 +50,7 @@ public class InputManager {
         lastX = xpos[0];
         lastY = ypos[0];
 
-        // Additional controls
+        // Altri controlli esistenti
         if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS) {
             GLFW.glfwSetWindowShouldClose(window, true);
         }
