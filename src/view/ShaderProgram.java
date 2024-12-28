@@ -1,6 +1,5 @@
 package view;
 
-import model.Light;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
@@ -72,14 +71,6 @@ public class ShaderProgram {
             }
             GL20.glUniformMatrix4fv(location, false, buffer);
         }
-    }
-
-    public void loadLight(Light light) {
-        int lightColorLoc = GL20.glGetUniformLocation(programID, "lightColor");
-        GL20.glUniform3f(lightColorLoc, light.getColor().x, light.getColor().y, light.getColor().z);
-
-        int lightDirLoc = GL20.glGetUniformLocation(programID, "lightDir");
-        GL20.glUniform3f(lightDirLoc, light.getDirection().x, light.getDirection().y, light.getDirection().z);
     }
 
     // Metodo per ottenere l'ID del programma shader
