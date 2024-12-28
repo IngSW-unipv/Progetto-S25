@@ -25,8 +25,11 @@ public class MasterRenderer {
     private ShaderProgram shader;
     private Matrix4f projectionMatrix;
 
+    private Texture texture;
+
     public MasterRenderer() {
         shader = new ShaderProgram("resources/vertex.glsl", "resources/fragment.glsl");
+        texture = new Texture("resources/dirt.png");
         projectionMatrix = new Matrix4f().perspective(
                 (float) Math.toRadians(70.0f),
                 1280.0f / 720.0f,
@@ -40,70 +43,92 @@ public class MasterRenderer {
     }
 
     public void render(Camera camera) {
-        // Crea una sorgente di luce (puoi personalizzare colore e direzione)
-        Light light = new Light(new Vector3f(1.0f, 1.0f, 1.0f), new Vector3f(0.0f, -1.0f, 0.0f));
+        shader.start();
+        shader.loadMatrix("viewMatrix", camera.getViewMatrix());
+        shader.loadMatrix("projectionMatrix", projectionMatrix);
 
+        texture.bind(0); // Usa texture slot 0
 
+        GL30.glBindVertexArray(vaoID);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
+        GL30.glBindVertexArray(0);
 
-        shader.start(); // Attiva lo shader
-        shader.loadMatrix("viewMatrix", camera.getViewMatrix()); // Carica la matrice della vista
-        shader.loadMatrix("projectionMatrix", projectionMatrix); // Carica la matrice di proiezione
-        shader.loadLight(light); // Passa la luce agli shader
-
-        GL30.glBindVertexArray(vaoID); // Associa l'array dei vertici
-        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0); // Disegna gli oggetti
-        GL30.glBindVertexArray(0); // Disassocia l'array dei vertici
-
-        shader.stop(); // Disattiva lo shader
+        shader.stop();
     }
 
 
     private void createCube() {
         float[] vertices = {
                 // Front face
-                -0.5f,  0.5f,  0.5f,
-                -0.5f, -0.5f,  0.5f,
-                0.5f, -0.5f,  0.5f,
-                0.5f,  0.5f,  0.5f,
+                -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // top-left
+                -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // bottom-left
+                0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // bottom-right
+                0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // top-right
+
                 // Back face
-                -0.5f,  0.5f, -0.5f,
-                -0.5f, -0.5f, -0.5f,
-                0.5f, -0.5f, -0.5f,
-                0.5f,  0.5f, -0.5f
+                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,
+                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,
+
+                // Top face
+                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,
+                -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,
+                0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,
+
+                // Bottom face
+                -0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
+                -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,
+                0.5f, -0.5f,  0.5f,   1.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,   1.0f, 0.0f,
+
+                // Right face
+                0.5f,  0.5f,  0.5f,   0.0f, 0.0f,
+                0.5f, -0.5f,  0.5f,   0.0f, 1.0f,
+                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
+                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,
+
+                // Left face
+                -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+                -0.5f, -0.5f,  0.5f,   1.0f, 1.0f,
+                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
+                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f
         };
 
-        int[] indices = {
-                // Front face
-                0, 1, 2,
-                0, 2, 3,
-                // Back face
-                4, 5, 6,
-                4, 6, 7,
-                // Right face
-                3, 2, 6,
-                3, 6, 7,
-                // Left face
-                0, 1, 5,
-                0, 5, 4,
-                // Top face
-                0, 3, 7,
-                0, 7, 4,
-                // Bottom face
-                1, 2, 6,
-                1, 6, 5
-        };
+        int[] indices = new int[36];
+        int i = 0;
+        for (int face = 0; face < 6; face++) {
+            int offset = face * 4;
+            // First triangle of face
+            indices[i++] = offset;
+            indices[i++] = offset + 1;
+            indices[i++] = offset + 2;
+            // Second triangle of face
+            indices[i++] = offset;
+            indices[i++] = offset + 2;
+            indices[i++] = offset + 3;
+        }
 
         vaoID = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(vaoID);
 
+        // Position VBO
         vboID = GL15.glGenBuffers();
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboID);
         FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(vertices.length);
         vertexBuffer.put(vertices).flip();
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_STATIC_DRAW);
-        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 0, 0);
+
+        // Position attribute
+        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 5 * Float.BYTES, 0);
         GL20.glEnableVertexAttribArray(0);
 
+        // Texture coordinate attribute
+        GL20.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, 5 * Float.BYTES, 3 * Float.BYTES);
+        GL20.glEnableVertexAttribArray(1);
+
+        // Index buffer
         eboID = GL15.glGenBuffers();
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboID);
         IntBuffer indexBuffer = BufferUtils.createIntBuffer(indices.length);
@@ -128,5 +153,7 @@ public class MasterRenderer {
         GL15.glDeleteBuffers(vboID);
         GL15.glDeleteBuffers(eboID);
         GL30.glDeleteVertexArrays(vaoID);
+        texture.cleanup();
+        shader.stop();
     }
 }

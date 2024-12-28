@@ -1,10 +1,10 @@
 #version 330 core
 
+in vec2 pass_texCoord;
 out vec4 fragColor;
 
-uniform vec3 lightColor;
-uniform vec3 lightDir;
+uniform sampler2D textureSampler;
 
 void main() {
-    fragColor = vec4(1.0, 0.0, 0.0, 1.0); // Rosso per debug
+    fragColor = texture(textureSampler, pass_texCoord);
 }
