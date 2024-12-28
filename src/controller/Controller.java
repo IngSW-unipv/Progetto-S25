@@ -11,7 +11,7 @@ public class Controller {
     public Controller(Model model, View view) {
         this.model = model;
         this.view = view;
-        this.inputManager = new InputManager(view.getWindow(), view.getDisplayManager());
+        this.inputManager = new InputManager(view.getDisplayManager().getWindow());
     }
 
     public void handleInput() {
@@ -23,6 +23,6 @@ public class Controller {
     }
 
     public boolean shouldClose() {
-        return view.shouldClose();
+        return view.getDisplayManager().shouldClose();
     }
 }

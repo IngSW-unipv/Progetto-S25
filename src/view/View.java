@@ -9,7 +9,6 @@ public class View {
 
     public View() {
         this.displayManager = new DisplayManager();
-        this.renderer = new MasterRenderer();
     }
 
     public DisplayManager getDisplayManager() {
@@ -17,27 +16,21 @@ public class View {
     }
 
     public void createDisplay() {
-        displayManager.createDisplay();
+        displayManager.createDisplay(); // Inizializza il contesto OpenGL
+        this.renderer = new MasterRenderer(); // Non deve essere inizializzato nel costruttore della classe View. Invece, crealo dopo che il contesto OpenGL è stato creato
     }
 
     public void render(Game game) {
         renderer.prepare();
-        renderer.render(game);
+        renderer.render();
     }
 
     public void updateDisplay() {
         displayManager.updateDisplay();
     }
 
-    public boolean shouldClose() {
-        return displayManager.shouldClose();
-    }
-
-    public long getWindow() {
-        return displayManager.getWindow();
-    }
-
-    public void closeDisplay(){
+    public void closeDisplay() {
+        renderer.cleanUp();
         displayManager.closeDisplay();
     }
 }

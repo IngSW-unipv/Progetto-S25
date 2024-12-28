@@ -9,9 +9,8 @@ public class InputManager {
     private DisplayManager displayManager;
     private boolean f11Pressed = false;  // Flag per evitare esecuzioni multiple durante il "press"
 
-    public InputManager(long window, DisplayManager displayManager) {
+    public InputManager(long window) {
         this.window = window;
-        this.displayManager = displayManager;
     }
 
     public void pollInput() {

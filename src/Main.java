@@ -16,13 +16,13 @@ public class Main {
 
         // Ciclo di gioco
         while (!controller.shouldClose()) {
-            controller.handleInput();  // Gestisce gli input
-            controller.updateGame();   // Aggiorna la logica del gioco
-            view.render(model.getGame());  // Renderizza il gioco
-            view.updateDisplay();  // Aggiorna la finestra
+            controller.handleInput();
+            controller.updateGame();
+            view.render(model.getGame());
+            view.updateDisplay();
         }
 
-        // Chiusura della finestra
+        // Chiusura delle risorse
         view.closeDisplay();
     }
 }
