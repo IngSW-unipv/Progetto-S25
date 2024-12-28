@@ -1,11 +1,13 @@
+package controller;
+
 import org.lwjgl.glfw.GLFW;
+import view.DisplayManager;
 
 public class InputManager {
 
     private final long window;
     private DisplayManager displayManager;
     private boolean f11Pressed = false;  // Flag per evitare esecuzioni multiple durante il "press"
-
 
     public InputManager(long window, DisplayManager displayManager) {
         this.window = window;

@@ -1,3 +1,5 @@
+package view;
+
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
@@ -9,10 +11,8 @@ import java.util.Objects;
 public class DisplayManager {
 
     private long window;
-
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
-    private static final int FPS_CAP = 144;
 
     private boolean isFullscreen = false;
 
@@ -45,6 +45,7 @@ public class DisplayManager {
     public boolean shouldClose() {
         return GLFW.glfwWindowShouldClose(window);
     }
+
     public void closeDisplay() {
         GLFW.glfwDestroyWindow(window);
         GLFW.glfwTerminate();

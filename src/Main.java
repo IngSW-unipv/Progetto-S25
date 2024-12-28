@@ -1,20 +1,28 @@
+import model.Model;
+import view.View;
+import controller.Controller;
+
 public class Main {
     public static void main(String[] args) {
-        DisplayManager displayManager = new DisplayManager();
-        displayManager.createDisplay(); // Assicurati che la finestra sia inizializzata prima
+        // Creazione del modello di gioco
+        Model model = new Model();
 
-        InputManager inputManager = new InputManager(displayManager.getWindow(), displayManager);
-        MasterRenderer renderer = new MasterRenderer();
-        Game game = new Game();
+        // Creazione della vista
+        View view = new View();
+        view.createDisplay();
 
-        while (!displayManager.shouldClose()) {
-            inputManager.pollInput();
-            game.update();
-            renderer.prepare();
-            renderer.render(game);
-            displayManager.updateDisplay();
+        // Creazione del controller
+        Controller controller = new Controller(model, view);
+
+        // Ciclo di gioco
+        while (!controller.shouldClose()) {
+            controller.handleInput();  // Gestisce gli input
+            controller.updateGame();   // Aggiorna la logica del gioco
+            view.render(model.getGame());  // Renderizza il gioco
+            view.updateDisplay();  // Aggiorna la finestra
         }
 
-        displayManager.closeDisplay();
+        // Chiusura della finestra
+        view.closeDisplay();
     }
 }
