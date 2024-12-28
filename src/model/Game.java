@@ -4,7 +4,7 @@ public class Game {
     private Cube cube;
 
     public Game() {
-        this.cube = new Cube();
+        this.cube = new Cube(BlockType.DIRT);
     }
 
     public void update() {

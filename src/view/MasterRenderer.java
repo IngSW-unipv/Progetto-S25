@@ -1,16 +1,20 @@
 package view;
 
+import model.BlockType;
+import model.Camera;
+import model.Cube;
+import model.Game;
+import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import model.Camera;
-import model.Game;
-import model.Cube;
-import org.joml.Matrix4f;
+
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MasterRenderer {
     private int vaoID;
@@ -19,21 +23,29 @@ public class MasterRenderer {
     private int vertexCount;
     private ShaderProgram shader;
     private Matrix4f projectionMatrix;
-    private Texture texture;
+    private Map<BlockType, Texture> textureMap;
+    private Texture currentTexture;
 
     public MasterRenderer() {
         shader = new ShaderProgram("resources/vertex.glsl", "resources/fragment.glsl");
-        texture = new Texture("resources/dirt.png");
+        textureMap = new HashMap<>();
         projectionMatrix = new Matrix4f().perspective(
-            (float) Math.toRadians(70.0f),
-            1280.0f / 720.0f,
-            0.1f,
-            1000.0f
+                (float) Math.toRadians(70.0f),
+                1280.0f / 720.0f,
+                0.1f,
+                1000.0f
         );
         GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
+    private void loadTexture(BlockType type) {
+        if (!textureMap.containsKey(type)) {
+            textureMap.put(type, new Texture(type.getTexturePath()));
+        }
+    }
+
     public void loadCube(Cube cube) {
+        loadTexture(cube.getType());
         float[] vertices = cube.getVertices();
         int[] indices = cube.getIndices();
 
@@ -62,13 +74,11 @@ public class MasterRenderer {
         GL30.glBindVertexArray(0);
     }
 
-    public void render(Game game, Camera camera) {
+    public void render(Camera camera) {
         prepare();
         shader.start();
         shader.loadMatrix("viewMatrix", camera.getViewMatrix());
         shader.loadMatrix("projectionMatrix", projectionMatrix);
-
-        texture.bind(0);
 
         GL30.glBindVertexArray(vaoID);
         GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
@@ -86,7 +96,9 @@ public class MasterRenderer {
         GL15.glDeleteBuffers(vboID);
         GL15.glDeleteBuffers(eboID);
         GL30.glDeleteVertexArrays(vaoID);
-        texture.cleanup();
+        for (Texture texture : textureMap.values()) {
+            texture.cleanup();
+        }
         shader.stop();
     }
 }

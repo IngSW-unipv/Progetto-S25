@@ -2,6 +2,7 @@ package view;
 
 import model.Camera;
 import model.Game;
+import model.Model;
 
 public class View {
     private DisplayManager displayManager;
@@ -22,8 +23,8 @@ public class View {
         return displayManager;
     }
 
-    public void render(Game game, Camera camera) {
-        renderer.render(game, camera);
+    public void render(Camera camera) {
+        renderer.render(camera);
     }
 
     public void updateDisplay() {
