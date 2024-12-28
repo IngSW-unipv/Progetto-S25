@@ -4,7 +4,6 @@ import model.Camera;
 import model.Game;
 
 public class View {
-
     private DisplayManager displayManager;
     private MasterRenderer renderer;
 
@@ -12,18 +11,19 @@ public class View {
         this.displayManager = new DisplayManager();
     }
 
+    public void createDisplay() {
+        displayManager.createDisplay();
+        this.renderer = new MasterRenderer();
+        // Load the cube mesh data after creating renderer
+        this.renderer.loadCube(new Game().getCube());
+    }
+
     public DisplayManager getDisplayManager() {
         return displayManager;
     }
 
-    public void createDisplay() {
-        displayManager.createDisplay(); // Inizializza il contesto OpenGL
-        this.renderer = new MasterRenderer(); // Non deve essere inizializzato nel costruttore della classe View. Invece, crealo dopo che il contesto OpenGL è stato creato
-    }
-
     public void render(Game game, Camera camera) {
-        renderer.prepare();
-        renderer.render(camera);
+        renderer.render(game, camera);
     }
 
     public void updateDisplay() {
