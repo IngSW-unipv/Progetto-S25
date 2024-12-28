@@ -18,7 +18,7 @@ public class Main {
         while (!controller.shouldClose()) {
             controller.handleInput();
             controller.updateGame();
-            view.render(model.getGame());
+            view.render(model.getGame(), model.getCamera());
             view.updateDisplay();
         }
 

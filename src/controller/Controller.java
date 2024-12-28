@@ -15,7 +15,7 @@ public class Controller {
     }
 
     public void handleInput() {
-        inputManager.pollInput();
+        inputManager.pollInput(model.getCamera());
     }
 
     public void updateGame() {

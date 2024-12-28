@@ -1,5 +1,6 @@
 package view;
 
+import model.Camera;
 import model.Game;
 
 public class View {
@@ -20,9 +21,9 @@ public class View {
         this.renderer = new MasterRenderer(); // Non deve essere inizializzato nel costruttore della classe View. Invece, crealo dopo che il contesto OpenGL è stato creato
     }
 
-    public void render(Game game) {
+    public void render(Game game, Camera camera) {
         renderer.prepare();
-        renderer.render();
+        renderer.render(camera);
     }
 
     public void updateDisplay() {

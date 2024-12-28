@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="lwjgl-release-3.3" level="project" />
+    <orderEntry type="library" name="JOML-1.10" level="project" />
+    <orderEntry type="library" name="joml-1.9.21" level="project" />
   </component>
 </module>
