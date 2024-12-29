@@ -7,6 +7,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class World {
+
+
+    //World non dovrebbe usare Cube? Che a loro volta non utilizzano bene Block e BlokType?
+
+    //Questo sarà tutto cio che deve essere renderizzato
+    //private ArrayList<> Entities;
     private final HashMap<Vector3i, Chunk> chunks;
     private static final int RENDER_DISTANCE = 8;
 
@@ -14,11 +20,12 @@ public class World {
         this.chunks = new HashMap<>();
     }
 
+    //Non dovrebbe farlo il MasterRenderer?
     public void generateChunksAroundCamera(Vector3f cameraPos) {
         Vector3i chunkPos = new Vector3i(
-                Math.floorDiv((int)cameraPos.x, Chunk.SIZE),
-                Math.floorDiv((int)cameraPos.y, Chunk.SIZE),
-                Math.floorDiv((int)cameraPos.z, Chunk.SIZE)
+            Math.floorDiv((int)cameraPos.x, Chunk.SIZE),
+            Math.floorDiv((int)cameraPos.y, Chunk.SIZE),
+            Math.floorDiv((int)cameraPos.z, Chunk.SIZE)
         );
 
         for(int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
@@ -41,17 +48,17 @@ public class World {
 
     public Block getBlock(int x, int y, int z) {
         Vector3i chunkPos = new Vector3i(
-                Math.floorDiv(x, Chunk.SIZE),
-                Math.floorDiv(y, Chunk.SIZE),
-                Math.floorDiv(z, Chunk.SIZE)
+            Math.floorDiv(x, Chunk.SIZE),
+            Math.floorDiv(y, Chunk.SIZE),
+            Math.floorDiv(z, Chunk.SIZE)
         );
         Chunk chunk = chunks.get(chunkPos);
         if(chunk == null) return null;
 
         return chunk.getBlock(
-                Math.floorMod(x, Chunk.SIZE),
-                Math.floorMod(y, Chunk.SIZE),
-                Math.floorMod(z, Chunk.SIZE)
+            Math.floorMod(x, Chunk.SIZE),
+            Math.floorMod(y, Chunk.SIZE),
+            Math.floorMod(z, Chunk.SIZE)
         );
     }
 }

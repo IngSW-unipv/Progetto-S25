@@ -11,13 +11,13 @@ public class Camera {
     private float roll;
 
     public Camera() {
-        position = new Vector3f(0, 10, 0);  // Posizione più vicina al terreno
-        pitch = -20f;  // Guardiamo leggermente verso il basso
-        yaw = 45f;     // Ruotati per vedere gli angoli
+        position = new Vector3f(-2, 1, 0);
+
+        pitch = 30f;
+        yaw = 90;
         roll = 0;
     }
 
-    // Rest of the model.Camera class remains the same
     public void move(boolean forward, boolean back, boolean left, boolean right, boolean up, boolean down) {
         float dx = 0, dz = 0, dy = 0;
 

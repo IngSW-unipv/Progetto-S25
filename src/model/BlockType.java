@@ -13,6 +13,6 @@ public enum BlockType {
     }
 
     public String getTexturePath() {
-        return "resources/" + texturePath;
+        return "resources/textures/" + texturePath;
     }
 }

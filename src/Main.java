@@ -14,14 +14,14 @@ public class Main {
         GameController gameController = new GameController(model);
         InputController inputController = new InputController(view.getDisplayManager().getWindow());
 
-        while (!view.getDisplayManager().shouldClose()) {
+        while (model.getGameState().isRunning()) {
             inputController.pollInput();
-            gameController.update();
-            view.render(model.getCamera());
 
+            gameController.update();
+
+            view.render(model.getCamera());
             view.updateDisplay();
         }
-
 
         view.closeDisplay();
     }

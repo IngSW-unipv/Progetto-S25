@@ -1,12 +1,12 @@
 package model;
 
 public class Model {
-    private Game game;
+    private GameState gameState;
     private Camera camera;
     private World world;
 
     public Model() {
-        this.game = new Game();
+        this.gameState = new GameState();
         this.camera = new Camera();
         this.world = new World();
     }
@@ -15,8 +15,8 @@ public class Model {
         return world;
     }
 
-    public Game getGame() {
-        return game;
+    public GameState getGameState() {
+        return gameState;
     }
 
     public Camera getCamera() {
@@ -24,7 +24,7 @@ public class Model {
     }
 
     public void updateGame() {
-        game.update();
+        gameState.update();
         world.generateChunksAroundCamera(camera.getPosition());
     }
 }

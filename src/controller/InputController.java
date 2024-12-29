@@ -2,6 +2,7 @@ package controller;
 
 import controller.event.*;
 import org.lwjgl.glfw.GLFW;
+import view.window.WindowManager;
 
 public class InputController {
     private final long window;
@@ -19,55 +20,40 @@ public class InputController {
     public void pollInput() {
         handleKeyboardInput();
         handleMouseInput();
-        handleFullscreen();
     }
 
-    private void handleFullscreen() {
-        if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F11) == GLFW.GLFW_PRESS && !f11Pressed) {
-            eventBus.post(new InputEvent(InputAction.TOGGLE_FULLSCREEN, 1.0f));
-            f11Pressed = true;
-        }
-        if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F11) == GLFW.GLFW_RELEASE) {
-            f11Pressed = false;
-        }
+    private float getKeyState(int key) {
+        return GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS ? 1.0f : 0.0f;
     }
 
     private void handleKeyboardInput() {
-        eventBus.post(new InputEvent(InputAction.MOVE_FORWARD,
-                GLFW.glfwGetKey(window, GLFW.GLFW_KEY_W) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-        eventBus.post(new InputEvent(InputAction.MOVE_BACKWARD,
-                GLFW.glfwGetKey(window, GLFW.GLFW_KEY_S) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-        eventBus.post(new InputEvent(InputAction.MOVE_LEFT,
-                GLFW.glfwGetKey(window, GLFW.GLFW_KEY_A) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-        eventBus.post(new InputEvent(InputAction.MOVE_RIGHT,
-                GLFW.glfwGetKey(window, GLFW.GLFW_KEY_D) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-        eventBus.post(new InputEvent(InputAction.MOVE_UP,
-                GLFW.glfwGetKey(window, GLFW.GLFW_KEY_SPACE) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-        eventBus.post(new InputEvent(InputAction.MOVE_DOWN,
-                GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-
-        if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS) {
-            GLFW.glfwSetWindowShouldClose(window, true);
-        }
+        eventBus.post(new InputEvent(InputAction.MOVE_FORWARD, getKeyState(GLFW.GLFW_KEY_W)));
+        eventBus.post(new InputEvent(InputAction.MOVE_BACKWARD, getKeyState(GLFW.GLFW_KEY_S)));
+        eventBus.post(new InputEvent(InputAction.MOVE_LEFT, getKeyState(GLFW.GLFW_KEY_A)));
+        eventBus.post(new InputEvent(InputAction.MOVE_RIGHT, getKeyState(GLFW.GLFW_KEY_D)));
+        eventBus.post(new InputEvent(InputAction.MOVE_UP, getKeyState(GLFW.GLFW_KEY_SPACE)));
+        eventBus.post(new InputEvent(InputAction.MOVE_DOWN, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT)));
+        eventBus.post(new InputEvent(InputAction.EXIT, getKeyState(GLFW.GLFW_KEY_ESCAPE)));
+        eventBus.post(new InputEvent(InputAction.TOGGLE_FULLSCREEN, getKeyState(GLFW.GLFW_KEY_F11)));
     }
 
     private void handleMouseInput() {
-        double[] xpos = new double[1];
-        double[] ypos = new double[1];
-        GLFW.glfwGetCursorPos(window, xpos, ypos);
+        double[] xPos = new double[1];
+        double[] yPos = new double[1];
+        GLFW.glfwGetCursorPos(window, xPos, yPos);
 
         if (firstMouse) {
-            lastX = xpos[0];
-            lastY = ypos[0];
+            lastX = xPos[0];
+            lastY = yPos[0];
             firstMouse = false;
             return;
         }
 
-        float dx = (float)(xpos[0] - lastX);
-        float dy = (float)(ypos[0] - lastY); // Removed the inversion
+        float dx = (float)(xPos[0] - lastX);
+        float dy = (float)(yPos[0] - lastY); // Removed the inversion
 
-        lastX = xpos[0];
-        lastY = ypos[0];
+        lastX = xPos[0];
+        lastY = yPos[0];
 
         if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx));
         if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy));

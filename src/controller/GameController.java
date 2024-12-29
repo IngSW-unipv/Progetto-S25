@@ -31,6 +31,11 @@ public class GameController implements EventListener {
             case MOVE_DOWN -> down = event.getValue() > 0;
             case LOOK_X -> model.getCamera().rotate(event.getValue(), 0);
             case LOOK_Y -> model.getCamera().rotate(0, event.getValue());
+            case EXIT -> {
+                if (event.getValue() > 0) {
+                    model.getGameState().setRunning(false);
+                }
+            }
         }
 
         model.getCamera().move(forward, backward, left, right, up, down);

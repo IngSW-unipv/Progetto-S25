@@ -13,41 +13,41 @@ public class Cube {
 
     private float[] createVertices() {
         return new float[] {
-                // Front face (Z+)
-                -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Top-left
-                0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Top-right
-                0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Bottom-right
-                -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Bottom-left
+            // Front face (Z+)
+            -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Top-left
+            0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Top-right
+            0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Bottom-right
+            -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Bottom-left
 
-                // Back face (Z-)
-                0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Top-left
-                -0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Top-right
-                -0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Bottom-right
-                0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Bottom-left
+            // Back face (Z-)
+            0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Top-left
+            -0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Top-right
+            -0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Bottom-right
+            0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Bottom-left
 
-                // Top face (Y+)
-                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-left
-                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-right
-                0.5f,  0.5f,  0.5f,   1.0f, 1.0f,  // Front-right
-                -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,  // Front-left
+            // Top face (Y+)
+            -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-left
+            0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-right
+            0.5f,  0.5f,  0.5f,   1.0f, 1.0f,  // Front-right
+            -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,  // Front-left
 
-                // Bottom face (Y-)
-                -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,  // Front-left
-                0.5f, -0.5f,  0.5f,   1.0f, 0.0f,  // Front-right
-                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-right
-                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Back-left
+            // Bottom face (Y-)
+            -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,  // Front-left
+            0.5f, -0.5f,  0.5f,   1.0f, 0.0f,  // Front-right
+            0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-right
+            -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Back-left
 
-                // Right face (X+)
-                0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Front-top
-                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-top
-                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-bottom
-                0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Front-bottom
+            // Right face (X+)
+            0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Front-top
+            0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-top
+            0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-bottom
+            0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Front-bottom
 
-                // Left face (X-)
-                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-top
-                -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Front-top
-                -0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Front-bottom
-                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f   // Back-bottom
+            // Left face (X-)
+            -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-top
+            -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Front-top
+            -0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Front-bottom
+            -0.5f, -0.5f, -0.5f,   0.0f, 1.0f   // Back-bottom
         };
     }
 

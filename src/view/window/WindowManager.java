@@ -7,15 +7,19 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
 
-import java.util.Objects;
-
 public class WindowManager {
-
-    private long window;
+    private static long window;
     private static final int WIDTH = 1280;
     private static final int HEIGHT = 720;
+    private static boolean isFullscreen = false;
+    private int currentWidth = WIDTH;
+    private int currentHeight = HEIGHT;
 
-    private boolean isFullscreen = false;
+    // Store window position and size
+    private int lastWindowX = 100;
+    private int lastWindowY = 100;
+    private int lastWindowWidth = WIDTH;
+    private int lastWindowHeight = HEIGHT;
 
     public void createDisplay() {
         GLFWErrorCallback.createPrint(System.err).set();
@@ -44,25 +48,46 @@ public class WindowManager {
             );
         }
 
+        // Set up window resize callback
+        GLFW.glfwSetFramebufferSizeCallback(window, (window, width, height) -> {
+            currentWidth = width;
+            currentHeight = height;
+            updateViewport();
+        });
+
         GLFW.glfwMakeContextCurrent(window);
         GL.createCapabilities();
 
-        System.out.println("OpenGL Version: " + GL11.glGetString(GL11.GL_VERSION));
-        System.out.println("Vendor: " + GL11.glGetString(GL11.GL_VENDOR));
-        System.out.println("Renderer: " + GL11.glGetString(GL11.GL_RENDERER));
-
         GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        GL11.glViewport(0, 0, WIDTH, HEIGHT);
+        updateViewport();
         GLFW.glfwSwapInterval(1);
+    }
+
+    private void updateViewport() {
+        GL11.glViewport(0, 0, currentWidth, currentHeight);
+    }
+
+    public void toggleFullscreen() {
+        if (isFullscreen) {
+            // Switch to windowed mode
+            GLFW.glfwSetWindowMonitor(window, 0, 100, 100, WIDTH, HEIGHT, GLFW.GLFW_DONT_CARE);
+            currentWidth = WIDTH;
+            currentHeight = HEIGHT;
+        } else {
+            // Switch to fullscreen
+            GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            GLFW.glfwSetWindowMonitor(window, GLFW.glfwGetPrimaryMonitor(), 0, 0,
+                    vidmode.width(), vidmode.height(), vidmode.refreshRate());
+            currentWidth = vidmode.width();
+            currentHeight = vidmode.height();
+        }
+        isFullscreen = !isFullscreen;
+        updateViewport();
     }
 
     public void updateDisplay() {
         GLFW.glfwSwapBuffers(window);
         GLFW.glfwPollEvents();
-    }
-
-    public boolean shouldClose() {
-        return GLFW.glfwWindowShouldClose(window);
     }
 
     public void closeDisplay() {
@@ -72,21 +97,12 @@ public class WindowManager {
 
     public long getWindow() {
         if (window == 0) {
-            throw new IllegalStateException("La finestra non è stata inizializzata correttamente.");
+            throw new IllegalStateException("Window not properly initialized");
         }
         return window;
     }
 
-    public void toggleFullscreen() {
-        if (isFullscreen) {
-            // Passa alla modalità finestra
-            GLFW.glfwSetWindowMonitor(window, 0, 100, 100, WIDTH, HEIGHT, GLFW.GLFW_DONT_CARE);
-            isFullscreen = false;
-        } else {
-            // Passa alla modalità fullscreen
-            GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
-            GLFW.glfwSetWindowMonitor(window, GLFW.glfwGetPrimaryMonitor(), 0, 0, videoMode.width(), videoMode.height(), GLFW.GLFW_DONT_CARE);
-            isFullscreen = true;
-        }
+    public float getAspectRatio() {
+        return (float) currentWidth / currentHeight;
     }
 }

@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import view.shader.ShaderProgram;
+import view.window.WindowManager;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -27,31 +28,35 @@ public class MasterRenderer {
     private TextureManager textureManager;
     private Map<BlockType, Integer> blockTextureIds;
 
-    public MasterRenderer() {
-        shader = new ShaderProgram("resources/shaders/entity_vertex.glsl", "resources/shaders/entity_fragment.glsl");
+    private WindowManager windowManager;
+
+    public MasterRenderer(WindowManager windowManager) {
+        this.windowManager = windowManager;
+        shader = new ShaderProgram("resources/shaders/block_vertex.glsl", "resources/shaders/block_fragment.glsl");
         textureManager = new TextureManager();
         blockTextureIds = new HashMap<>();
 
-        projectionMatrix = new Matrix4f().perspective(
-                (float) Math.toRadians(70.0f),
-                1280.0f / 720.0f,
-                0.1f,
-                1000.0f
-        );
+        updateProjectionMatrix();
 
         modelMatrix = new Matrix4f().identity();
 
-        // Setup corretto del face culling
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glCullFace(GL11.GL_FRONT);  // Cambio qui: culling delle facce frontali invece che posteriori
+        GL11.glCullFace(GL11.GL_FRONT);
+    }
 
-
-        // Per debugging, puoi anche invertire il winding order:
-        // GL11.glFrontFace(GL11.GL_CW);  // Clockwise invece che counter-clockwise
+    private void updateProjectionMatrix() {
+        projectionMatrix = new Matrix4f().perspective(
+            (float) Math.toRadians(70.0f),
+            windowManager.getAspectRatio(),
+            0.1f,
+            1000.0f
+        );
     }
 
     public void render(Camera camera) {
+        updateProjectionMatrix();
+
         prepare();
         shader.start();
 
