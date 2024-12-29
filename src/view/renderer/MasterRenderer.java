@@ -2,7 +2,7 @@ package view.renderer;
 
 import model.BlockType;
 import model.Camera;
-import model.Cube;
+import model.Block;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -90,10 +90,10 @@ public class MasterRenderer {
         }
     }
 
-    public void loadCube(Cube cube) {
-        loadBlockTexture(cube.getType());
-        float[] vertices = cube.getVertices();
-        int[] indices = cube.getIndices();
+    public void loadCube(Block block) {
+        loadBlockTexture(block.getType());
+        float[] vertices = block.getVertices();
+        int[] indices = block.getIndices();
 
         vaoID = GL30.glGenVertexArrays();
         GL30.glBindVertexArray(vaoID);

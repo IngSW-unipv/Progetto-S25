@@ -1,9 +1,9 @@
 package view;
 
 import controller.event.*;
+import model.Block;
 import model.BlockType;
 import model.Camera;
-import model.Cube;
 import view.renderer.MasterRenderer;
 import view.window.WindowManager;
 
@@ -24,7 +24,7 @@ public class View {
         this.renderer = new MasterRenderer(displayManager);
 
         // RIMUOVERE, caricare l arraylist di entita da renderizzare da World
-        this.renderer.loadCube(new Cube(BlockType.DIRT));
+        this.renderer.loadCube(new Block(BlockType.DIRT));
     }
 
     public WindowManager getDisplayManager() {

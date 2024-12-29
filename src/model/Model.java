@@ -25,6 +25,5 @@ public class Model {
 
     public void updateGame() {
         gameState.update();
-        world.generateChunksAroundCamera(camera.getPosition());
     }
 }

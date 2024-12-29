@@ -15,12 +15,6 @@ public class WindowManager {
     private int currentWidth = WIDTH;
     private int currentHeight = HEIGHT;
 
-    // Store window position and size
-    private int lastWindowX = 100;
-    private int lastWindowY = 100;
-    private int lastWindowWidth = WIDTH;
-    private int lastWindowHeight = HEIGHT;
-
     public void createDisplay() {
         GLFWErrorCallback.createPrint(System.err).set();
 
