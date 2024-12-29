@@ -1,14 +1,15 @@
-package view;
+package view.window;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.system.MemoryStack;
 
 import java.util.Objects;
 
-public class DisplayManager {
+public class WindowManager {
 
     private long window;
     private static final int WIDTH = 1280;
@@ -23,18 +24,36 @@ public class DisplayManager {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
+        GLFW.glfwDefaultWindowHints();
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
+
         window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "Game", 0, 0);
         if (window == 0) {
-            throw new RuntimeException("Failed to create the GLFW window");
+            throw new RuntimeException("Failed to create window");
         }
 
-        GLFWVidMode videoMode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
-        GLFW.glfwSetWindowPos(window, (Objects.requireNonNull(videoMode).width() - WIDTH) / 2, (Objects.requireNonNull(videoMode).height() - HEIGHT) / 2);
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
+            GLFW.glfwSetWindowPos(window,
+                    (vidmode.width() - WIDTH) / 2,
+                    (vidmode.height() - HEIGHT) / 2
+            );
+        }
 
         GLFW.glfwMakeContextCurrent(window);
         GL.createCapabilities();
-        GLFW.glfwSwapInterval(1);
+
+        System.out.println("OpenGL Version: " + GL11.glGetString(GL11.GL_VERSION));
+        System.out.println("Vendor: " + GL11.glGetString(GL11.GL_VENDOR));
+        System.out.println("Renderer: " + GL11.glGetString(GL11.GL_RENDERER));
+
+        GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GL11.glViewport(0, 0, WIDTH, HEIGHT);
+        GLFW.glfwSwapInterval(1);
     }
 
     public void updateDisplay() {

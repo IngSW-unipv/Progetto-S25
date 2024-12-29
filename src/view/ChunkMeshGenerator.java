@@ -1,7 +1,6 @@
 package view;
 
 import model.Block;
-import model.BlockType;
 import model.Chunk;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;

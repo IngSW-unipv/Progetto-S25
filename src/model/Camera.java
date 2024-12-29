@@ -6,17 +6,18 @@ import org.joml.Vector3f;
 
 public class Camera {
     private Vector3f position;
-    private float pitch;    // X rotation (up/down)
-    private float yaw;      // Y rotation (left/right)
-    private float roll;     // Z rotation (tilt)
+    private float pitch;
+    private float yaw;
+    private float roll;
 
     public Camera() {
-        position = new Vector3f(0, 0, 2);
-        pitch = 0;
-        yaw = 0;
+        position = new Vector3f(0, 10, 0);  // Posizione più vicina al terreno
+        pitch = -20f;  // Guardiamo leggermente verso il basso
+        yaw = 45f;     // Ruotati per vedere gli angoli
         roll = 0;
     }
 
+    // Rest of the model.Camera class remains the same
     public void move(boolean forward, boolean back, boolean left, boolean right, boolean up, boolean down) {
         float dx = 0, dz = 0, dy = 0;
 
@@ -27,13 +28,11 @@ public class Camera {
         if (up) dy += GameConfig.CAMERA_MOVEMENT_INCREMENT;
         if (down) dy -= GameConfig.CAMERA_MOVEMENT_INCREMENT;
 
-        // Normalize diagonal movement
         if (dx != 0 && dz != 0) {
             dx *= 0.707f;
             dz *= 0.707f;
         }
 
-        // Calculate movement relative to camera direction
         float angle = (float) Math.toRadians(yaw);
         position.x += (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED;
         position.z += (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED;
@@ -60,12 +59,10 @@ public class Camera {
     public Matrix4f getViewMatrix() {
         Matrix4f matrix = new Matrix4f();
         matrix.identity();
-
         matrix.rotate((float) Math.toRadians(pitch), new Vector3f(1, 0, 0));
         matrix.rotate((float) Math.toRadians(yaw), new Vector3f(0, 1, 0));
         matrix.rotate((float) Math.toRadians(roll), new Vector3f(0, 0, 1));
         matrix.translate(new Vector3f(-position.x, -position.y, -position.z));
-
         return matrix;
     }
 

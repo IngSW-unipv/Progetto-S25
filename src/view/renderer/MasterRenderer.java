@@ -1,15 +1,15 @@
-package view;
+package view.renderer;
 
 import model.BlockType;
 import model.Camera;
 import model.Cube;
-import model.Game;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import view.shader.ShaderProgram;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -23,29 +23,70 @@ public class MasterRenderer {
     private int vertexCount;
     private ShaderProgram shader;
     private Matrix4f projectionMatrix;
-    private Map<BlockType, Texture> textureMap;
-    private Texture currentTexture;
+    private Matrix4f modelMatrix; // Aggiunta
+    private TextureManager textureManager;
+    private Map<BlockType, Integer> blockTextureIds;
 
     public MasterRenderer() {
-        shader = new ShaderProgram("resources/vertex.glsl", "resources/fragment.glsl");
-        textureMap = new HashMap<>();
+        shader = new ShaderProgram("resources/shaders/entity_vertex.glsl", "resources/shaders/entity_fragment.glsl");
+        textureManager = new TextureManager();
+        blockTextureIds = new HashMap<>();
+
         projectionMatrix = new Matrix4f().perspective(
                 (float) Math.toRadians(70.0f),
                 1280.0f / 720.0f,
                 0.1f,
                 1000.0f
         );
+
+        modelMatrix = new Matrix4f().identity();
+
+        // Setup corretto del face culling
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_FRONT);  // Cambio qui: culling delle facce frontali invece che posteriori
+
+
+        // Per debugging, puoi anche invertire il winding order:
+        // GL11.glFrontFace(GL11.GL_CW);  // Clockwise invece che counter-clockwise
     }
 
-    private void loadTexture(BlockType type) {
-        if (!textureMap.containsKey(type)) {
-            textureMap.put(type, new Texture(type.getTexturePath()));
+    public void render(Camera camera) {
+        prepare();
+        shader.start();
+
+        shader.loadMatrix("viewMatrix", camera.getViewMatrix());
+        shader.loadMatrix("projectionMatrix", projectionMatrix);
+        shader.loadMatrix("modelMatrix", modelMatrix);
+
+        GL30.glBindVertexArray(vaoID);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glEnableVertexAttribArray(1);
+
+        textureManager.bindTexture(blockTextureIds.get(BlockType.DIRT), 0);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
+
+        GL20.glDisableVertexAttribArray(0);
+        GL20.glDisableVertexAttribArray(1);
+        GL30.glBindVertexArray(0);
+
+        shader.stop();
+    }
+
+    public void prepare() {
+        GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+    }
+
+    private void loadBlockTexture(BlockType type) {
+        if (!blockTextureIds.containsKey(type)) {
+            int textureId = textureManager.loadTexture(type.getTexturePath());
+            blockTextureIds.put(type, textureId);
         }
     }
 
     public void loadCube(Cube cube) {
-        loadTexture(cube.getType());
+        loadBlockTexture(cube.getType());
         float[] vertices = cube.getVertices();
         int[] indices = cube.getIndices();
 
@@ -74,31 +115,11 @@ public class MasterRenderer {
         GL30.glBindVertexArray(0);
     }
 
-    public void render(Camera camera) {
-        prepare();
-        shader.start();
-        shader.loadMatrix("viewMatrix", camera.getViewMatrix());
-        shader.loadMatrix("projectionMatrix", projectionMatrix);
-
-        GL30.glBindVertexArray(vaoID);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
-        GL30.glBindVertexArray(0);
-
-        shader.stop();
-    }
-
-    public void prepare() {
-        GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-    }
-
     public void cleanUp() {
         GL15.glDeleteBuffers(vboID);
         GL15.glDeleteBuffers(eboID);
         GL30.glDeleteVertexArrays(vaoID);
-        for (Texture texture : textureMap.values()) {
-            texture.cleanup();
-        }
-        shader.stop();
+        textureManager.cleanup();
+        shader.cleanup();
     }
 }

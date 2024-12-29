@@ -1,4 +1,4 @@
-package view;
+package view.shader;
 
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL20;
@@ -73,18 +73,9 @@ public class ShaderProgram {
         }
     }
 
-    // Metodo per ottenere l'ID del programma shader
-    public int getProgramID() {
-        return programID;
-    }
-
-    // Metodo per attivare il programma shader (alias bind)
-    public void bind() {
-        GL20.glUseProgram(programID);
-    }
-
-    // Metodo per disattivare il programma shader (alias unbind)
-    public static void unbind() {
-        GL20.glUseProgram(0);
+    // Metodo per liberare le risorse OpenGL
+    public void cleanup() {
+        stop();
+        GL20.glDeleteProgram(programID);
     }
 }

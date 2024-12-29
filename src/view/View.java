@@ -2,14 +2,15 @@ package view;
 
 import model.Camera;
 import model.Game;
-import model.Model;
+import view.renderer.MasterRenderer;
+import view.window.WindowManager;
 
 public class View {
-    private DisplayManager displayManager;
+    private WindowManager displayManager;
     private MasterRenderer renderer;
 
     public View() {
-        this.displayManager = new DisplayManager();
+        this.displayManager = new WindowManager();
     }
 
     public void createDisplay() {
@@ -19,7 +20,7 @@ public class View {
         this.renderer.loadCube(new Game().getCube());
     }
 
-    public DisplayManager getDisplayManager() {
+    public WindowManager getDisplayManager() {
         return displayManager;
     }
 

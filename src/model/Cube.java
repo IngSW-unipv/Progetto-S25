@@ -13,55 +13,59 @@ public class Cube {
 
     private float[] createVertices() {
         return new float[] {
-                // Front face
-                -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,
-                -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,
-                0.5f, -0.5f,  0.5f,   1.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
+                // Front face (Z+)
+                -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Top-left
+                0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Top-right
+                0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Bottom-right
+                -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Bottom-left
 
-                // Back face
-                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,
-                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,
+                // Back face (Z-)
+                0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Top-left
+                -0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Top-right
+                -0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Bottom-right
+                0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Bottom-left
 
-                // Top face
-                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,
-                -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,
-                0.5f,  0.5f,  0.5f,   1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,
+                // Top face (Y+)
+                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-left
+                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-right
+                0.5f,  0.5f,  0.5f,   1.0f, 1.0f,  // Front-right
+                -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,  // Front-left
 
-                // Bottom face
-                -0.5f, -0.5f, -0.5f,   0.0f, 0.0f,
-                -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,
-                0.5f, -0.5f,  0.5f,   1.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,   1.0f, 0.0f,
+                // Bottom face (Y-)
+                -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,  // Front-left
+                0.5f, -0.5f,  0.5f,   1.0f, 0.0f,  // Front-right
+                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-right
+                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Back-left
 
-                // Right face
-                0.5f,  0.5f,  0.5f,   0.0f, 0.0f,
-                0.5f, -0.5f,  0.5f,   0.0f, 1.0f,
-                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,
-                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,
+                // Right face (X+)
+                0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Front-top
+                0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-top
+                0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-bottom
+                0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Front-bottom
 
-                // Left face
-                -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,
-                -0.5f, -0.5f,  0.5f,   1.0f, 1.0f,
-                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,
-                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f
+                // Left face (X-)
+                -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-top
+                -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Front-top
+                -0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Front-bottom
+                -0.5f, -0.5f, -0.5f,   0.0f, 1.0f   // Back-bottom
         };
     }
 
     private int[] generateIndices() {
-        int[] indices = new int[36];
-        int i = 0;
+        int[] indices = new int[36];  // 6 facce * 2 triangoli * 3 vertici
         for (int face = 0; face < 6; face++) {
-            int offset = face * 4;
-            indices[i++] = offset;
-            indices[i++] = offset + 1;
-            indices[i++] = offset + 2;
-            indices[i++] = offset;
-            indices[i++] = offset + 2;
-            indices[i++] = offset + 3;
+            int offset = face * 4;  // ogni faccia inizia con un offset di 4 vertici
+            int index = face * 6;   // ogni faccia usa 6 indici
+
+            // Primo triangolo della faccia (in senso antiorario)
+            indices[index] = offset;
+            indices[index + 1] = offset + 1;
+            indices[index + 2] = offset + 2;
+
+            // Secondo triangolo della faccia (in senso antiorario)
+            indices[index + 3] = offset;
+            indices[index + 4] = offset + 2;
+            indices[index + 5] = offset + 3;
         }
         return indices;
     }
