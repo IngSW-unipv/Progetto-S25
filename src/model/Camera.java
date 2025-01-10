@@ -14,13 +14,13 @@ public class Camera {
     private static final float PLAYER_HEIGHT = 1.8f;
     private static final float PLAYER_WIDTH = 0.6f;
 
-    public Camera(CollisionSystem collisionSystem) {
+    public Camera(CollisionSystem collisionSystem, Vector3f initialPosition) {
         this.collisionSystem = collisionSystem;
-        position = new Vector3f(-2, 1, 0);
+        position = initialPosition;
         boundingBox = new BoundingBox(
-                PLAYER_WIDTH,
-                PLAYER_HEIGHT,
-                PLAYER_WIDTH
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT,
+            PLAYER_WIDTH
         );
         this.boundingBox.update(position);
         pitch = 30f;
@@ -30,15 +30,15 @@ public class Camera {
 
     private boolean checkCollision(Vector3f newPosition) {
         BoundingBox potentialBox = new BoundingBox(
-                PLAYER_WIDTH,
-                PLAYER_HEIGHT,
-                PLAYER_WIDTH
+            PLAYER_WIDTH,
+            PLAYER_HEIGHT,
+            PLAYER_WIDTH
         );
         potentialBox.update(newPosition);
         return collisionSystem.checkCollision(potentialBox);
     }
 
-    public void move(boolean forward, boolean back, boolean left, boolean right, boolean up, boolean down) {
+    public void move(boolean forward, boolean back, boolean left, boolean right, boolean up, boolean down, float deltaTime) {
         float dx = 0, dz = 0, dy = 0;
 
         if (forward) dz -= GameConfig.CAMERA_MOVEMENT_INCREMENT;
@@ -55,9 +55,9 @@ public class Camera {
 
         float angle = (float) Math.toRadians(yaw);
         Vector3f newPosition = new Vector3f(position);
-        newPosition.x += (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED;
-        newPosition.z += (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED;
-        newPosition.y += dy * GameConfig.CAMERA_MOVE_SPEED;
+        newPosition.x += (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED * deltaTime;
+        newPosition.z += (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED * deltaTime;
+        newPosition.y += dy * GameConfig.CAMERA_MOVE_SPEED * deltaTime;
 
         if (!checkCollision(newPosition)) {
             position = newPosition;

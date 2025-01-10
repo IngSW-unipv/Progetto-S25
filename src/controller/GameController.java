@@ -7,6 +7,9 @@ public class GameController implements EventListener {
     private final Model model;
     private boolean forward, backward, left, right, up, down;
 
+    private long lastFrameTime = System.nanoTime();
+    private float deltaTime;
+
     public GameController(Model model) {
         this.model = model;
 
@@ -36,10 +39,17 @@ public class GameController implements EventListener {
             }
         }
 
-        model.getCamera().move(forward, backward, left, right, up, down);
+        model.getCamera().move(forward, backward, left, right, up, down, deltaTime);
     }
 
     public void update() {
+        updateDeltaTime();
         model.updateGame();
+    }
+
+    private void updateDeltaTime() {
+        long currentTime = System.nanoTime();
+        deltaTime = (currentTime - lastFrameTime) / 1_000_000_000f; // Converti in secondi
+        lastFrameTime = currentTime;
     }
 }

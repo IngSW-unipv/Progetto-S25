@@ -10,7 +10,6 @@ public class InputController {
     private final EventBus eventBus;
     private double lastX = 400, lastY = 300;
     private boolean firstMouse = true;
-    private boolean f11Pressed = false;
 
     public InputController(long window) {
         this.window = window;
