@@ -2,52 +2,59 @@ package model;
 
 public class Block {
     private final BlockType type;
-    private float[] vertices;
-    private int[] indices;
+    private final Position position;
 
-    public Block(BlockType type) {
+    private final float[] vertices;
+    private final int[] indices;
+
+    public Block(BlockType type, Position position) {
         this.type = type;
+        this.position = position;
         this.vertices = createVertices();
         this.indices = generateIndices();
     }
 
     private float[] createVertices() {
+        float x = position.getX();
+        float y = position.getY();
+        float z = position.getZ();
+
         return new float[] {
-            // Front face (Z+)
-            -0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Top-left
-            0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Top-right
-            0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Bottom-right
-            -0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Bottom-left
+                // Front face (Z+)
+                x - 0.5f, y + 0.5f, z + 0.5f,   0.0f, 0.0f,  // Top-left
+                x + 0.5f, y + 0.5f, z + 0.5f,   1.0f, 0.0f,  // Top-right
+                x + 0.5f, y - 0.5f, z + 0.5f,   1.0f, 1.0f,  // Bottom-right
+                x - 0.5f, y - 0.5f, z + 0.5f,   0.0f, 1.0f,  // Bottom-left
 
-            // Back face (Z-)
-            0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Top-left
-            -0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Top-right
-            -0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Bottom-right
-            0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Bottom-left
+                // Back face (Z-)
+                x + 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Top-left
+                x - 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Top-right
+                x - 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Bottom-right
+                x + 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f,  // Bottom-left
 
-            // Top face (Y+)
-            -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-left
-            0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-right
-            0.5f,  0.5f,  0.5f,   1.0f, 1.0f,  // Front-right
-            -0.5f,  0.5f,  0.5f,   0.0f, 1.0f,  // Front-left
+                // Top face (Y+)
+                x - 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Back-left
+                x + 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Back-right
+                x + 0.5f, y + 0.5f, z + 0.5f,   1.0f, 1.0f,  // Front-right
+                x - 0.5f, y + 0.5f, z + 0.5f,   0.0f, 1.0f,  // Front-left
 
-            // Bottom face (Y-)
-            -0.5f, -0.5f,  0.5f,   0.0f, 0.0f,  // Front-left
-            0.5f, -0.5f,  0.5f,   1.0f, 0.0f,  // Front-right
-            0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-right
-            -0.5f, -0.5f, -0.5f,   0.0f, 1.0f,  // Back-left
+                // Bottom face (Y-)
+                x - 0.5f, y - 0.5f, z + 0.5f,   0.0f, 0.0f,  // Front-left
+                x + 0.5f, y - 0.5f, z + 0.5f,   1.0f, 0.0f,  // Front-right
+                x + 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Back-right
+                x - 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f,  // Back-left
 
-            // Right face (X+)
-            0.5f,  0.5f,  0.5f,   0.0f, 0.0f,  // Front-top
-            0.5f,  0.5f, -0.5f,   1.0f, 0.0f,  // Back-top
-            0.5f, -0.5f, -0.5f,   1.0f, 1.0f,  // Back-bottom
-            0.5f, -0.5f,  0.5f,   0.0f, 1.0f,  // Front-bottom
+                // Right face (X+)
+                x + 0.5f, y + 0.5f, z + 0.5f,   0.0f, 0.0f,  // Front-top
+                x + 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Back-top
+                x + 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Back-bottom
+                x + 0.5f, y - 0.5f, z + 0.5f,   0.0f, 1.0f,  // Front-bottom
 
-            // Left face (X-)
-            -0.5f,  0.5f, -0.5f,   0.0f, 0.0f,  // Back-top
-            -0.5f,  0.5f,  0.5f,   1.0f, 0.0f,  // Front-top
-            -0.5f, -0.5f,  0.5f,   1.0f, 1.0f,  // Front-bottom
-            -0.5f, -0.5f, -0.5f,   0.0f, 1.0f   // Back-bottom
+                // Left face (X-)
+                x - 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Back-top
+                x - 0.5f, y + 0.5f, z + 0.5f,   1.0f, 0.0f,  // Front-top
+                x - 0.5f, y - 0.5f, z + 0.5f,   1.0f, 1.0f,  // Front-bottom
+                x - 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f   // Back-bottom
         };
     }
 
@@ -73,6 +80,8 @@ public class Block {
     public BlockType getType() {
         return type;
     }
+
+    public Position getPosition() { return position; }
 
     public float[] getVertices() {
         return vertices;

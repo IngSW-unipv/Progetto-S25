@@ -1,23 +1,28 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class World {
-    //private List<> entities;
     private static final int RENDER_DISTANCE = 8;
+    private Set<Block> blocks = new HashSet<>();
 
     public World() {
-        //entities = new ArrayList<>();
         initializeTestWorld();
     }
 
-    private void initializeTestWorld() {
-        // Add test block - will be replaced with proper world generation later
-        //entities.add(new Block(BlockType.DIRT));
+    public List<Block> getVisibleBlocks() {
+        return new ArrayList<>(blocks);
     }
 
-    //public List<> getEntities() {
-    //    return entities;
-    //}
+    private void initializeTestWorld() {
+        blocks.add(new Block(BlockType.DIRT, new Position(0, 0, 0)));
+        blocks.add(new Block(BlockType.DIRT, new Position(0, 0, 1)));
+        blocks.add(new Block(BlockType.DIRT, new Position(0, 1, 0)));
+        blocks.add(new Block(BlockType.DIRT, new Position(1, 0, 0)));
+
+        blocks.add(new Block(BlockType.DIRT, new Position(0, 1, 1)));
+        blocks.add(new Block(BlockType.DIRT, new Position(1, 0, 1)));
+        blocks.add(new Block(BlockType.DIRT, new Position(1, 1, 0)));
+        blocks.add(new Block(BlockType.DIRT, new Position(1, 1, 1)));
+    }
 }

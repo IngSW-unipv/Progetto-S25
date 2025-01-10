@@ -8,8 +8,9 @@ public class GameController implements EventListener {
     private final EventBus eventBus;
     private boolean forward, backward, left, right, up, down;
 
-    public GameController(Model model) {
+    public GameController(Model model) { // Modificato
         this.model = model;
+
         this.eventBus = EventBus.getInstance();
         eventBus.subscribe(EventType.INPUT, this);
     }

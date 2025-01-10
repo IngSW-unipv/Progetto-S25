@@ -5,10 +5,10 @@ import controller.GameController;
 
 public class Main {
     public static void main(String[] args) {
-
         Model model = new Model();
 
         View view = new View();
+        model.addObserver(view);
         view.createDisplay();
 
         GameController gameController = new GameController(model);
@@ -16,9 +16,7 @@ public class Main {
 
         while (model.getGameState().isRunning()) {
             inputController.pollInput();
-
             gameController.update();
-
             view.render(model.getCamera());
             view.updateDisplay();
         }

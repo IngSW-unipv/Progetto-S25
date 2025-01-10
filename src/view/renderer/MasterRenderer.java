@@ -15,9 +15,10 @@ import view.window.WindowManager;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class MasterRenderer {
+public class MasterRenderer implements WorldRenderer {
     private int vaoID;
     private int vboID;
     private int eboID;
@@ -52,30 +53,6 @@ public class MasterRenderer {
             0.1f,
             1000.0f
         );
-    }
-
-    public void render(Camera camera) {
-        updateProjectionMatrix();
-
-        prepare();
-        shader.start();
-
-        shader.loadMatrix("viewMatrix", camera.getViewMatrix());
-        shader.loadMatrix("projectionMatrix", projectionMatrix);
-        shader.loadMatrix("modelMatrix", modelMatrix);
-
-        GL30.glBindVertexArray(vaoID);
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
-
-        textureManager.bindTexture(blockTextureIds.get(BlockType.DIRT), 0);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
-
-        GL20.glDisableVertexAttribArray(0);
-        GL20.glDisableVertexAttribArray(1);
-        GL30.glBindVertexArray(0);
-
-        shader.stop();
     }
 
     public void prepare() {
@@ -126,5 +103,33 @@ public class MasterRenderer {
         GL30.glDeleteVertexArrays(vaoID);
         textureManager.cleanup();
         shader.cleanup();
+    }
+
+    @Override
+    public void render(List<Block> blocks, Camera camera) {
+        updateProjectionMatrix();
+        prepare();
+        shader.start();
+
+        shader.loadMatrix("viewMatrix", camera.getViewMatrix());
+        shader.loadMatrix("projectionMatrix", projectionMatrix);
+        shader.loadMatrix("modelMatrix", modelMatrix);
+
+        for(Block block : blocks) {
+            loadCube(block); // Usiamo il metodo esistente
+
+            GL30.glBindVertexArray(vaoID);
+            GL20.glEnableVertexAttribArray(0);
+            GL20.glEnableVertexAttribArray(1);
+
+            textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
+            GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
+
+            GL20.glDisableVertexAttribArray(0);
+            GL20.glDisableVertexAttribArray(1);
+            GL30.glBindVertexArray(0);
+        }
+
+        shader.stop();
     }
 }

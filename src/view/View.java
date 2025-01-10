@@ -2,16 +2,20 @@ package view;
 
 import controller.event.*;
 import model.Block;
-import model.BlockType;
 import model.Camera;
 import view.renderer.MasterRenderer;
+import view.renderer.WorldObserver;
 import view.window.WindowManager;
 
-public class View {
+import java.util.List;
+
+public class View implements WorldObserver {
     private boolean f11Pressed = false;
 
-    private WindowManager displayManager;
+    private final WindowManager displayManager;
     private MasterRenderer renderer;
+
+    private List<Block> currentBlocks;
 
     public View() {
         this.displayManager = new WindowManager();
@@ -22,9 +26,6 @@ public class View {
     public void createDisplay() {
         displayManager.createDisplay();
         this.renderer = new MasterRenderer(displayManager);
-
-        // RIMUOVERE, caricare l arraylist di entita da renderizzare da World
-        this.renderer.loadCube(new Block(BlockType.DIRT));
     }
 
     public WindowManager getDisplayManager() {
@@ -32,7 +33,7 @@ public class View {
     }
 
     public void render(Camera camera) {
-        renderer.render(camera);
+        renderer.render(currentBlocks, camera);
     }
 
     public void updateDisplay() {
@@ -54,5 +55,10 @@ public class View {
                 f11Pressed = false;
             }
         }
+    }
+
+    @Override
+    public void onWorldUpdate(List<Block> visibleBlocks) {
+        this.currentBlocks = visibleBlocks;
     }
 }
