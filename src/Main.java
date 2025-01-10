@@ -8,16 +8,14 @@ public class Main {
         Model model = new Model();
 
         View view = new View();
-        model.addObserver(view);
         view.createDisplay();
 
         GameController gameController = new GameController(model);
         InputController inputController = new InputController(view.getDisplayManager().getWindow());
 
-        while (model.getGameState().isRunning()) {
+        while (model.getGameState().getRunning()) {
             inputController.pollInput();
             gameController.update();
-            view.render(model.getCamera());
             view.updateDisplay();
         }
 

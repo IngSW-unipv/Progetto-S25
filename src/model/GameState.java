@@ -10,7 +10,7 @@ public class GameState {
         this.isRunning = running;
     }
 
-    public boolean isRunning() {
+    public boolean getRunning() {
         return isRunning;
     }
 

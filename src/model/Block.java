@@ -20,41 +20,41 @@ public class Block {
         float z = position.getZ();
 
         return new float[] {
-                // Front face (Z+)
-                x - 0.5f, y + 0.5f, z + 0.5f,   0.0f, 0.0f,  // Top-left
-                x + 0.5f, y + 0.5f, z + 0.5f,   1.0f, 0.0f,  // Top-right
-                x + 0.5f, y - 0.5f, z + 0.5f,   1.0f, 1.0f,  // Bottom-right
-                x - 0.5f, y - 0.5f, z + 0.5f,   0.0f, 1.0f,  // Bottom-left
+            // Front face (Z+)
+            x - 0.5f, y + 0.5f, z + 0.5f,   0.0f, 0.0f,  // Top-left
+            x + 0.5f, y + 0.5f, z + 0.5f,   1.0f, 0.0f,  // Top-right
+            x + 0.5f, y - 0.5f, z + 0.5f,   1.0f, 1.0f,  // Bottom-right
+            x - 0.5f, y - 0.5f, z + 0.5f,   0.0f, 1.0f,  // Bottom-left
 
-                // Back face (Z-)
-                x + 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Top-left
-                x - 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Top-right
-                x - 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Bottom-right
-                x + 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f,  // Bottom-left
+            // Back face (Z-)
+            x + 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Top-left
+            x - 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Top-right
+            x - 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Bottom-right
+            x + 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f,  // Bottom-left
 
-                // Top face (Y+)
-                x - 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Back-left
-                x + 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Back-right
-                x + 0.5f, y + 0.5f, z + 0.5f,   1.0f, 1.0f,  // Front-right
-                x - 0.5f, y + 0.5f, z + 0.5f,   0.0f, 1.0f,  // Front-left
+            // Top face (Y+)
+            x - 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Back-left
+            x + 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Back-right
+            x + 0.5f, y + 0.5f, z + 0.5f,   1.0f, 1.0f,  // Front-right
+            x - 0.5f, y + 0.5f, z + 0.5f,   0.0f, 1.0f,  // Front-left
 
-                // Bottom face (Y-)
-                x - 0.5f, y - 0.5f, z + 0.5f,   0.0f, 0.0f,  // Front-left
-                x + 0.5f, y - 0.5f, z + 0.5f,   1.0f, 0.0f,  // Front-right
-                x + 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Back-right
-                x - 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f,  // Back-left
+            // Bottom face (Y-)
+            x - 0.5f, y - 0.5f, z + 0.5f,   0.0f, 0.0f,  // Front-left
+            x + 0.5f, y - 0.5f, z + 0.5f,   1.0f, 0.0f,  // Front-right
+            x + 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Back-right
+            x - 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f,  // Back-left
 
-                // Right face (X+)
-                x + 0.5f, y + 0.5f, z + 0.5f,   0.0f, 0.0f,  // Front-top
-                x + 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Back-top
-                x + 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Back-bottom
-                x + 0.5f, y - 0.5f, z + 0.5f,   0.0f, 1.0f,  // Front-bottom
+            // Right face (X+)
+            x + 0.5f, y + 0.5f, z + 0.5f,   0.0f, 0.0f,  // Front-top
+            x + 0.5f, y + 0.5f, z - 0.5f,   1.0f, 0.0f,  // Back-top
+            x + 0.5f, y - 0.5f, z - 0.5f,   1.0f, 1.0f,  // Back-bottom
+            x + 0.5f, y - 0.5f, z + 0.5f,   0.0f, 1.0f,  // Front-bottom
 
-                // Left face (X-)
-                x - 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Back-top
-                x - 0.5f, y + 0.5f, z + 0.5f,   1.0f, 0.0f,  // Front-top
-                x - 0.5f, y - 0.5f, z + 0.5f,   1.0f, 1.0f,  // Front-bottom
-                x - 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f   // Back-bottom
+            // Left face (X-)
+            x - 0.5f, y + 0.5f, z - 0.5f,   0.0f, 0.0f,  // Back-top
+            x - 0.5f, y + 0.5f, z + 0.5f,   1.0f, 0.0f,  // Front-top
+            x - 0.5f, y - 0.5f, z + 0.5f,   1.0f, 1.0f,  // Front-bottom
+            x - 0.5f, y - 0.5f, z - 0.5f,   0.0f, 1.0f   // Back-bottom
         };
     }
 

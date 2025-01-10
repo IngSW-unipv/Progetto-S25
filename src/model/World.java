@@ -17,12 +17,12 @@ public class World {
     private void initializeTestWorld() {
         blocks.add(new Block(BlockType.DIRT, new Position(0, 0, 0)));
         blocks.add(new Block(BlockType.DIRT, new Position(0, 0, 1)));
-        blocks.add(new Block(BlockType.DIRT, new Position(0, 1, 0)));
+        blocks.add(new Block(BlockType.GRASS, new Position(0, 1, 0)));
         blocks.add(new Block(BlockType.DIRT, new Position(1, 0, 0)));
 
-        blocks.add(new Block(BlockType.DIRT, new Position(0, 1, 1)));
+        blocks.add(new Block(BlockType.GRASS, new Position(0, 1, 1)));
         blocks.add(new Block(BlockType.DIRT, new Position(1, 0, 1)));
-        blocks.add(new Block(BlockType.DIRT, new Position(1, 1, 0)));
-        blocks.add(new Block(BlockType.DIRT, new Position(1, 1, 1)));
+        blocks.add(new Block(BlockType.GRASS, new Position(1, 1, 0)));
+        blocks.add(new Block(BlockType.GRASS, new Position(1, 1, 1)));
     }
 }

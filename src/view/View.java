@@ -1,21 +1,14 @@
 package view;
 
 import controller.event.*;
-import model.Block;
-import model.Camera;
 import view.renderer.MasterRenderer;
-import view.renderer.WorldObserver;
 import view.window.WindowManager;
 
-import java.util.List;
-
-public class View implements WorldObserver {
-    private boolean f11Pressed = false;
-
+public class View {
     private final WindowManager displayManager;
     private MasterRenderer renderer;
 
-    private List<Block> currentBlocks;
+    private boolean f11Pressed = false;
 
     public View() {
         this.displayManager = new WindowManager();
@@ -32,10 +25,6 @@ public class View implements WorldObserver {
         return displayManager;
     }
 
-    public void render(Camera camera) {
-        renderer.render(currentBlocks, camera);
-    }
-
     public void updateDisplay() {
         displayManager.updateDisplay();
     }
@@ -46,19 +35,17 @@ public class View implements WorldObserver {
     }
 
     public void onEvent(GameEvent event) {
-        if (event instanceof InputEvent inputEvent &&
-                inputEvent.getAction() == InputAction.TOGGLE_FULLSCREEN) {
-            if (inputEvent.getValue() > 0 && !f11Pressed) {
-                displayManager.toggleFullscreen();
-                f11Pressed = true;
-            } else if (inputEvent.getValue() == 0) {
-                f11Pressed = false;
-            }
+        if (event instanceof InputEvent inputEvent && inputEvent.action() == InputAction.TOGGLE_FULLSCREEN) {
+            handleFullscreenToggle(inputEvent.value());
         }
     }
 
-    @Override
-    public void onWorldUpdate(List<Block> visibleBlocks) {
-        this.currentBlocks = visibleBlocks;
+    private void handleFullscreenToggle(float value) {
+        if (value > 0 && !f11Pressed) {
+            displayManager.toggleFullscreen();
+            f11Pressed = true;
+        } else if (value == 0) {
+            f11Pressed = false;
+        }
     }
 }

@@ -1,28 +1,12 @@
 package model;
 
-import view.renderer.WorldObserver;
-
-import java.util.ArrayList;
-import java.util.List;
+import controller.event.EventBus;
+import controller.event.RenderEvent;
 
 public class Model {
-    private GameState gameState;
-    private Camera camera;
-    private World world;
-
-    private List<WorldObserver> observers = new ArrayList<>();
-
-    public void addObserver(WorldObserver observer) {
-        observers.add(observer);
-    }
-
-    public void notifyObservers() {
-        List<Block> visibleBlocks = world.getVisibleBlocks();
-        for(WorldObserver observer : observers) {
-            observer.onWorldUpdate(visibleBlocks);
-        }
-    }
-
+    private final GameState gameState;
+    private final Camera camera;
+    private final World world;
 
     public Model() {
         this.gameState = new GameState();
@@ -44,6 +28,6 @@ public class Model {
 
     public void updateGame() {
         gameState.update();
-        notifyObservers();
+        EventBus.getInstance().post(new RenderEvent(camera, world.getVisibleBlocks()));
     }
 }

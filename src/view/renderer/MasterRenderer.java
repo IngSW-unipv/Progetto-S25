@@ -1,5 +1,9 @@
 package view.renderer;
 
+import controller.event.EventBus;
+import controller.event.EventType;
+import controller.event.GameEvent;
+import controller.event.RenderEvent;
 import model.BlockType;
 import model.Camera;
 import model.Block;
@@ -14,25 +18,30 @@ import view.window.WindowManager;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MasterRenderer implements WorldRenderer {
+public class MasterRenderer implements WorldRenderer, EventListener {
     private int vaoID;
     private int vboID;
     private int eboID;
     private int vertexCount;
     private ShaderProgram shader;
     private Matrix4f projectionMatrix;
-    private Matrix4f modelMatrix; // Aggiunta
+    private Matrix4f modelMatrix;
     private TextureManager textureManager;
     private Map<BlockType, Integer> blockTextureIds;
 
     private WindowManager windowManager;
 
     public MasterRenderer(WindowManager windowManager) {
+
+        EventBus.getInstance().subscribe(EventType.RENDER, this::onEvent);
+
         this.windowManager = windowManager;
+
         shader = new ShaderProgram("resources/shaders/block_vertex.glsl", "resources/shaders/block_fragment.glsl");
         textureManager = new TextureManager();
         blockTextureIds = new HashMap<>();
@@ -105,6 +114,20 @@ public class MasterRenderer implements WorldRenderer {
         shader.cleanup();
     }
 
+    private void renderBlock(Block block) {
+        loadCube(block);
+        GL30.glBindVertexArray(vaoID);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glEnableVertexAttribArray(1);
+
+        textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
+
+        GL20.glDisableVertexAttribArray(0);
+        GL20.glDisableVertexAttribArray(1);
+        GL30.glBindVertexArray(0);
+    }
+
     @Override
     public void render(List<Block> blocks, Camera camera) {
         updateProjectionMatrix();
@@ -115,21 +138,14 @@ public class MasterRenderer implements WorldRenderer {
         shader.loadMatrix("projectionMatrix", projectionMatrix);
         shader.loadMatrix("modelMatrix", modelMatrix);
 
-        for(Block block : blocks) {
-            loadCube(block); // Usiamo il metodo esistente
-
-            GL30.glBindVertexArray(vaoID);
-            GL20.glEnableVertexAttribArray(0);
-            GL20.glEnableVertexAttribArray(1);
-
-            textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
-            GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
-
-            GL20.glDisableVertexAttribArray(0);
-            GL20.glDisableVertexAttribArray(1);
-            GL30.glBindVertexArray(0);
-        }
+        blocks.forEach(this::renderBlock);
 
         shader.stop();
+    }
+
+    public void onEvent(GameEvent event) {
+        if (event instanceof RenderEvent renderEvent) {
+            render(renderEvent.blocks(), renderEvent.camera());
+        }
     }
 }

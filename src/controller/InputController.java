@@ -1,15 +1,16 @@
 package controller;
 
-import controller.event.*;
+import controller.event.EventBus;
+import controller.event.InputAction;
+import controller.event.InputEvent;
 import org.lwjgl.glfw.GLFW;
-import view.window.WindowManager;
 
 public class InputController {
     private final long window;
     private final EventBus eventBus;
-    private boolean f11Pressed = false;
     private double lastX = 400, lastY = 300;
     private boolean firstMouse = true;
+    private boolean f11Pressed = false;
 
     public InputController(long window) {
         this.window = window;

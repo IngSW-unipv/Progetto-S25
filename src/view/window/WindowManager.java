@@ -7,6 +7,8 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
 
+import java.util.Objects;
+
 public class WindowManager {
     private static long window;
     private static final int WIDTH = 1280;
@@ -29,7 +31,7 @@ public class WindowManager {
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
 
-        window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "Game", 0, 0);
+        window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "Voxel", 0, 0);
         if (window == 0) {
             throw new RuntimeException("Failed to create window");
         }
@@ -37,8 +39,8 @@ public class WindowManager {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
             GLFW.glfwSetWindowPos(window,
-                    (vidmode.width() - WIDTH) / 2,
-                    (vidmode.height() - HEIGHT) / 2
+                (Objects.requireNonNull(vidmode).width() - WIDTH) / 2,
+                (Objects.requireNonNull(vidmode).height() - HEIGHT) / 2
             );
         }
 
@@ -71,7 +73,7 @@ public class WindowManager {
             // Switch to fullscreen
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
             GLFW.glfwSetWindowMonitor(window, GLFW.glfwGetPrimaryMonitor(), 0, 0,
-                    vidmode.width(), vidmode.height(), vidmode.refreshRate());
+                    Objects.requireNonNull(vidmode).width(), Objects.requireNonNull(vidmode).height(), vidmode.refreshRate());
             currentWidth = vidmode.width();
             currentHeight = vidmode.height();
         }
