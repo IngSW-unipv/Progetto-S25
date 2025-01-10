@@ -60,9 +60,9 @@ public class Frustum {
     public boolean isBoxInFrustum(float x, float y, float z, float size) {
         // Per ogni vertice del box
         float[] corners = {
-                x - size/2, x + size/2,
-                y - size/2, y + size/2,
-                z - size/2, z + size/2
+            x - size/2, x + size/2,
+            y - size/2, y + size/2,
+            z - size/2, z + size/2
         };
 
         for (Vector4f plane : planes) {

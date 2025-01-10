@@ -61,15 +61,39 @@ public class World {
 
     private void generateChunk(ChunkPosition pos) {
         Chunk chunk = new Chunk(pos);
+        PerlinNoiseGenerator terrainNoise = new PerlinNoiseGenerator(1234);
+        PerlinNoiseGenerator caveNoise = new PerlinNoiseGenerator(5678);
+
         for(int bx = 0; bx < CHUNK_SIZE; bx++) {
             for(int bz = 0; bz < CHUNK_SIZE; bz++) {
                 int worldX = bx + (pos.x() * CHUNK_SIZE);
                 int worldZ = bz + (pos.z() * CHUNK_SIZE);
 
-                chunk.setBlock(new Block(BlockType.BEDROCK, new Position(worldX, 0, worldZ)));
-                chunk.setBlock(new Block(BlockType.STONE, new Position(worldX, 1, worldZ)));
-                chunk.setBlock(new Block(BlockType.DIRT, new Position(worldX, 2, worldZ)));
-                chunk.setBlock(new Block(BlockType.GRASS, new Position(worldX, 3, worldZ)));
+                // Aumentato il moltiplicatore e l'offset per terreno più alto
+                double noise = terrainNoise.noise(worldX / 32.0, worldZ / 32.0);
+                int height = (int)(noise * 32) + 32; // Ora va da 32 a 64 blocchi
+
+                for(int y = 0; y <= height; y++) {
+                    // Ridotto la soglia per meno grotte e aumentato la scala
+                    double caveValue = caveNoise.noise3D(worldX / 16.0, y / 16.0, worldZ / 16.0);
+
+                    // Soglia più alta = meno grotte
+                    if(caveValue > 0.7 && y > 5 && y < height - 1) {
+                        continue;
+                    }
+
+                    BlockType type;
+                    if(y == 0) {
+                        type = BlockType.BEDROCK;
+                    } else if(y == height) {
+                        type = BlockType.GRASS;
+                    } else if(y > height - 4) {
+                        type = BlockType.DIRT;
+                    } else {
+                        type = BlockType.STONE;
+                    }
+                    chunk.setBlock(new Block(type, new Position(worldX, y, worldZ)));
+                }
             }
         }
         chunks.add(chunk);

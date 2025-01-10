@@ -12,7 +12,7 @@ public class Model {
 
     public Model() {
         this.gameState = new GameState();
-        Vector3f initialPosition = new Vector3f(0, 5, 0);
+        Vector3f initialPosition = new Vector3f(0, 50, 0);
         this.world = new World(initialPosition);
         this.collisionSystem = new CollisionSystem(world);
         this.camera = new Camera(collisionSystem, initialPosition);

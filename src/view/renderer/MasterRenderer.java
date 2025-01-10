@@ -145,7 +145,7 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         })
         .toList();
 
-        System.out.println("Totale blocchi: " + blocks.size() + ", Blocchi renderizzati: " + visibleBlocks.size());
+        //System.out.println("Totale blocchi: " + blocks.size() + ", Blocchi renderizzati: " + visibleBlocks.size());
 
         // Render visible blocks
         visibleBlocks.forEach(this::renderBlock);
