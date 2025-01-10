@@ -4,9 +4,7 @@ import controller.event.EventBus;
 import controller.event.EventType;
 import controller.event.GameEvent;
 import controller.event.RenderEvent;
-import model.BlockType;
-import model.Camera;
-import model.Block;
+import model.*;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -22,6 +20,7 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MasterRenderer implements WorldRenderer, EventListener {
     private int vaoID;
@@ -36,6 +35,9 @@ public class MasterRenderer implements WorldRenderer, EventListener {
     private HUDRenderer hudRenderer;
 
     private WindowManager windowManager;
+
+    private Frustum frustum;
+    private Matrix4f projectionViewMatrix;
 
     public MasterRenderer(WindowManager windowManager) {
         EventBus.getInstance().subscribe(EventType.RENDER, this::onEvent);
@@ -55,14 +57,17 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         GL11.glCullFace(GL11.GL_FRONT);
 
         hudRenderer = new HUDRenderer();
+
+        frustum = new Frustum();
+        projectionViewMatrix = new Matrix4f();
     }
 
     private void updateProjectionMatrix() {
         projectionMatrix = new Matrix4f().perspective(
-            (float) Math.toRadians(70.0f),
+            (float) Math.toRadians(60.0f),
             windowManager.getAspectRatio(),
-            0.1f,
-            1000.0f
+            0.3f,
+            100.0f
         );
     }
 
@@ -123,15 +128,31 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         prepare();
         shader.start();
 
-        shader.loadMatrix("viewMatrix", camera.getViewMatrix());
+        // Update matrices
+        Matrix4f viewMatrix = camera.getViewMatrix();
+        shader.loadMatrix("viewMatrix", viewMatrix);
         shader.loadMatrix("projectionMatrix", projectionMatrix);
         shader.loadMatrix("modelMatrix", modelMatrix);
 
-        blocks.forEach(this::renderBlock);
+        // Update frustum
+        projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
+        frustum.update(projectionViewMatrix);
+
+        // Filter visible blocks
+        List<Block> visibleBlocks = blocks.stream().filter(block -> {
+            Position pos = block.getPosition();
+            return frustum.isBoxInFrustum(pos.getX(), pos.getY(), pos.getZ(), 1.0f);
+        })
+        .toList();
+
+        System.out.println("Totale blocchi: " + blocks.size() + ", Blocchi renderizzati: " + visibleBlocks.size());
+
+        // Render visible blocks
+        visibleBlocks.forEach(this::renderBlock);
 
         shader.stop();
 
-        // Render HUD last (on top of everything)
+        // Render HUD
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         hudRenderer.render();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
