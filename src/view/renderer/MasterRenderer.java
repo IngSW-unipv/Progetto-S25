@@ -33,11 +33,11 @@ public class MasterRenderer implements WorldRenderer, EventListener {
     private Matrix4f modelMatrix;
     private TextureManager textureManager;
     private Map<BlockType, Integer> blockTextureIds;
+    private HUDRenderer hudRenderer;
 
     private WindowManager windowManager;
 
     public MasterRenderer(WindowManager windowManager) {
-
         EventBus.getInstance().subscribe(EventType.RENDER, this::onEvent);
 
         this.windowManager = windowManager;
@@ -53,6 +53,8 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_FRONT);
+
+        hudRenderer = new HUDRenderer();
     }
 
     private void updateProjectionMatrix() {
@@ -112,20 +114,7 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         GL30.glDeleteVertexArrays(vaoID);
         textureManager.cleanup();
         shader.cleanup();
-    }
-
-    private void renderBlock(Block block) {
-        loadCube(block);
-        GL30.glBindVertexArray(vaoID);
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
-
-        textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
-
-        GL20.glDisableVertexAttribArray(0);
-        GL20.glDisableVertexAttribArray(1);
-        GL30.glBindVertexArray(0);
+        hudRenderer.cleanUp();
     }
 
     @Override
@@ -141,6 +130,25 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         blocks.forEach(this::renderBlock);
 
         shader.stop();
+
+        // Render HUD last (on top of everything)
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        hudRenderer.render();
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+    }
+
+    private void renderBlock(Block block) {
+        loadCube(block);
+        GL30.glBindVertexArray(vaoID);
+        GL20.glEnableVertexAttribArray(0);
+        GL20.glEnableVertexAttribArray(1);
+
+        textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
+        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
+
+        GL20.glDisableVertexAttribArray(0);
+        GL20.glDisableVertexAttribArray(1);
+        GL30.glBindVertexArray(0);
     }
 
     public void onEvent(GameEvent event) {

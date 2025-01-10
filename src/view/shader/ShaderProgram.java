@@ -78,4 +78,8 @@ public class ShaderProgram {
         stop();
         GL20.glDeleteProgram(programID);
     }
+
+    public int getProgramID() {
+        return programID;
+    }
 }
