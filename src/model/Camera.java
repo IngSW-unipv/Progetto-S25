@@ -9,13 +9,33 @@ public class Camera {
     private float pitch;
     private float yaw;
     private float roll;
+    private final BoundingBox boundingBox;
+    private final CollisionSystem collisionSystem;
+    private static final float PLAYER_HEIGHT = 1.8f;
+    private static final float PLAYER_WIDTH = 0.6f;
 
-    public Camera() {
+    public Camera(CollisionSystem collisionSystem) {
+        this.collisionSystem = collisionSystem;
         position = new Vector3f(-2, 1, 0);
-
+        boundingBox = new BoundingBox(
+                PLAYER_WIDTH,
+                PLAYER_HEIGHT,
+                PLAYER_WIDTH
+        );
+        this.boundingBox.update(position);
         pitch = 30f;
         yaw = 90;
         roll = 0;
+    }
+
+    private boolean checkCollision(Vector3f newPosition) {
+        BoundingBox potentialBox = new BoundingBox(
+                PLAYER_WIDTH,
+                PLAYER_HEIGHT,
+                PLAYER_WIDTH
+        );
+        potentialBox.update(newPosition);
+        return collisionSystem.checkCollision(potentialBox);
     }
 
     public void move(boolean forward, boolean back, boolean left, boolean right, boolean up, boolean down) {
@@ -34,9 +54,15 @@ public class Camera {
         }
 
         float angle = (float) Math.toRadians(yaw);
-        position.x += (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED;
-        position.z += (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED;
-        position.y += dy * GameConfig.CAMERA_MOVE_SPEED;
+        Vector3f newPosition = new Vector3f(position);
+        newPosition.x += (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED;
+        newPosition.z += (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED;
+        newPosition.y += dy * GameConfig.CAMERA_MOVE_SPEED;
+
+        if (!checkCollision(newPosition)) {
+            position = newPosition;
+            boundingBox.update(position);
+        }
     }
 
     public void rotate(float dx, float dy) {

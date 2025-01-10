@@ -7,11 +7,13 @@ public class Model {
     private final GameState gameState;
     private final Camera camera;
     private final World world;
+    private final CollisionSystem collisionSystem;
 
     public Model() {
-        this.gameState = new GameState();
-        this.camera = new Camera();
         this.world = new World();
+        this.gameState = new GameState();
+        this.collisionSystem = new CollisionSystem(world);
+        this.camera = new Camera(collisionSystem);
     }
 
     public World getWorld() {

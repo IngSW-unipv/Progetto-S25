@@ -1,8 +1,12 @@
 package model;
 
+import org.joml.Vector3f;
+
 public class Block {
     private final BlockType type;
     private final Position position;
+
+    private final BoundingBox boundingBox;
 
     private final float[] vertices;
     private final int[] indices;
@@ -12,6 +16,9 @@ public class Block {
         this.position = position;
         this.vertices = createVertices();
         this.indices = generateIndices();
+
+        this.boundingBox = new BoundingBox(1.0f, 1.0f, 1.0f);
+        this.boundingBox.update(new Vector3f(position.getX(), position.getY(), position.getZ()));
     }
 
     private float[] createVertices() {
@@ -79,6 +86,10 @@ public class Block {
 
     public BlockType getType() {
         return type;
+    }
+
+    public BoundingBox getBoundingBox() {
+        return boundingBox;
     }
 
     public Position getPosition() { return position; }
