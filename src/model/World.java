@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 import java.util.*;
 
 public class World {
-    public static final int CHUNK_SIZE = 4;
+    public static final int CHUNK_SIZE = 6;
     private final Set<Chunk> chunks = new HashSet<>();
     private Vector3f lastKnownPlayerPos;
     private final PerlinNoiseGenerator terrainNoise;

@@ -13,6 +13,8 @@ public class Camera {
     private final CollisionSystem collisionSystem;
     private static final float PLAYER_HEIGHT = 1.8f;
     private static final float PLAYER_WIDTH = 0.6f;
+    private float verticalVelocity = 0.0f;
+    private boolean isGrounded = false;
 
     public Camera(CollisionSystem collisionSystem, Vector3f initialPosition) {
         this.collisionSystem = collisionSystem;
@@ -28,41 +30,101 @@ public class Camera {
         roll = 0;
     }
 
-    private boolean checkCollision(Vector3f newPosition) {
-        BoundingBox potentialBox = new BoundingBox(
-            PLAYER_WIDTH,
-            PLAYER_HEIGHT,
-            PLAYER_WIDTH
-        );
-        potentialBox.update(newPosition);
+    private boolean checkCollisionInDirection(Vector3f newPosition, Direction direction) {
+        float epsilon = 0.1f; // Margine di tolleranza per le collisioni
+        BoundingBox potentialBox = new BoundingBox(PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_WIDTH);
+
+        // Testiamo solo nella direzione del movimento
+        Vector3f testPosition = new Vector3f(position);
+        switch(direction) {
+            case HORIZONTAL:
+                testPosition.x = newPosition.x;
+                testPosition.z = newPosition.z;
+                break;
+            case VERTICAL:
+                testPosition.y = newPosition.y;
+                break;
+        }
+
+        potentialBox.update(testPosition);
         return collisionSystem.checkCollision(potentialBox);
     }
 
     public void move(boolean forward, boolean back, boolean left, boolean right, boolean up, boolean down, float deltaTime) {
-        float dx = 0, dz = 0, dy = 0;
+        float dx = 0, dz = 0;
 
+        // Movimento orizzontale
         if (forward) dz -= GameConfig.CAMERA_MOVEMENT_INCREMENT;
         if (back) dz += GameConfig.CAMERA_MOVEMENT_INCREMENT;
         if (left) dx -= GameConfig.CAMERA_MOVEMENT_INCREMENT;
         if (right) dx += GameConfig.CAMERA_MOVEMENT_INCREMENT;
-        if (up) dy += GameConfig.CAMERA_MOVEMENT_INCREMENT;
-        if (down) dy -= GameConfig.CAMERA_MOVEMENT_INCREMENT;
 
         if (dx != 0 && dz != 0) {
             dx *= 0.707f;
             dz *= 0.707f;
         }
 
+        // Applica gravità
+        verticalVelocity += GameConfig.GRAVITY * deltaTime;
+        if (verticalVelocity < GameConfig.TERMINAL_VELOCITY) {
+            verticalVelocity = GameConfig.TERMINAL_VELOCITY;
+        }
+
+        // Gestisce il salto
+        if (up && isGrounded) {
+            verticalVelocity = GameConfig.JUMP_FORCE;
+            isGrounded = false;
+        }
+
         float angle = (float) Math.toRadians(yaw);
         Vector3f newPosition = new Vector3f(position);
-        newPosition.x += (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED * deltaTime;
-        newPosition.z += (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED * deltaTime;
-        newPosition.y += dy * GameConfig.CAMERA_MOVE_SPEED * deltaTime;
 
-        if (!checkCollision(newPosition)) {
-            position = newPosition;
-            boundingBox.update(position);
+        // Applica movimento orizzontale separatamente
+        Vector3f horizontalMove = new Vector3f(
+                (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * GameConfig.CAMERA_MOVE_SPEED * deltaTime,
+                0,
+                (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * GameConfig.CAMERA_MOVE_SPEED * deltaTime
+        );
+
+        // Prova il movimento orizzontale
+        newPosition.x = position.x + horizontalMove.x;
+        newPosition.z = position.z + horizontalMove.z;
+
+        if (!checkCollisionInDirection(newPosition, Direction.HORIZONTAL)) {
+            position.x = newPosition.x;
+            position.z = newPosition.z;
+        } else {
+            // Prova a muoversi solo su X
+            newPosition.x = position.x + horizontalMove.x;
+            newPosition.z = position.z;
+            if (!checkCollisionInDirection(newPosition, Direction.HORIZONTAL)) {
+                position.x = newPosition.x;
+            }
+
+            // Prova a muoversi solo su Z
+            newPosition.x = position.x;
+            newPosition.z = position.z + horizontalMove.z;
+            if (!checkCollisionInDirection(newPosition, Direction.HORIZONTAL)) {
+                position.z = newPosition.z;
+            }
         }
+
+        // Applica movimento verticale separatamente
+        newPosition.y = position.y + verticalVelocity * deltaTime;
+
+        if (!checkCollisionInDirection(newPosition, Direction.VERTICAL)) {
+            position.y = newPosition.y;
+            isGrounded = false;
+        } else {
+            if (verticalVelocity < 0) {
+                isGrounded = true;
+                verticalVelocity = 0;
+            } else if (verticalVelocity > 0) {
+                verticalVelocity = 0;
+            }
+        }
+
+        boundingBox.update(position);
     }
 
     public void rotate(float dx, float dy) {
