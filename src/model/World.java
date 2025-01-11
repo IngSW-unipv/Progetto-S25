@@ -190,6 +190,25 @@ public class World {
                 });
     }
 
+    private void updateAdjacentBlockFaces(Position position) {
+        // Update blocks in all 6 directions
+        Position[] adjacentPositions = {
+                new Position(position.x() + 1, position.y(), position.z()), // Right
+                new Position(position.x() - 1, position.y(), position.z()), // Left
+                new Position(position.x(), position.y() + 1, position.z()), // Top
+                new Position(position.x(), position.y() - 1, position.z()), // Bottom
+                new Position(position.x(), position.y(), position.z() + 1), // Front
+                new Position(position.x(), position.y(), position.z() - 1)  // Back
+        };
+
+        for (Position adjacentPos : adjacentPositions) {
+            Block adjacentBlock = getBlock(adjacentPos);
+            if (adjacentBlock != null) {
+                adjacentBlock.updateVisibleFaces(this);
+            }
+        }
+    }
+
     public void destroyBlock(Position position) {
         int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
         int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
@@ -198,6 +217,9 @@ public class World {
             .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
             .findFirst()
             .ifPresent(chunk -> {
+                // Update faces of adjacent blocks before removing the target block
+                updateAdjacentBlockFaces(position);
+
                 chunk.removeBlock(position);
                 updateChunkBlockFaces(chunk);
 

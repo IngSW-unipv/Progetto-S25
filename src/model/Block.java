@@ -39,47 +39,38 @@ public class Block {
     }
 
     public void updateVisibleFaces(World world) {
-        // Controllo se il blocco è completamente nascosto
+        // Aggiorna solo le facce del blocco corrente
         if (isCompletelyHidden(world)) {
             Arrays.fill(visibleFaces, false);
-            return;
-        }
-
-        // Se c'è un blocco sopra, nascondi tutte le facce tranne quelle laterali che sono esposte
-        if (hasAdjacentBlock(world, 0, 1, 0)) {
-            visibleFaces[TOP] = false;
-            visibleFaces[FRONT] = !hasAdjacentBlock(world, 0, 0, 1) && !hasAdjacentBlock(world, 0, 1, 1);
-            visibleFaces[BACK] = !hasAdjacentBlock(world, 0, 0, -1) && !hasAdjacentBlock(world, 0, 1, -1);
-            visibleFaces[RIGHT] = !hasAdjacentBlock(world, 1, 0, 0) && !hasAdjacentBlock(world, 1, 1, 0);
-            visibleFaces[LEFT] = !hasAdjacentBlock(world, -1, 0, 0) && !hasAdjacentBlock(world, -1, 1, 0);
+            isVisible = false;
+        } else {
+            visibleFaces[TOP] = !hasAdjacentBlock(world, 0, 1, 0);
             visibleFaces[BOTTOM] = !hasAdjacentBlock(world, 0, -1, 0);
-            return;
+            visibleFaces[FRONT] = !hasAdjacentBlock(world, 0, 0, 1);
+            visibleFaces[BACK] = !hasAdjacentBlock(world, 0, 0, -1);
+            visibleFaces[RIGHT] = !hasAdjacentBlock(world, 1, 0, 0);
+            visibleFaces[LEFT] = !hasAdjacentBlock(world, -1, 0, 0);
+            isVisible = true;
         }
-
-        // Controllo normale per blocchi esposti
-        visibleFaces[TOP] = true;
-        visibleFaces[FRONT] = !hasAdjacentBlock(world, 0, 0, 1);
-        visibleFaces[BACK] = !hasAdjacentBlock(world, 0, 0, -1);
-        visibleFaces[RIGHT] = !hasAdjacentBlock(world, 1, 0, 0);
-        visibleFaces[LEFT] = !hasAdjacentBlock(world, -1, 0, 0);
-        visibleFaces[BOTTOM] = !hasAdjacentBlock(world, 0, -1, 0);
     }
 
     private boolean isCompletelyHidden(World world) {
-        return hasAdjacentBlock(world, 0, 1, 0) && // blocco sopra
-                hasAdjacentBlock(world, 0, 0, 1) && // fronte
-                hasAdjacentBlock(world, 0, 0, -1) && // dietro
-                hasAdjacentBlock(world, 1, 0, 0) && // destra
-                hasAdjacentBlock(world, -1, 0, 0); // sinistra
+        return hasAdjacentBlock(world, 0, 1, 0) &&
+            hasAdjacentBlock(world, 0, -1, 0) &&
+            hasAdjacentBlock(world, 0, 0, 1) &&
+            hasAdjacentBlock(world, 0, 0, -1) &&
+            hasAdjacentBlock(world, 1, 0, 0) &&
+            hasAdjacentBlock(world, -1, 0, 0);
     }
 
     private boolean hasAdjacentBlock(World world, int dx, int dy, int dz) {
         Position adjacentPos = new Position(
-                position.x() + dx,
-                position.y() + dy,
-                position.z() + dz
+            position.x() + dx,
+            position.y() + dy,
+            position.z() + dz
         );
-        return world.getBlock(adjacentPos) != null;
+        Block block = world.getBlock(adjacentPos);
+        return block != null;
     }
 
     public float[] getVertices() {
@@ -91,60 +82,60 @@ public class Block {
         // Faccia frontale (Z+)
         if (visibleFaces[FRONT]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
+                x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
             );
         }
 
         // Faccia posteriore (Z-)
         if (visibleFaces[BACK]) {
             addFaceVertices(visibleVertices,
-                    x + 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
-                    x - 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
-                    x - 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
-                    x + 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
+                x + 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
+                x - 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
+                x - 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
+                x + 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
             );
         }
 
         // Faccia superiore (Y+)
         if (visibleFaces[TOP]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 1.0f
+                x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 1.0f
             );
         }
 
         // Faccia inferiore (Y-)
         if (visibleFaces[BOTTOM]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
+                x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
             );
         }
 
         // Faccia destra (X+)
         if (visibleFaces[RIGHT]) {
             addFaceVertices(visibleVertices,
-                    x + 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
-                    x + 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
+                x + 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
+                x + 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
             );
         }
 
         // Faccia sinistra (X-)
         if (visibleFaces[LEFT]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
-                    x - 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
-                    x - 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
+                x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
+                x - 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
+                x - 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
             );
         }
 
@@ -156,10 +147,10 @@ public class Block {
     }
 
     private void addFaceVertices(List<Float> vertices,
-                                 float x1, float y1, float z1, float u1, float v1,
-                                 float x2, float y2, float z2, float u2, float v2,
-                                 float x3, float y3, float z3, float u3, float v3,
-                                 float x4, float y4, float z4, float u4, float v4) {
+         float x1, float y1, float z1, float u1, float v1,
+         float x2, float y2, float z2, float u2, float v2,
+         float x3, float y3, float z3, float u3, float v3,
+         float x4, float y4, float z4, float u4, float v4) {
         vertices.add(x1); vertices.add(y1); vertices.add(z1); vertices.add(u1); vertices.add(v1);
         vertices.add(x2); vertices.add(y2); vertices.add(z2); vertices.add(u2); vertices.add(v2);
         vertices.add(x3); vertices.add(y3); vertices.add(z3); vertices.add(u3); vertices.add(v3);
