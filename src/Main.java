@@ -5,7 +5,12 @@ import controller.GameController;
 
 public class Main {
     public static void main(String[] args) {
-        Model model = new Model();
+        // Create model with random seed by default
+        //Model model = new Model();
+
+        // Alternatively, you can specify a seed
+        long specificSeed = 12345L;
+        Model model = new Model(specificSeed);
 
         View view = new View();
         view.createDisplay();

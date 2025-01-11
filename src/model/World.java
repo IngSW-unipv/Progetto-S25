@@ -10,12 +10,23 @@ public class World {
     private Vector3f lastKnownPlayerPos;
     private final PerlinNoiseGenerator terrainNoise;
     private final PerlinNoiseGenerator caveNoise;
+    private final long seed;
 
-    public World(Vector3f initialPosition) {
+    public World(Vector3f initialPosition, long seed) {
         this.lastKnownPlayerPos = initialPosition;
-        this.terrainNoise = new PerlinNoiseGenerator(1234);
-        this.caveNoise = new PerlinNoiseGenerator(5678);
+        this.seed = seed;
+
+        // Use the main seed to generate consistent but different seeds for terrain and caves
+        Random random = new Random(seed);
+        this.terrainNoise = new PerlinNoiseGenerator(random.nextLong());
+        this.caveNoise = new PerlinNoiseGenerator(random.nextLong());
+
         generateSuperFlat();
+    }
+
+    // Default constructor for backwards compatibility
+    public World(Vector3f initialPosition) {
+        this(initialPosition, System.currentTimeMillis());
     }
 
     public List<Block> getVisibleBlocks() {
@@ -147,6 +158,10 @@ public class World {
     private int fastFloor(float value) {
         int i = (int)value;
         return value < i ? i - 1 : i;
+    }
+
+    public long getSeed() {
+        return seed;
     }
 
     public void update(Vector3f playerPos) {
