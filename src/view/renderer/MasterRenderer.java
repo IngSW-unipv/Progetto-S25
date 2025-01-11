@@ -27,6 +27,8 @@ public class MasterRenderer implements WorldRenderer, EventListener {
     private Frustum frustum;
     private Matrix4f projectionViewMatrix;
     private Map<BlockType, BatchedMesh> blockMeshes;
+    private ShaderProgram highlightShader;
+    private BatchedMesh highlightMesh;
     private int drawCalls;
 
     public MasterRenderer(WindowManager windowManager) {
@@ -34,11 +36,16 @@ public class MasterRenderer implements WorldRenderer, EventListener {
 
         this.windowManager = windowManager;
 
-        this.blockMeshes = new HashMap<>();
-
         shader = new ShaderProgram("resources/shaders/block_vertex.glsl", "resources/shaders/block_fragment.glsl");
+        highlightShader = new ShaderProgram(
+                "resources/shaders/block_highlight_vertex.glsl",
+                "resources/shaders/block_highlight_fragment.glsl"
+        );
+        highlightMesh = new BatchedMesh();
+
         textureManager = new TextureManager();
         blockTextureIds = new HashMap<>();
+        blockMeshes = new HashMap<>();
 
         updateProjectionMatrix();
 
@@ -80,6 +87,8 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         textureManager.cleanup();
         shader.cleanup();
         hudRenderer.cleanUp();
+        highlightShader.cleanup();
+        highlightMesh.cleanup();
     }
 
     @Override
@@ -130,6 +139,34 @@ public class MasterRenderer implements WorldRenderer, EventListener {
             mesh.render();
             //drawCalls++;
         });
+
+        highlightMesh.clear();
+        blocks.stream()
+                .filter(Block::isHighlighted)
+                .forEach(block -> {
+                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0);
+                });
+
+        if (blocks.stream().anyMatch(Block::isHighlighted)) {
+            highlightMesh.updateGLBuffers();
+
+            // Abilita il blending per la trasparenza
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+            highlightShader.start();
+            highlightShader.loadMatrix("viewMatrix", viewMatrix);
+            highlightShader.loadMatrix("projectionMatrix", projectionMatrix);
+            highlightShader.loadMatrix("modelMatrix", modelMatrix);
+
+            // Disabilita il depth write ma mantieni il depth test
+            GL11.glDepthMask(false);
+            highlightMesh.render();
+            GL11.glDepthMask(true);
+
+            highlightShader.stop();
+            GL11.glDisable(GL11.GL_BLEND);
+        }
 
         shader.stop();
 

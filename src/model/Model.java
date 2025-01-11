@@ -11,6 +11,7 @@ public class Model {
     private final World world;
     private final CollisionSystem collisionSystem;
     private final long worldSeed;
+    private Block highlightedBlock;
 
     public Model() {
         this.gameState = new GameState();
@@ -53,6 +54,24 @@ public class Model {
     }
 
     public void updateGame() {
+        // Reset highlight del blocco precedente
+        if (highlightedBlock != null) {
+            highlightedBlock.setHighlighted(false);
+            highlightedBlock = null;
+        }
+
+        // Trova il nuovo blocco puntato
+        highlightedBlock = RayCaster.getTargetBlock(
+                camera.getPosition(),
+                camera.getYaw(),
+                camera.getPitch(),
+                camera.getRoll(),
+                world
+        );
+        if (highlightedBlock != null) {
+            highlightedBlock.setHighlighted(true);
+        }
+
         gameState.update();
         EventBus.getInstance().post(new RenderEvent(camera, world.getVisibleBlocks()));
         world.update(camera.getPosition());

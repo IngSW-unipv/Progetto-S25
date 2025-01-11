@@ -11,6 +11,7 @@ public class Block {
     private final BoundingBox boundingBox;
     private boolean[] visibleFaces;
     private boolean isVisible = true;
+    private boolean isHighlighted = false;
 
     // Indici per ogni faccia
     private static final int FRONT = 0;  // Z+
@@ -182,6 +183,14 @@ public class Block {
         }
 
         return indices;
+    }
+
+    public void setHighlighted(boolean highlighted) {
+        this.isHighlighted = highlighted;
+    }
+
+    public boolean isHighlighted() {
+        return isHighlighted;
     }
 
     public BlockType getType() {
