@@ -6,16 +6,10 @@ import controller.event.GameEvent;
 import controller.event.RenderEvent;
 import model.*;
 import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 import view.shader.ShaderProgram;
 import view.window.WindowManager;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
@@ -23,26 +17,24 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MasterRenderer implements WorldRenderer, EventListener {
-    private int vaoID;
-    private int vboID;
-    private int eboID;
-    private int vertexCount;
     private ShaderProgram shader;
     private Matrix4f projectionMatrix;
     private Matrix4f modelMatrix;
     private TextureManager textureManager;
     private Map<BlockType, Integer> blockTextureIds;
     private HUDRenderer hudRenderer;
-
     private WindowManager windowManager;
-
     private Frustum frustum;
     private Matrix4f projectionViewMatrix;
+    private Map<BlockType, BatchedMesh> blockMeshes;
+    private int drawCalls;
 
     public MasterRenderer(WindowManager windowManager) {
         EventBus.getInstance().subscribe(EventType.RENDER, this::onEvent);
 
         this.windowManager = windowManager;
+
+        this.blockMeshes = new HashMap<>();
 
         shader = new ShaderProgram("resources/shaders/block_vertex.glsl", "resources/shaders/block_fragment.glsl");
         textureManager = new TextureManager();
@@ -83,40 +75,8 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         }
     }
 
-    public void loadCube(Block block) {
-        loadBlockTexture(block.getType());
-        float[] vertices = block.getVertices();
-        int[] indices = block.getIndices();
-
-        vaoID = GL30.glGenVertexArrays();
-        GL30.glBindVertexArray(vaoID);
-
-        vboID = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vboID);
-        FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(vertices.length);
-        vertexBuffer.put(vertices).flip();
-        GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_STATIC_DRAW);
-
-        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 5 * Float.BYTES, 0);
-        GL20.glEnableVertexAttribArray(0);
-
-        GL20.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, 5 * Float.BYTES, 3 * Float.BYTES);
-        GL20.glEnableVertexAttribArray(1);
-
-        eboID = GL15.glGenBuffers();
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, eboID);
-        IntBuffer indexBuffer = BufferUtils.createIntBuffer(indices.length);
-        indexBuffer.put(indices).flip();
-        GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
-
-        vertexCount = indices.length;
-        GL30.glBindVertexArray(0);
-    }
-
     public void cleanUp() {
-        GL15.glDeleteBuffers(vboID);
-        GL15.glDeleteBuffers(eboID);
-        GL30.glDeleteVertexArrays(vaoID);
+        blockMeshes.values().forEach(BatchedMesh::cleanup);
         textureManager.cleanup();
         shader.cleanup();
         hudRenderer.cleanUp();
@@ -124,6 +84,7 @@ public class MasterRenderer implements WorldRenderer, EventListener {
 
     @Override
     public void render(List<Block> blocks, Camera camera) {
+        long startTime = System.nanoTime();
         updateProjectionMatrix();
         prepare();
         shader.start();
@@ -138,17 +99,37 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
         frustum.update(projectionViewMatrix);
 
-        // Filter visible blocks
-        List<Block> visibleBlocks = blocks.stream().filter(block -> {
-            Position pos = block.getPosition();
-            return frustum.isBoxInFrustum(pos.getX(), pos.getY(), pos.getZ(), 1.0f);
-        })
-        .toList();
+        //drawCalls = 0;
 
-        //System.out.println("Totale blocchi: " + blocks.size() + ", Blocchi renderizzati: " + visibleBlocks.size());
+        // Ensure all block textures are loaded
+        for (BlockType type : BlockType.values()) {
+            loadBlockTexture(type);
+        }
 
-        // Render visible blocks
-        visibleBlocks.forEach(this::renderBlock);
+        // Filter and group visible blocks by type
+        Map<BlockType, List<Block>> blocksByType = blocks.stream()
+            .filter(block -> {
+                Position pos = block.getPosition();
+                return frustum.isBoxInFrustum(pos.getX(), pos.getY(), pos.getZ(), 1.0f);
+            })
+            .collect(Collectors.groupingBy(Block::getType));
+
+        // Update and render batches
+        blocksByType.forEach((type, typeBlocks) -> {
+            BatchedMesh mesh = blockMeshes.computeIfAbsent(type, k -> new BatchedMesh());
+            mesh.clear();
+
+            int vertexOffset = 0;
+            for (Block block : typeBlocks) {
+                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset);
+                vertexOffset += block.getVertices().length / 5; // 5 floats per vertex
+            }
+
+            mesh.updateGLBuffers();
+            textureManager.bindTexture(blockTextureIds.get(type), 0);
+            mesh.render();
+            //drawCalls++;
+        });
 
         shader.stop();
 
@@ -156,20 +137,12 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         hudRenderer.render();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-    }
 
-    private void renderBlock(Block block) {
-        loadCube(block);
-        GL30.glBindVertexArray(vaoID);
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
+        //System.out.println("Draw calls: " + drawCalls + " for " + blocks.size() + " blocks");
 
-        textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
-        GL11.glDrawElements(GL11.GL_TRIANGLES, vertexCount, GL11.GL_UNSIGNED_INT, 0);
-
-        GL20.glDisableVertexAttribArray(0);
-        GL20.glDisableVertexAttribArray(1);
-        GL30.glBindVertexArray(0);
+        //long endTime = System.nanoTime();
+        //double ms = (endTime - startTime) * 1e-6;
+        //System.out.println("Frame time: " + ms + "ms");
     }
 
     public void onEvent(GameEvent event) {
