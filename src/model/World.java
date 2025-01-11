@@ -1,10 +1,10 @@
 package model;
 
+import config.GameConfig;
 import org.joml.Vector3f;
 import java.util.*;
 
 public class World {
-    private static final int RENDER_DISTANCE = 4;
     public static final int CHUNK_SIZE = 4;
     private final Set<Chunk> chunks = new HashSet<>();
     private Vector3f lastKnownPlayerPos;
@@ -29,53 +29,81 @@ public class World {
     }
 
     public Block getBlock(Position position) {
-        int chunkX = (int) (double) (position.x() / CHUNK_SIZE);
-        int chunkZ = (int) (double) (position.z() / CHUNK_SIZE);
+        int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
+        int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
 
         Optional<Chunk> chunk = chunks.stream()
-            .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
-            .findFirst();
+                .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
+                .findFirst();
 
         return chunk.map(c -> c.getBlock(position)).orElse(null);
     }
 
     private void generateSuperFlat() {
-        int playerChunkX = (int) Math.floor(lastKnownPlayerPos.x / CHUNK_SIZE);
-        int playerChunkZ = (int) Math.floor(lastKnownPlayerPos.z / CHUNK_SIZE);
+        int playerChunkX = fastFloor(lastKnownPlayerPos.x / CHUNK_SIZE);
+        int playerChunkZ = fastFloor(lastKnownPlayerPos.z / CHUNK_SIZE);
 
-        for(int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
-            for(int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+        // Prima genera tutti i chunk
+        for(int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
+            for(int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                 ChunkPosition newPos = new ChunkPosition(playerChunkX + x, playerChunkZ + z);
-                generateChunk(newPos);
+                generateChunkTerrain(newPos);
             }
+        }
+
+        // Poi aggiorna tutte le facce
+        for(Chunk chunk : chunks) {
+            updateChunkBlockFaces(chunk);
         }
     }
 
     private void updateLoadedChunks(Vector3f playerPos) {
         lastKnownPlayerPos = playerPos;
-        int playerChunkX = (int) Math.floor(playerPos.x / CHUNK_SIZE);
-        int playerChunkZ = (int) Math.floor(playerPos.z / CHUNK_SIZE);
+        int playerChunkX = fastFloor(playerPos.x / CHUNK_SIZE);
+        int playerChunkZ = fastFloor(playerPos.z / CHUNK_SIZE);
 
         // Rimuovi i chunk fuori dal render distance
         chunks.removeIf(chunk -> {
             ChunkPosition pos = chunk.getPosition();
             int dx = Math.abs(pos.x() - playerChunkX);
             int dz = Math.abs(pos.z() - playerChunkZ);
-            return dx > RENDER_DISTANCE || dz > RENDER_DISTANCE;
+            return dx > GameConfig.RENDER_DISTANCE || dz > GameConfig.RENDER_DISTANCE;
         });
 
-        // Genera nuovi chunk dentro il render distance
-        for(int x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
-            for(int z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+        // Prima genera tutti i nuovi chunk necessari
+        List<ChunkPosition> newChunks = new ArrayList<>();
+        for(int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
+            for(int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                 ChunkPosition newPos = new ChunkPosition(playerChunkX + x, playerChunkZ + z);
                 if(chunks.stream().noneMatch(c -> c.getPosition().equals(newPos))) {
-                    generateChunk(newPos);
+                    newChunks.add(newPos);
                 }
             }
         }
+
+        // Genera il terreno per tutti i nuovi chunk
+        for(ChunkPosition pos : newChunks) {
+            generateChunkTerrain(pos);
+        }
+
+        // Aggiorna le facce per tutti i chunk interessati e i loro vicini
+        Set<ChunkPosition> chunksToUpdate = new HashSet<>(newChunks);
+        for(ChunkPosition pos : newChunks) {
+            for(int dx = -1; dx <= 1; dx++) {
+                for(int dz = -1; dz <= 1; dz++) {
+                    chunksToUpdate.add(new ChunkPosition(pos.x() + dx, pos.z() + dz));
+                }
+            }
+        }
+
+        chunksToUpdate.forEach(pos ->
+                chunks.stream()
+                        .filter(c -> c.getPosition().equals(pos))
+                        .forEach(this::updateChunkBlockFaces)
+        );
     }
 
-    private void generateChunk(ChunkPosition pos) {
+    private void generateChunkTerrain(ChunkPosition pos) {
         Chunk chunk = new Chunk(pos);
 
         for(int bx = 0; bx < CHUNK_SIZE; bx++) {
@@ -84,12 +112,10 @@ public class World {
                 int worldZ = bz + (pos.z() * CHUNK_SIZE);
 
                 double noise = terrainNoise.noise(worldX / 32.0, worldZ / 32.0);
-                int height = (int)(noise * 32) + 32; // Altezza tra 32 e 64 blocchi
+                int height = (int)(noise * 32) + 32;
 
                 for(int y = 0; y <= height; y++) {
                     double caveValue = caveNoise.noise3D(worldX / 16.0, y / 16.0, worldZ / 16.0);
-
-                    // Salta se è una caverna
                     if(caveValue > 0.7 && y > 5 && y < height - 1) {
                         continue;
                     }
@@ -102,9 +128,13 @@ public class World {
             }
         }
 
-        // Aggiorna le facce visibili di tutti i blocchi nel chunk
-        updateChunkBlockFaces(chunk);
         chunks.add(chunk);
+    }
+
+    private void updateChunkBlockFaces(Chunk chunk) {
+        for (Block block : chunk.getBlocks()) {
+            block.updateVisibleFaces(this);
+        }
     }
 
     private BlockType determineBlockType(int y, int height) {
@@ -114,39 +144,12 @@ public class World {
         return BlockType.STONE;
     }
 
-    private void updateChunkBlockFaces(Chunk chunk) {
-        for (Block block : chunk.getBlocks()) {
-            block.updateVisibleFaces(this);
-        }
+    private int fastFloor(float value) {
+        int i = (int)value;
+        return value < i ? i - 1 : i;
     }
 
     public void update(Vector3f playerPos) {
         updateLoadedChunks(playerPos);
-
-        // Aggiorna tutti i blocchi, non solo quelli ai bordi
-        for (Chunk chunk : chunks) {
-            for (Block block : chunk.getBlocks()) {
-                block.updateVisibleFaces(this);
-            }
-        }
-    }
-
-    private void updateBorderBlocksFaces() {
-        for (Chunk chunk : chunks) {
-            for (Block block : chunk.getBlocks()) {
-                Position pos = block.getPosition();
-                // Aggiorna solo i blocchi al bordo del chunk
-                if (isBlockAtChunkBorder(pos)) {
-                    block.updateVisibleFaces(this);
-                }
-            }
-        }
-    }
-
-    private boolean isBlockAtChunkBorder(Position pos) {
-        int localX = Math.floorMod(pos.x(), CHUNK_SIZE);
-        int localZ = Math.floorMod(pos.z(), CHUNK_SIZE);
-        return localX == 0 || localX == CHUNK_SIZE - 1 ||
-                localZ == 0 || localZ == CHUNK_SIZE - 1;
     }
 }
