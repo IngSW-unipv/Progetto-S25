@@ -10,5 +10,6 @@ public enum InputAction {
     LOOK_X,
     LOOK_Y,
     TOGGLE_FULLSCREEN,
-    EXIT
+    EXIT,
+    DESTROY_BLOCK
 }

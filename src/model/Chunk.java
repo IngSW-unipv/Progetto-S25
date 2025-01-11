@@ -20,6 +20,10 @@ public class Chunk {
         return blocks.get(position);
     }
 
+    public void removeBlock(Position position) {
+        blocks.remove(position);
+    }
+
     public Collection<Block> getBlocks() {
         return blocks.values();
     }
@@ -27,4 +31,6 @@ public class Chunk {
     public ChunkPosition getPosition() {
         return position;
     }
+
+
 }

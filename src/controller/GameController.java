@@ -32,6 +32,13 @@ public class GameController implements EventListener {
             case MOVE_DOWN -> down = event.value() > 0;
             case LOOK_X -> model.getCamera().rotate(event.value(), 0);
             case LOOK_Y -> model.getCamera().rotate(0, event.value());
+            case DESTROY_BLOCK -> {
+                if (event.value() > 0) {
+                    model.startBreaking();
+                } else {
+                    model.stopBreaking();
+                }
+            }
             case EXIT -> {
                 if (event.value() > 0) {
                     model.getGameState().setRunning(false);
@@ -44,7 +51,7 @@ public class GameController implements EventListener {
 
     public void update() {
         updateDeltaTime();
-        model.updateGame();
+        model.updateGame(deltaTime);
     }
 
     private void updateDeltaTime() {

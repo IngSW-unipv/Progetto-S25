@@ -12,6 +12,8 @@ public class Model {
     private final CollisionSystem collisionSystem;
     private final long worldSeed;
     private Block highlightedBlock;
+    private float breakingProgress = 0.0f;
+    private boolean isBreaking = false;
 
     public Model() {
         this.gameState = new GameState();
@@ -53,14 +55,12 @@ public class Model {
         return worldSeed;
     }
 
-    public void updateGame() {
-        // Reset highlight del blocco precedente
+    public void updateGame(float deltaTime) {
         if (highlightedBlock != null) {
             highlightedBlock.setHighlighted(false);
             highlightedBlock = null;
         }
 
-        // Trova il nuovo blocco puntato
         highlightedBlock = RayCaster.getTargetBlock(
                 camera.getPosition(),
                 camera.getYaw(),
@@ -68,12 +68,42 @@ public class Model {
                 camera.getRoll(),
                 world
         );
+
         if (highlightedBlock != null) {
             highlightedBlock.setHighlighted(true);
+            if (isBreaking && highlightedBlock.getType() != BlockType.BEDROCK) {
+                breakingProgress += deltaTime;
+                if (breakingProgress >= highlightedBlock.getType().getBreakTime()) {
+                    world.destroyBlock(highlightedBlock.getPosition());
+                    breakingProgress = 0.0f;
+                    isBreaking = false;
+                }
+            }
+        } else {
+            breakingProgress = 0.0f;
+            isBreaking = false;
         }
 
         gameState.update();
         EventBus.getInstance().post(new RenderEvent(camera, world.getVisibleBlocks()));
         world.update(camera.getPosition());
+    }
+
+    public void startBreaking() {
+        if (highlightedBlock != null && highlightedBlock.getType() != BlockType.BEDROCK) {
+            isBreaking = true;
+        }
+    }
+
+    public void stopBreaking() {
+        isBreaking = false;
+        breakingProgress = 0.0f;
+    }
+
+    public void destroyBlock() {
+        if (highlightedBlock != null) {
+            world.destroyBlock(highlightedBlock.getPosition());
+            highlightedBlock = null;
+        }
     }
 }

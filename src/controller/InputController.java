@@ -57,5 +57,7 @@ public class InputController {
 
         if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx));
         if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy));
+
+        eventBus.post(new InputEvent(InputAction.DESTROY_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
     }
 }
