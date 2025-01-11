@@ -32,6 +32,11 @@ public class GameController implements EventListener {
             case MOVE_DOWN -> down = event.value() > 0;
             case LOOK_X -> model.getCamera().rotate(event.value(), 0);
             case LOOK_Y -> model.getCamera().rotate(0, event.value());
+            case PLACE_BLOCK -> {
+                if (event.value() > 0) {
+                    model.placeBlock();
+                }
+            }
             case DESTROY_BLOCK -> {
                 if (event.value() > 0) {
                     model.startBreaking();

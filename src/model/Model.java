@@ -89,6 +89,37 @@ public class Model {
         world.update(camera.getPosition());
     }
 
+    public void placeBlock() {
+        if (highlightedBlock != null) {
+            Position pos = highlightedBlock.getPosition();
+            BlockDirection facing = RayCaster.getTargetFace(
+                camera.getPosition(),
+                camera.getYaw(),
+                camera.getPitch(),
+                camera.getRoll(),
+                world
+            );
+
+            if (facing != null) {
+                Position newPos = new Position(
+                    pos.x() + facing.getDx(),
+                    pos.y() + facing.getDy(),
+                    pos.z() + facing.getDz()
+                );
+
+                // Create a temporary bounding box for the new block
+                BoundingBox newBlockBounds = new BoundingBox(1.0f, 1.0f, 1.0f);
+                newBlockBounds.update(new Vector3f(newPos.x(), newPos.y(), newPos.z()));
+
+                // Check for collision with camera/player
+                BoundingBox playerBounds = camera.getBoundingBox();
+                if (!newBlockBounds.intersects(playerBounds) && world.getBlock(newPos) == null) {
+                    world.placeBlock(newPos, BlockType.DIRT);
+                }
+            }
+        }
+    }
+
     public void startBreaking() {
         if (highlightedBlock != null && highlightedBlock.getType() != BlockType.BEDROCK) {
             isBreaking = true;

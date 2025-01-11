@@ -167,6 +167,29 @@ public class World {
                 .ifPresent(this::updateChunkBlockFaces);
     }
 
+    public void placeBlock(Position position, BlockType type) {
+        int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
+        int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
+
+        chunks.stream()
+                .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
+                .findFirst()
+                .ifPresent(chunk -> {
+                    Block newBlock = new Block(type, position);
+                    chunk.setBlock(newBlock);
+                    updateChunkBlockFaces(chunk);
+
+                    // Update neighboring chunks if the block was placed on a border
+                    int localX = position.x() - chunkX * CHUNK_SIZE;
+                    int localZ = position.z() - chunkZ * CHUNK_SIZE;
+
+                    if (localX == 0) updateNeighborChunk(chunkX - 1, chunkZ);
+                    if (localX == CHUNK_SIZE - 1) updateNeighborChunk(chunkX + 1, chunkZ);
+                    if (localZ == 0) updateNeighborChunk(chunkX, chunkZ - 1);
+                    if (localZ == CHUNK_SIZE - 1) updateNeighborChunk(chunkX, chunkZ + 1);
+                });
+    }
+
     public void destroyBlock(Position position) {
         int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
         int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);

@@ -158,6 +158,10 @@ public class Camera {
         return position;
     }
 
+    public BoundingBox getBoundingBox() {
+        return boundingBox;
+    }
+
     public float getPitch() {
         return pitch;
     }
