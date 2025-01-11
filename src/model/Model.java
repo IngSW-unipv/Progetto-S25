@@ -18,23 +18,17 @@ public class Model {
     public Model() {
         this.gameState = new GameState();
         Vector3f initialPosition = new Vector3f(0, 50, 0);
-
-        // Generate a random seed for the world
         this.worldSeed = new Random().nextLong();
         this.world = new World(initialPosition, worldSeed);
-
         this.collisionSystem = new CollisionSystem(world);
         this.camera = new Camera(collisionSystem, initialPosition);
     }
 
-    // Constructor that accepts a specific seed
     public Model(long seed) {
         this.gameState = new GameState();
         Vector3f initialPosition = new Vector3f(0, 50, 0);
-
         this.worldSeed = seed;
         this.world = new World(initialPosition, worldSeed);
-
         this.collisionSystem = new CollisionSystem(world);
         this.camera = new Camera(collisionSystem, initialPosition);
     }
@@ -73,6 +67,7 @@ public class Model {
             highlightedBlock.setHighlighted(true);
             if (isBreaking && highlightedBlock.getType() != BlockType.BEDROCK) {
                 breakingProgress += deltaTime;
+                highlightedBlock.setBreakProgress(breakingProgress / highlightedBlock.getType().getBreakTime());
                 if (breakingProgress >= highlightedBlock.getType().getBreakTime()) {
                     world.destroyBlock(highlightedBlock.getPosition());
                     breakingProgress = 0.0f;
@@ -89,37 +84,6 @@ public class Model {
         world.update(camera.getPosition());
     }
 
-    public void placeBlock() {
-        if (highlightedBlock != null) {
-            Position pos = highlightedBlock.getPosition();
-            BlockDirection facing = RayCaster.getTargetFace(
-                camera.getPosition(),
-                camera.getYaw(),
-                camera.getPitch(),
-                camera.getRoll(),
-                world
-            );
-
-            if (facing != null) {
-                Position newPos = new Position(
-                    pos.x() + facing.getDx(),
-                    pos.y() + facing.getDy(),
-                    pos.z() + facing.getDz()
-                );
-
-                // Create a temporary bounding box for the new block
-                BoundingBox newBlockBounds = new BoundingBox(1.0f, 1.0f, 1.0f);
-                newBlockBounds.update(new Vector3f(newPos.x(), newPos.y(), newPos.z()));
-
-                // Check for collision with camera/player
-                BoundingBox playerBounds = camera.getBoundingBox();
-                if (!newBlockBounds.intersects(playerBounds) && world.getBlock(newPos) == null) {
-                    world.placeBlock(newPos, BlockType.DIRT);
-                }
-            }
-        }
-    }
-
     public void startBreaking() {
         if (highlightedBlock != null && highlightedBlock.getType() != BlockType.BEDROCK) {
             isBreaking = true;
@@ -129,12 +93,37 @@ public class Model {
     public void stopBreaking() {
         isBreaking = false;
         breakingProgress = 0.0f;
+        if (highlightedBlock != null) {
+            highlightedBlock.setBreakProgress(0.0f);
+        }
     }
 
-    public void destroyBlock() {
+    public void placeBlock() {
         if (highlightedBlock != null) {
-            world.destroyBlock(highlightedBlock.getPosition());
-            highlightedBlock = null;
+            Position pos = highlightedBlock.getPosition();
+            BlockDirection facing = RayCaster.getTargetFace(
+                    camera.getPosition(),
+                    camera.getYaw(),
+                    camera.getPitch(),
+                    camera.getRoll(),
+                    world
+            );
+
+            if (facing != null) {
+                Position newPos = new Position(
+                        pos.x() + facing.getDx(),
+                        pos.y() + facing.getDy(),
+                        pos.z() + facing.getDz()
+                );
+
+                BoundingBox newBlockBounds = new BoundingBox(1.0f, 1.0f, 1.0f);
+                newBlockBounds.update(new Vector3f(newPos.x(), newPos.y(), newPos.z()));
+
+                BoundingBox playerBounds = camera.getBoundingBox();
+                if (!newBlockBounds.intersects(playerBounds) && world.getBlock(newPos) == null) {
+                    world.placeBlock(newPos, BlockType.DIRT);
+                }
+            }
         }
     }
 }

@@ -12,6 +12,7 @@ public class Block {
     private boolean[] visibleFaces;
     private boolean isVisible = true;
     private boolean isHighlighted = false;
+    private float breakProgress = 0.0f;
 
     // Indici per ogni faccia
     private static final int FRONT = 0;  // Z+
@@ -27,6 +28,14 @@ public class Block {
         this.visibleFaces = new boolean[]{true, true, true, true, true, true};
         this.boundingBox = new BoundingBox(1.0f, 1.0f, 1.0f);
         this.boundingBox.update(new Vector3f(position.x(), position.y(), position.z()));
+    }
+
+    public float getBreakProgress() {
+        return breakProgress;
+    }
+
+    public void setBreakProgress(float progress) {
+        this.breakProgress = progress;
     }
 
     public void updateVisibleFaces(World world) {
