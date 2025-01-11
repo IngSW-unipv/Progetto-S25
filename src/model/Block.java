@@ -2,6 +2,7 @@ package model;
 
 import org.joml.Vector3f;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Block {
@@ -9,6 +10,7 @@ public class Block {
     private final Position position;
     private final BoundingBox boundingBox;
     private boolean[] visibleFaces;
+    private boolean isVisible = true;
 
     // Indici per ogni faccia
     private static final int FRONT = 0;  // Z+
@@ -27,13 +29,38 @@ public class Block {
     }
 
     public void updateVisibleFaces(World world) {
-        // Controlla ogni faccia
+        // Controllo se il blocco è completamente nascosto
+        if (isCompletelyHidden(world)) {
+            Arrays.fill(visibleFaces, false);
+            return;
+        }
+
+        // Se c'è un blocco sopra, nascondi tutte le facce tranne quelle laterali che sono esposte
+        if (hasAdjacentBlock(world, 0, 1, 0)) {
+            visibleFaces[TOP] = false;
+            visibleFaces[FRONT] = !hasAdjacentBlock(world, 0, 0, 1) && !hasAdjacentBlock(world, 0, 1, 1);
+            visibleFaces[BACK] = !hasAdjacentBlock(world, 0, 0, -1) && !hasAdjacentBlock(world, 0, 1, -1);
+            visibleFaces[RIGHT] = !hasAdjacentBlock(world, 1, 0, 0) && !hasAdjacentBlock(world, 1, 1, 0);
+            visibleFaces[LEFT] = !hasAdjacentBlock(world, -1, 0, 0) && !hasAdjacentBlock(world, -1, 1, 0);
+            visibleFaces[BOTTOM] = !hasAdjacentBlock(world, 0, -1, 0);
+            return;
+        }
+
+        // Controllo normale per blocchi esposti
+        visibleFaces[TOP] = true;
         visibleFaces[FRONT] = !hasAdjacentBlock(world, 0, 0, 1);
         visibleFaces[BACK] = !hasAdjacentBlock(world, 0, 0, -1);
-        visibleFaces[TOP] = !hasAdjacentBlock(world, 0, 1, 0);
-        visibleFaces[BOTTOM] = !hasAdjacentBlock(world, 0, -1, 0);
         visibleFaces[RIGHT] = !hasAdjacentBlock(world, 1, 0, 0);
         visibleFaces[LEFT] = !hasAdjacentBlock(world, -1, 0, 0);
+        visibleFaces[BOTTOM] = !hasAdjacentBlock(world, 0, -1, 0);
+    }
+
+    private boolean isCompletelyHidden(World world) {
+        return hasAdjacentBlock(world, 0, 1, 0) && // blocco sopra
+                hasAdjacentBlock(world, 0, 0, 1) && // fronte
+                hasAdjacentBlock(world, 0, 0, -1) && // dietro
+                hasAdjacentBlock(world, 1, 0, 0) && // destra
+                hasAdjacentBlock(world, -1, 0, 0); // sinistra
     }
 
     private boolean hasAdjacentBlock(World world, int dx, int dy, int dz) {
@@ -167,5 +194,9 @@ public class Block {
 
     public Position getPosition() {
         return position;
+    }
+
+    public boolean isVisible() {
+        return isVisible;
     }
 }

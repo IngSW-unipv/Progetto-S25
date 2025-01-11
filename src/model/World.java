@@ -4,8 +4,8 @@ import org.joml.Vector3f;
 import java.util.*;
 
 public class World {
-    private static final int RENDER_DISTANCE = 2;
-    public static final int CHUNK_SIZE = 3;
+    private static final int RENDER_DISTANCE = 4;
+    public static final int CHUNK_SIZE = 4;
     private final Set<Chunk> chunks = new HashSet<>();
     private Vector3f lastKnownPlayerPos;
     private final PerlinNoiseGenerator terrainNoise;
@@ -21,14 +21,16 @@ public class World {
     public List<Block> getVisibleBlocks() {
         List<Block> visibleBlocks = new ArrayList<>();
         for(Chunk chunk : chunks) {
-            visibleBlocks.addAll(chunk.getBlocks());
+            chunk.getBlocks().stream()
+                    .filter(Block::isVisible)
+                    .forEach(visibleBlocks::add);
         }
         return visibleBlocks;
     }
 
     public Block getBlock(Position position) {
-        int chunkX = (int) Math.floor(position.x() / CHUNK_SIZE);
-        int chunkZ = (int) Math.floor(position.z() / CHUNK_SIZE);
+        int chunkX = (int) (double) (position.x() / CHUNK_SIZE);
+        int chunkZ = (int) (double) (position.z() / CHUNK_SIZE);
 
         Optional<Chunk> chunk = chunks.stream()
             .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
@@ -119,11 +121,14 @@ public class World {
     }
 
     public void update(Vector3f playerPos) {
-        // Aggiorna i chunk caricati
         updateLoadedChunks(playerPos);
 
-        // Aggiorna le facce visibili dei blocchi al bordo dei chunk
-        updateBorderBlocksFaces();
+        // Aggiorna tutti i blocchi, non solo quelli ai bordi
+        for (Chunk chunk : chunks) {
+            for (Block block : chunk.getBlocks()) {
+                block.updateVisibleFaces(this);
+            }
+        }
     }
 
     private void updateBorderBlocksFaces() {
