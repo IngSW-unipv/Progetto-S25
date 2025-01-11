@@ -99,7 +99,7 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
         frustum.update(projectionViewMatrix);
 
-        //drawCalls = 0;
+        drawCalls = 0;
 
         // Ensure all block textures are loaded
         for (BlockType type : BlockType.values()) {
@@ -110,7 +110,7 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         Map<BlockType, List<Block>> blocksByType = blocks.stream()
             .filter(block -> {
                 Position pos = block.getPosition();
-                return frustum.isBoxInFrustum(pos.getX(), pos.getY(), pos.getZ(), 1.0f);
+                return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
             })
             .collect(Collectors.groupingBy(Block::getType));
 
@@ -128,7 +128,7 @@ public class MasterRenderer implements WorldRenderer, EventListener {
             mesh.updateGLBuffers();
             textureManager.bindTexture(blockTextureIds.get(type), 0);
             mesh.render();
-            //drawCalls++;
+            drawCalls++;
         });
 
         shader.stop();
@@ -138,11 +138,11 @@ public class MasterRenderer implements WorldRenderer, EventListener {
         hudRenderer.render();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
 
-        //System.out.println("Draw calls: " + drawCalls + " for " + blocks.size() + " blocks");
+        System.out.println("Draw calls: " + drawCalls + " for " + blocks.size() + " blocks");
 
-        //long endTime = System.nanoTime();
-        //double ms = (endTime - startTime) * 1e-6;
-        //System.out.println("Frame time: " + ms + "ms");
+        long endTime = System.nanoTime();
+        double ms = (endTime - startTime) * 1e-6;
+        System.out.println("Frame time: " + ms + "ms");
     }
 
     public void onEvent(GameEvent event) {

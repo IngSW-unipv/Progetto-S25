@@ -9,10 +9,10 @@ public enum BlockType {
     private final String texturePath;
 
     BlockType(String texturePath) {
-        this.texturePath = texturePath;
+        this.texturePath = System.getProperty("user.dir") + "/resources/textures/" + texturePath;
     }
 
     public String getTexturePath() {
-        return "resources/textures/" + texturePath;
+        return texturePath;
     }
 }
