@@ -2,5 +2,6 @@ package menu;
 
 public enum MenuState {
     MAIN,
-    WORLD_SELECT
+    WORLD_SELECT,
+    SETTINGS
 }

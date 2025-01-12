@@ -64,4 +64,9 @@ public class MenuController {
         // TODO: Load existing world
         System.out.println("Loading world...");
     }
+
+    public void onSettingsPressed() {
+        model.setCurrentState(MenuState.SETTINGS);
+        updateView();
+    }
 }

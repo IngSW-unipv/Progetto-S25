@@ -8,6 +8,7 @@ import java.awt.event.MouseEvent;
 public class MenuView extends JFrame {
     private JPanel mainPanel;
     private JPanel worldSelectPanel;
+    private SettingsPanel settingsPanel;
     private MenuController controller;
     private final Color BUTTON_COLOR = new Color(65, 65, 65);
     private final Color BUTTON_HOVER_COLOR = new Color(96, 96, 96);
@@ -69,6 +70,7 @@ public class MenuView extends JFrame {
     }
 
     private void initializePanels() {
+        settingsPanel = new SettingsPanel(controller);
         // Main Menu Panel
         mainPanel = new JPanel() {
             @Override
@@ -100,13 +102,17 @@ public class MenuView extends JFrame {
         gbc.insets = new Insets(10, 0, 10, 0);
 
         JButton playButton = createStyledButton("Play");
+        JButton settingsButton = createStyledButton("Settings");
         JButton quitButton = createStyledButton("Quit");
 
         playButton.addActionListener(e -> controller.onPlayPressed());
+        settingsButton.addActionListener(e -> controller.onSettingsPressed());
         quitButton.addActionListener(e -> System.exit(0));
 
         mainPanel.add(Box.createVerticalStrut(120), gbc);
         mainPanel.add(playButton, gbc);
+        mainPanel.add(Box.createVerticalStrut(10), gbc);
+        mainPanel.add(settingsButton, gbc);
         mainPanel.add(Box.createVerticalStrut(10), gbc);
         mainPanel.add(quitButton, gbc);
 
@@ -148,12 +154,14 @@ public class MenuView extends JFrame {
 
     public void setController(MenuController controller) {
         this.controller = controller;
+        settingsPanel = new SettingsPanel(controller); // Crea il panel dopo aver il controller
     }
 
     public void updateState(MenuState state) {
         switch (state) {
             case MAIN -> setContentPane(mainPanel);
             case WORLD_SELECT -> setContentPane(worldSelectPanel);
+            case SETTINGS -> setContentPane(settingsPanel);
         }
         revalidate();
         repaint();
