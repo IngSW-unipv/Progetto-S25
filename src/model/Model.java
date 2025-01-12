@@ -33,20 +33,12 @@ public class Model {
         this.camera = new Camera(collisionSystem, initialPosition);
     }
 
-    public World getWorld() {
-        return world;
-    }
-
     public GameState getGameState() {
         return gameState;
     }
 
     public Camera getCamera() {
         return camera;
-    }
-
-    public long getWorldSeed() {
-        return worldSeed;
     }
 
     public void updateGame(float deltaTime) {
@@ -56,11 +48,11 @@ public class Model {
         }
 
         highlightedBlock = RayCaster.getTargetBlock(
-                camera.getPosition(),
-                camera.getYaw(),
-                camera.getPitch(),
-                camera.getRoll(),
-                world
+            camera.getPosition(),
+            camera.getYaw(),
+            camera.getPitch(),
+            camera.getRoll(),
+            world
         );
 
         if (highlightedBlock != null) {
@@ -99,29 +91,48 @@ public class Model {
     }
 
     public void placeBlock() {
+        // Debug print
+        //System.out.println("Attempting to place block...");
+        //System.out.println("Highlighted block: " + (highlightedBlock != null ? highlightedBlock.getPosition() : "null"));
+
         if (highlightedBlock != null) {
             Position pos = highlightedBlock.getPosition();
             BlockDirection facing = RayCaster.getTargetFace(
-                    camera.getPosition(),
-                    camera.getYaw(),
-                    camera.getPitch(),
-                    camera.getRoll(),
-                    world
+                camera.getPosition(),
+                camera.getYaw(),
+                camera.getPitch(),
+                camera.getRoll(),
+                world
             );
+
+            // Debug print
+            //System.out.println("Target face: " + facing);
 
             if (facing != null) {
                 Position newPos = new Position(
-                        pos.x() + facing.getDx(),
-                        pos.y() + facing.getDy(),
-                        pos.z() + facing.getDz()
+                    pos.x() + facing.getDx(),
+                    pos.y() + facing.getDy(),
+                    pos.z() + facing.getDz()
                 );
+
+                // Debug print
+                //System.out.println("New position: " + newPos);
 
                 BoundingBox newBlockBounds = new BoundingBox(1.0f, 1.0f, 1.0f);
                 newBlockBounds.update(new Vector3f(newPos.x(), newPos.y(), newPos.z()));
 
                 BoundingBox playerBounds = camera.getBoundingBox();
-                if (!newBlockBounds.intersects(playerBounds) && world.getBlock(newPos) == null) {
+                boolean intersects = newBlockBounds.intersects(playerBounds);
+                boolean existingBlock = world.getBlock(newPos) != null;
+
+                // Debug print
+                //System.out.println("Intersects with player: " + intersects);
+                //System.out.println("Existing block at position: " + existingBlock);
+
+                if (!intersects && !existingBlock) {
                     world.placeBlock(newPos, BlockType.DIRT);
+                    // Debug print
+                    //System.out.println("Block placed successfully");
                 }
             }
         }

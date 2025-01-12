@@ -52,14 +52,17 @@ public class RayCaster {
                 (float) (-Math.cos(pitchRad) * Math.cos(yawRad))
         ).normalize();
 
-        Vector3f lastPos = new Vector3f(position);
-
         for (float distance = 0; distance <= MAX_DISTANCE; distance += STEP) {
             Vector3f checkPos = new Vector3f(
                     position.x + direction.x * distance,
                     position.y + direction.y * distance,
                     position.z + direction.z * distance
             );
+
+            // Posizione nel blocco (0-1)
+            float blockX = checkPos.x - (float)Math.floor(checkPos.x);
+            float blockY = checkPos.y - (float)Math.floor(checkPos.y);
+            float blockZ = checkPos.z - (float)Math.floor(checkPos.z);
 
             Position blockPos = new Position(
                     (int) Math.floor(checkPos.x),
@@ -69,26 +72,15 @@ public class RayCaster {
 
             Block block = world.getBlock(blockPos);
             if (block != null) {
-                float dx = checkPos.x - lastPos.x;
-                float dy = checkPos.y - lastPos.y;
-                float dz = checkPos.z - lastPos.z;
-
-                float absDx = Math.abs(dx);
-                float absDy = Math.abs(dy);
-                float absDz = Math.abs(dz);
-
-                if (absDx > absDy && absDx > absDz) {
-                    return dx > 0 ? BlockDirection.LEFT : BlockDirection.RIGHT;
-                } else if (absDy > absDx && absDy > absDz) {
-                    return dy > 0 ? BlockDirection.BOTTOM : BlockDirection.TOP;
-                } else {
-                    return dz > 0 ? BlockDirection.BACK : BlockDirection.FRONT;
-                }
+                // Determina quale faccia è stata colpita basandosi sulla posizione di impatto
+                if (blockX < STEP) return BlockDirection.LEFT;
+                if (blockX > 1-STEP) return BlockDirection.RIGHT;
+                if (blockY < STEP) return BlockDirection.BOTTOM;
+                if (blockY > 1-STEP) return BlockDirection.TOP;
+                if (blockZ < STEP) return BlockDirection.BACK;
+                if (blockZ > 1-STEP) return BlockDirection.FRONT;
             }
-
-            lastPos.set(checkPos);
         }
-
         return null;
     }
 }

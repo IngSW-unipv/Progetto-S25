@@ -33,8 +33,8 @@ public class World {
         List<Block> visibleBlocks = new ArrayList<>();
         for(Chunk chunk : chunks) {
             chunk.getBlocks().stream()
-                    .filter(Block::isVisible)
-                    .forEach(visibleBlocks::add);
+                .filter(Block::isVisible)
+                .forEach(visibleBlocks::add);
         }
         return visibleBlocks;
     }
@@ -108,9 +108,9 @@ public class World {
         }
 
         chunksToUpdate.forEach(pos ->
-                chunks.stream()
-                        .filter(c -> c.getPosition().equals(pos))
-                        .forEach(this::updateChunkBlockFaces)
+            chunks.stream()
+                .filter(c -> c.getPosition().equals(pos))
+                .forEach(this::updateChunkBlockFaces)
         );
     }
 
@@ -162,9 +162,9 @@ public class World {
 
     private void updateNeighborChunk(int x, int z) {
         chunks.stream()
-                .filter(c -> c.getPosition().equals(new ChunkPosition(x, z)))
-                .findFirst()
-                .ifPresent(this::updateChunkBlockFaces);
+            .filter(c -> c.getPosition().equals(new ChunkPosition(x, z)))
+            .findFirst()
+            .ifPresent(this::updateChunkBlockFaces);
     }
 
     public void placeBlock(Position position, BlockType type) {
@@ -172,33 +172,33 @@ public class World {
         int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
 
         chunks.stream()
-                .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
-                .findFirst()
-                .ifPresent(chunk -> {
-                    Block newBlock = new Block(type, position);
-                    chunk.setBlock(newBlock);
-                    updateChunkBlockFaces(chunk);
+            .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
+            .findFirst()
+            .ifPresent(chunk -> {
+                Block newBlock = new Block(type, position);
+                chunk.setBlock(newBlock);
+                updateChunkBlockFaces(chunk);
 
-                    // Update neighboring chunks if the block was placed on a border
-                    int localX = position.x() - chunkX * CHUNK_SIZE;
-                    int localZ = position.z() - chunkZ * CHUNK_SIZE;
+                // Update neighboring chunks if the block was placed on a border
+                int localX = position.x() - chunkX * CHUNK_SIZE;
+                int localZ = position.z() - chunkZ * CHUNK_SIZE;
 
-                    if (localX == 0) updateNeighborChunk(chunkX - 1, chunkZ);
-                    if (localX == CHUNK_SIZE - 1) updateNeighborChunk(chunkX + 1, chunkZ);
-                    if (localZ == 0) updateNeighborChunk(chunkX, chunkZ - 1);
-                    if (localZ == CHUNK_SIZE - 1) updateNeighborChunk(chunkX, chunkZ + 1);
-                });
+                if (localX == 0) updateNeighborChunk(chunkX - 1, chunkZ);
+                if (localX == CHUNK_SIZE - 1) updateNeighborChunk(chunkX + 1, chunkZ);
+                if (localZ == 0) updateNeighborChunk(chunkX, chunkZ - 1);
+                if (localZ == CHUNK_SIZE - 1) updateNeighborChunk(chunkX, chunkZ + 1);
+            });
     }
 
     private void updateAdjacentBlockFaces(Position position) {
         // Update blocks in all 6 directions
         Position[] adjacentPositions = {
-                new Position(position.x() + 1, position.y(), position.z()), // Right
-                new Position(position.x() - 1, position.y(), position.z()), // Left
-                new Position(position.x(), position.y() + 1, position.z()), // Top
-                new Position(position.x(), position.y() - 1, position.z()), // Bottom
-                new Position(position.x(), position.y(), position.z() + 1), // Front
-                new Position(position.x(), position.y(), position.z() - 1)  // Back
+            new Position(position.x() + 1, position.y(), position.z()), // Right
+            new Position(position.x() - 1, position.y(), position.z()), // Left
+            new Position(position.x(), position.y() + 1, position.z()), // Top
+            new Position(position.x(), position.y() - 1, position.z()), // Bottom
+            new Position(position.x(), position.y(), position.z() + 1), // Front
+            new Position(position.x(), position.y(), position.z() - 1)  // Back
         };
 
         for (Position adjacentPos : adjacentPositions) {

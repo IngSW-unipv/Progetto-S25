@@ -39,19 +39,37 @@ public class Block {
     }
 
     public void updateVisibleFaces(World world) {
-        // Aggiorna solo le facce del blocco corrente
         if (isCompletelyHidden(world)) {
             Arrays.fill(visibleFaces, false);
             isVisible = false;
-        } else {
-            visibleFaces[TOP] = !hasAdjacentBlock(world, 0, 1, 0);
-            visibleFaces[BOTTOM] = !hasAdjacentBlock(world, 0, -1, 0);
-            visibleFaces[FRONT] = !hasAdjacentBlock(world, 0, 0, 1);
-            visibleFaces[BACK] = !hasAdjacentBlock(world, 0, 0, -1);
-            visibleFaces[RIGHT] = !hasAdjacentBlock(world, 1, 0, 0);
-            visibleFaces[LEFT] = !hasAdjacentBlock(world, -1, 0, 0);
-            isVisible = true;
+            return;
         }
+
+        visibleFaces[TOP] = shouldRenderFace(world, 0, 1, 0);
+        visibleFaces[BOTTOM] = shouldRenderFace(world, 0, -1, 0);
+        visibleFaces[FRONT] = shouldRenderFace(world, 0, 0, 1);
+        visibleFaces[BACK] = shouldRenderFace(world, 0, 0, -1);
+        visibleFaces[RIGHT] = shouldRenderFace(world, 1, 0, 0);
+        visibleFaces[LEFT] = shouldRenderFace(world, -1, 0, 0);
+
+        isVisible = false;
+        for (boolean face : visibleFaces) {
+            if (face) {
+                isVisible = true;
+                break;
+            }
+        }
+    }
+
+    private boolean shouldRenderFace(World world, int dx, int dy, int dz) {
+        Position adjacentPos = new Position(
+            position.x() + dx,
+            position.y() + dy,
+            position.z() + dz
+        );
+
+        Block adjacentBlock = world.getBlock(adjacentPos);
+        return adjacentBlock == null;
     }
 
     private boolean isCompletelyHidden(World world) {
