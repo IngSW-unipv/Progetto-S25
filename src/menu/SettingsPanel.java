@@ -1,5 +1,6 @@
 package menu;
 
+import config.ConfigManager;
 import config.GameConfig;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -197,17 +198,18 @@ public class SettingsPanel extends JPanel {
 
     private void saveSettings() {
         try {
-            GameConfig.class.getDeclaredField("RENDER_DISTANCE").set(null, Integer.parseInt(renderDistanceField.getText()));
-            GameConfig.class.getDeclaredField("CAMERA_MOVE_SPEED").set(null, Float.parseFloat(moveSpeedField.getText()));
-            GameConfig.class.getDeclaredField("CAMERA_MOUSE_SENSITIVITY").set(null, Float.parseFloat(mouseSensitivityField.getText()));
-            GameConfig.class.getDeclaredField("CAMERA_MOVEMENT_INCREMENT").set(null, Float.parseFloat(movementIncrementField.getText()));
-            GameConfig.class.getDeclaredField("GRAVITY").set(null, Float.parseFloat(gravityField.getText()));
-            GameConfig.class.getDeclaredField("JUMP_FORCE").set(null, Float.parseFloat(jumpForceField.getText()));
-            GameConfig.class.getDeclaredField("TERMINAL_VELOCITY").set(null, Float.parseFloat(terminalVelocityField.getText()));
-        } catch (Exception e) {
-            e.printStackTrace();
+            GameConfig.RENDER_DISTANCE = Integer.parseInt(renderDistanceField.getText());
+            GameConfig.CAMERA_MOVE_SPEED = Float.parseFloat(moveSpeedField.getText());
+            GameConfig.CAMERA_MOUSE_SENSITIVITY = Float.parseFloat(mouseSensitivityField.getText());
+            GameConfig.CAMERA_MOVEMENT_INCREMENT = Float.parseFloat(movementIncrementField.getText());
+            GameConfig.GRAVITY = Float.parseFloat(gravityField.getText());
+            GameConfig.JUMP_FORCE = Float.parseFloat(jumpForceField.getText());
+            GameConfig.TERMINAL_VELOCITY = Float.parseFloat(terminalVelocityField.getText());
+
+            ConfigManager.saveConfig();
+        } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this,
-                    "Error saving settings. Please check your input values.",
+                    "Invalid input values. Please check your settings.",
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
