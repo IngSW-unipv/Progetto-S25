@@ -3,9 +3,17 @@ package config;
 import java.io.*;
 import java.util.Properties;
 
+/**
+ * This class manages the loading and saving of game configuration settings.
+ * It reads and writes the configuration to a properties file.
+ */
 public class ConfigManager {
-    private static final String CONFIG_FILE = "src/config/game_config.properties";
+    private static final String CONFIG_FILE = "src/config/game_config.properties"; // Path to the configuration file
 
+    /**
+     * Saves the current game configuration to a properties file.
+     * It stores various game settings such as render distance, camera speed, gravity, etc.
+     */
     public static void saveConfig() {
         Properties props = new Properties();
         props.setProperty("RENDER_DISTANCE", String.valueOf(GameConfig.RENDER_DISTANCE));
@@ -17,23 +25,28 @@ public class ConfigManager {
         props.setProperty("TERMINAL_VELOCITY", String.valueOf(GameConfig.TERMINAL_VELOCITY));
 
         try (FileOutputStream out = new FileOutputStream(CONFIG_FILE)) {
-            props.store(out, "Game Configuration");
+            props.store(out, "Game Configuration"); // Save properties with a comment
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Print any IO exceptions
         }
     }
 
+    /**
+     * Loads the game configuration from a properties file.
+     * If the configuration file does not exist, it creates one with default values.
+     */
     public static void loadConfig() {
         File configFile = new File(CONFIG_FILE);
         if (!configFile.exists()) {
-            saveConfig(); // Save default values
+            saveConfig(); // Save default values if the config file doesn't exist
             return;
         }
 
         Properties props = new Properties();
         try (FileInputStream in = new FileInputStream(configFile)) {
-            props.load(in);
+            props.load(in); // Load properties from the file
 
+            // Set game configuration values from the loaded properties
             GameConfig.RENDER_DISTANCE = Integer.parseInt(props.getProperty("RENDER_DISTANCE"));
             GameConfig.CAMERA_MOVE_SPEED = Float.parseFloat(props.getProperty("CAMERA_MOVE_SPEED"));
             GameConfig.CAMERA_MOUSE_SENSITIVITY = Float.parseFloat(props.getProperty("CAMERA_MOUSE_SENSITIVITY"));
@@ -42,7 +55,7 @@ public class ConfigManager {
             GameConfig.JUMP_FORCE = Float.parseFloat(props.getProperty("JUMP_FORCE"));
             GameConfig.TERMINAL_VELOCITY = Float.parseFloat(props.getProperty("TERMINAL_VELOCITY"));
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Print any IO exceptions
         }
     }
 }

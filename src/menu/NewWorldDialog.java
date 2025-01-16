@@ -6,15 +6,21 @@ import java.awt.*;
 import java.util.Random;
 
 public class NewWorldDialog extends JDialog {
-    private boolean confirmed = false;
-    private long seed;
-    private JTextField seedField;
-    private final Color BACKGROUND_COLOR = new Color(24, 20, 37);
-    private final Color BUTTON_COLOR = new Color(65, 65, 65);
-    private final Color TEXT_COLOR = new Color(255, 255, 255);
-    private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24);
-    private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16);
 
+    private boolean confirmed = false;                                              // Flag to check if the dialog was confirmed
+    private long seed;                                                              // Seed for the new world
+    private JTextField seedField;                                                   // Text field to display and edit the seed
+    private final Color BACKGROUND_COLOR = new Color(24, 20, 37);           // Background color of the dialog
+    private final Color BUTTON_COLOR = new Color(65, 65, 65);               // Color of the buttons
+    private final Color TEXT_COLOR = new Color(255, 255, 255);              // Color of the text on buttons and labels
+    private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24); // Font used for the title
+    private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16); // Font used for the main text and labels
+
+    /**
+     * Constructs a NewWorldDialog instance, setting up the dialog's UI and behavior.
+     *
+     * @param parent The parent frame for the dialog.
+     */
     public NewWorldDialog(Frame parent) {
         super(parent, "New World", true);
         setBackground(BACKGROUND_COLOR);
@@ -42,7 +48,7 @@ public class NewWorldDialog extends JDialog {
         mainPanel.add(titleLabel, gbc);
 
         // Random seed by default
-        seed = new Random().nextLong();
+        seed = new Random().nextLong(); // Generate a random seed by default
 
         // Seed panel
         JPanel seedPanel = new JPanel(new GridBagLayout());
@@ -72,7 +78,7 @@ public class NewWorldDialog extends JDialog {
 
         JButton randomButton = createStyledButton("Random");
         randomButton.addActionListener(e -> {
-            seed = new Random().nextLong();
+            seed = new Random().nextLong(); // Generate a new random seed when pressed
             seedField.setText(String.valueOf(seed));
         });
 
@@ -90,7 +96,7 @@ public class NewWorldDialog extends JDialog {
 
         mainPanel.add(seedPanel, gbc);
 
-        // Buttons
+        // Buttons panel
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 0));
         buttonPanel.setOpaque(false);
 
@@ -99,9 +105,9 @@ public class NewWorldDialog extends JDialog {
 
         confirmButton.addActionListener(e -> {
             try {
-                seed = Long.parseLong(seedField.getText());
-                confirmed = true;
-                dispose();
+                seed = Long.parseLong(seedField.getText()); // Parse the seed from the text field
+                confirmed = true;  // Mark the dialog as confirmed
+                dispose();         // Close the dialog
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this,
                         "Invalid seed. Please enter a valid number.",
@@ -110,7 +116,7 @@ public class NewWorldDialog extends JDialog {
             }
         });
 
-        cancelButton.addActionListener(e -> dispose());
+        cancelButton.addActionListener(e -> dispose()); // Close the dialog without confirming
 
         buttonPanel.add(confirmButton);
         buttonPanel.add(cancelButton);
@@ -122,6 +128,12 @@ public class NewWorldDialog extends JDialog {
         setResizable(false);
     }
 
+    /**
+     * Creates a styled button with custom appearance and hover/press effects.
+     *
+     * @param text The text displayed on the button.
+     * @return A styled JButton.
+     */
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text) {
             @Override
@@ -129,6 +141,7 @@ public class NewWorldDialog extends JDialog {
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+                // Set button color based on its state (pressed, hovered, or default)
                 if (getModel().isPressed()) {
                     g2d.setColor(BUTTON_COLOR.darker());
                 } else if (getModel().isRollover()) {
@@ -163,10 +176,20 @@ public class NewWorldDialog extends JDialog {
         return button;
     }
 
+    /**
+     * Returns whether the dialog was confirmed.
+     *
+     * @return True if confirmed, false otherwise.
+     */
     public boolean isConfirmed() {
         return confirmed;
     }
 
+    /**
+     * Returns the seed value entered or generated in the dialog.
+     *
+     * @return The seed value.
+     */
     public long getSeed() {
         return seed;
     }

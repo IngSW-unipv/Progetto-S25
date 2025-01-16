@@ -6,16 +6,20 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class MenuView extends JFrame {
-    private JPanel mainPanel;
-    private JPanel worldSelectPanel;
-    private SettingsPanel settingsPanel;
-    private MenuController controller;
-    private final Color BUTTON_COLOR = new Color(65, 65, 65);
-    private final Color BUTTON_HOVER_COLOR = new Color(96, 96, 96);
-    private final Color TEXT_COLOR = new Color(255, 255, 255);
-    private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 48);
-    private final Font BUTTON_FONT = new Font("Minecraft", Font.BOLD, 20);
 
+    private JPanel mainPanel;                                                           // The main panel displaying the main menu options
+    private JPanel worldSelectPanel;                                                    // The panel displaying the world selection options
+    private SettingsPanel settingsPanel;                                                // The settings panel for adjusting application settings
+    private MenuController controller;                                                  // The controller that handles interactions between the view and the model
+    private final Color BUTTON_COLOR = new Color(65, 65, 65);                   // The color used for buttons in their default state
+    private final Color BUTTON_HOVER_COLOR = new Color(96, 96, 96);             // The color used for buttons when hovered over
+    private final Color TEXT_COLOR = new Color(255, 255, 255);                  // The color used for button text
+    private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 48);     // The font used for the title of the menu
+    private final Font BUTTON_FONT = new Font("Minecraft", Font.BOLD, 20);    // The font used for the text on buttons
+
+    /**
+     * Constructs a MenuView instance, setting up the window and initializing the panels.
+     */
     public MenuView() {
         setTitle("Voxel Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -25,6 +29,12 @@ public class MenuView extends JFrame {
         initializePanels();
     }
 
+    /**
+     * Creates a styled button with custom appearance and hover/press effects.
+     *
+     * @param text The text displayed on the button.
+     * @return A styled JButton.
+     */
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text) {
             @Override
@@ -32,6 +42,7 @@ public class MenuView extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+                // Set button color based on its state (pressed, hovered, or default)
                 if (getModel().isPressed()) {
                     g2.setColor(BUTTON_COLOR.darker());
                 } else if (getModel().isRollover()) {
@@ -69,8 +80,12 @@ public class MenuView extends JFrame {
         return button;
     }
 
+    /**
+     * Initializes the panels for different menu states (main menu, world selection, settings).
+     */
     private void initializePanels() {
         settingsPanel = new SettingsPanel(controller);
+
         // Main Menu Panel
         mainPanel = new JPanel() {
             @Override
@@ -101,6 +116,7 @@ public class MenuView extends JFrame {
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.insets = new Insets(10, 0, 10, 0);
 
+        // Buttons for the main menu
         JButton playButton = createStyledButton("Play");
         JButton settingsButton = createStyledButton("Settings");
         JButton quitButton = createStyledButton("Quit");
@@ -133,6 +149,7 @@ public class MenuView extends JFrame {
         };
         worldSelectPanel.setLayout(new GridBagLayout());
 
+        // Buttons for world selection
         JButton newWorldButton = createStyledButton("New World");
         JButton loadWorldButton = createStyledButton("Load World");
         JButton backButton = createStyledButton("Back");
@@ -152,11 +169,21 @@ public class MenuView extends JFrame {
         setContentPane(mainPanel);
     }
 
+    /**
+     * Sets the controller for the view and initializes the settings panel.
+     *
+     * @param controller The controller to set for the view.
+     */
     public void setController(MenuController controller) {
         this.controller = controller;
-        settingsPanel = new SettingsPanel(controller); // Crea il panel dopo aver il controller
+        settingsPanel = new SettingsPanel(controller); // Create the settings panel after having the controller
     }
 
+    /**
+     * Updates the view based on the specified menu state.
+     *
+     * @param state The menu state to display.
+     */
     public void updateState(MenuState state) {
         switch (state) {
             case MAIN -> setContentPane(mainPanel);

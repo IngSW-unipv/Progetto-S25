@@ -4,19 +4,35 @@ import config.GameConfig;
 import org.joml.Vector3f;
 import java.util.*;
 
+/**
+ * Represents the game world, consisting of chunks that contain blocks.
+ * Handles terrain generation, chunk updates, and block interactions.
+ */
 public class World {
-    public static final int CHUNK_SIZE = 6;
-    private final Set<Chunk> chunks = new HashSet<>();
-    private Vector3f lastKnownPlayerPos;
-    private final PerlinNoiseGenerator terrainNoise;
-    private final PerlinNoiseGenerator caveNoise;
-    private final long seed;
+    public static final int CHUNK_SIZE = 6;             // The size of each chunk in blocks.
 
+    private final Set<Chunk> chunks = new HashSet<>();  // Set of all chunks currently loaded in the world.
+
+    private Vector3f lastKnownPlayerPos;                // The last known position of the player, used for chunk updates.
+
+    private final PerlinNoiseGenerator terrainNoise;    // Perlin noise generator for terrain generation.
+
+    private final PerlinNoiseGenerator caveNoise;       // Perlin noise generator for cave generation.
+
+    private final long seed;                            // Seed used for random generation, ensuring consistent world generation.
+
+
+    /**
+     * Constructs a new world with the specified initial player position and seed.
+     *
+     * @param initialPosition The initial position of the player in the world.
+     * @param seed The seed for random generation.
+     */
     public World(Vector3f initialPosition, long seed) {
         this.lastKnownPlayerPos = initialPosition;
         this.seed = seed;
 
-        // Use the main seed to generate consistent but different seeds for terrain and caves
+        // Create unique seeds for terrain and cave noise using the main seed.
         Random random = new Random(seed);
         this.terrainNoise = new PerlinNoiseGenerator(random.nextLong());
         this.caveNoise = new PerlinNoiseGenerator(random.nextLong());
@@ -24,14 +40,23 @@ public class World {
         generateSuperFlat();
     }
 
-    // Default constructor for backwards compatibility
+    /**
+     * Constructs a new world with the specified initial position and a random seed.
+     *
+     * @param initialPosition The initial position of the player in the world.
+     */
     public World(Vector3f initialPosition) {
         this(initialPosition, System.currentTimeMillis());
     }
 
+    /**
+     * Retrieves all visible blocks in the currently loaded chunks.
+     *
+     * @return A list of all visible blocks.
+     */
     public List<Block> getVisibleBlocks() {
         List<Block> visibleBlocks = new ArrayList<>();
-        for(Chunk chunk : chunks) {
+        for (Chunk chunk : chunks) {
             chunk.getBlocks().stream()
                 .filter(Block::isVisible)
                 .forEach(visibleBlocks::add);
@@ -39,41 +64,55 @@ public class World {
         return visibleBlocks;
     }
 
+    /**
+     * Retrieves a block at the specified position.
+     *
+     * @param position The position of the block.
+     * @return The block at the specified position, or null if it does not exist.
+     */
     public Block getBlock(Position position) {
-        int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
-        int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
+        int chunkX = fastFloor(position.x() / (float) CHUNK_SIZE);
+        int chunkZ = fastFloor(position.z() / (float) CHUNK_SIZE);
 
         Optional<Chunk> chunk = chunks.stream()
-                .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
-                .findFirst();
+            .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
+            .findFirst();
 
         return chunk.map(c -> c.getBlock(position)).orElse(null);
     }
 
+    /**
+     * Generates a super-flat terrain within the render distance of the player.
+     */
     private void generateSuperFlat() {
         int playerChunkX = fastFloor(lastKnownPlayerPos.x / CHUNK_SIZE);
         int playerChunkZ = fastFloor(lastKnownPlayerPos.z / CHUNK_SIZE);
 
-        // Prima genera tutti i chunk
-        for(int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
-            for(int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
+        // Generate all chunks within the render distance.
+        for (int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
+            for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                 ChunkPosition newPos = new ChunkPosition(playerChunkX + x, playerChunkZ + z);
                 generateChunkTerrain(newPos);
             }
         }
 
-        // Poi aggiorna tutte le facce
-        for(Chunk chunk : chunks) {
+        // Update block faces for all chunks.
+        for (Chunk chunk : chunks) {
             updateChunkBlockFaces(chunk);
         }
     }
 
+    /**
+     * Updates the loaded chunks based on the player's current position.
+     *
+     * @param playerPos The current position of the player.
+     */
     private void updateLoadedChunks(Vector3f playerPos) {
         lastKnownPlayerPos = playerPos;
         int playerChunkX = fastFloor(playerPos.x / CHUNK_SIZE);
         int playerChunkZ = fastFloor(playerPos.z / CHUNK_SIZE);
 
-        // Rimuovi i chunk fuori dal render distance
+        // Remove chunks outside the render distance.
         chunks.removeIf(chunk -> {
             ChunkPosition pos = chunk.getPosition();
             int dx = Math.abs(pos.x() - playerChunkX);
@@ -81,27 +120,26 @@ public class World {
             return dx > GameConfig.RENDER_DISTANCE || dz > GameConfig.RENDER_DISTANCE;
         });
 
-        // Prima genera tutti i nuovi chunk necessari
+        // Generate new chunks as needed.
         List<ChunkPosition> newChunks = new ArrayList<>();
-        for(int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
-            for(int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
+        for (int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
+            for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                 ChunkPosition newPos = new ChunkPosition(playerChunkX + x, playerChunkZ + z);
-                if(chunks.stream().noneMatch(c -> c.getPosition().equals(newPos))) {
+                if (chunks.stream().noneMatch(c -> c.getPosition().equals(newPos))) {
                     newChunks.add(newPos);
                 }
             }
         }
 
-        // Genera il terreno per tutti i nuovi chunk
-        for(ChunkPosition pos : newChunks) {
+        for (ChunkPosition pos : newChunks) {
             generateChunkTerrain(pos);
         }
 
-        // Aggiorna le facce per tutti i chunk interessati e i loro vicini
+        // Update block faces for affected chunks.
         Set<ChunkPosition> chunksToUpdate = new HashSet<>(newChunks);
-        for(ChunkPosition pos : newChunks) {
-            for(int dx = -1; dx <= 1; dx++) {
-                for(int dz = -1; dz <= 1; dz++) {
+        for (ChunkPosition pos : newChunks) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
                     chunksToUpdate.add(new ChunkPosition(pos.x() + dx, pos.z() + dz));
                 }
             }
@@ -114,20 +152,25 @@ public class World {
         );
     }
 
+    /**
+     * Generates terrain for a specific chunk position.
+     *
+     * @param pos The position of the chunk to generate.
+     */
     private void generateChunkTerrain(ChunkPosition pos) {
         Chunk chunk = new Chunk(pos);
 
-        for(int bx = 0; bx < CHUNK_SIZE; bx++) {
-            for(int bz = 0; bz < CHUNK_SIZE; bz++) {
+        for (int bx = 0; bx < CHUNK_SIZE; bx++) {
+            for (int bz = 0; bz < CHUNK_SIZE; bz++) {
                 int worldX = bx + (pos.x() * CHUNK_SIZE);
                 int worldZ = bz + (pos.z() * CHUNK_SIZE);
 
                 double noise = terrainNoise.noise(worldX / 32.0, worldZ / 32.0);
-                int height = (int)(noise * 32) + 32;
+                int height = (int) (noise * 32) + 32;
 
-                for(int y = 0; y <= height; y++) {
+                for (int y = 0; y <= height; y++) {
                     double caveValue = caveNoise.noise3D(worldX / 16.0, y / 16.0, worldZ / 16.0);
-                    if(caveValue > 0.7 && y > 5 && y < height - 1) {
+                    if (caveValue > 0.7 && y > 5 && y < height - 1) {
                         continue;
                     }
 
@@ -142,24 +185,48 @@ public class World {
         chunks.add(chunk);
     }
 
+    /**
+     * Updates the visible faces of all blocks in a chunk.
+     *
+     * @param chunk The chunk to update.
+     */
     private void updateChunkBlockFaces(Chunk chunk) {
         for (Block block : chunk.getBlocks()) {
             block.updateVisibleFaces(this);
         }
     }
 
+    /**
+     * Determines the block type for a specific height.
+     *
+     * @param y The current height.
+     * @param height The maximum height of the terrain at this location.
+     * @return The block type for the given height.
+     */
     private BlockType determineBlockType(int y, int height) {
-        if(y == 0) return BlockType.BEDROCK;
-        if(y == height) return BlockType.GRASS;
-        if(y > height - 4) return BlockType.DIRT;
+        if (y == 0) return BlockType.BEDROCK;
+        if (y == height) return BlockType.GRASS;
+        if (y > height - 4) return BlockType.DIRT;
         return BlockType.STONE;
     }
 
+    /**
+     * Floors a floating-point value quickly.
+     *
+     * @param value The value to floor.
+     * @return The floored integer value.
+     */
     private int fastFloor(float value) {
-        int i = (int)value;
+        int i = (int) value;
         return value < i ? i - 1 : i;
     }
 
+    /**
+     * Updates the block faces in a neighboring chunk based on its coordinates.
+     *
+     * @param x The x-coordinate of the neighboring chunk.
+     * @param z The z-coordinate of the neighboring chunk.
+     */
     private void updateNeighborChunk(int x, int z) {
         chunks.stream()
             .filter(c -> c.getPosition().equals(new ChunkPosition(x, z)))
@@ -167,9 +234,15 @@ public class World {
             .ifPresent(this::updateChunkBlockFaces);
     }
 
+    /**
+     * Places a block at the specified position and updates neighboring chunks if necessary.
+     *
+     * @param position The position where the block should be placed.
+     * @param type     The type of block to place.
+     */
     public void placeBlock(Position position, BlockType type) {
-        int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
-        int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
+        int chunkX = fastFloor(position.x() / (float) CHUNK_SIZE);
+        int chunkZ = fastFloor(position.z() / (float) CHUNK_SIZE);
 
         chunks.stream()
             .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
@@ -179,7 +252,7 @@ public class World {
                 chunk.setBlock(newBlock);
                 updateChunkBlockFaces(chunk);
 
-                // Update neighboring chunks if the block was placed on a border
+                // Update neighboring chunks if the block is placed on a chunk border
                 int localX = position.x() - chunkX * CHUNK_SIZE;
                 int localZ = position.z() - chunkZ * CHUNK_SIZE;
 
@@ -190,8 +263,13 @@ public class World {
             });
     }
 
+    /**
+     * Updates the visible faces of blocks adjacent to the specified position.
+     *
+     * @param position The position of the block whose neighbors should be updated.
+     */
     private void updateAdjacentBlockFaces(Position position) {
-        // Update blocks in all 6 directions
+        // Define all six adjacent positions
         Position[] adjacentPositions = {
             new Position(position.x() + 1, position.y(), position.z()), // Right
             new Position(position.x() - 1, position.y(), position.z()), // Left
@@ -201,6 +279,7 @@ public class World {
             new Position(position.x(), position.y(), position.z() - 1)  // Back
         };
 
+        // Update the visible faces for each adjacent block
         for (Position adjacentPos : adjacentPositions) {
             Block adjacentBlock = getBlock(adjacentPos);
             if (adjacentBlock != null) {
@@ -209,21 +288,26 @@ public class World {
         }
     }
 
+    /**
+     * Destroys a block at the specified position and updates neighboring chunks if necessary.
+     *
+     * @param position The position of the block to destroy.
+     */
     public void destroyBlock(Position position) {
-        int chunkX = fastFloor(position.x() / (float)CHUNK_SIZE);
-        int chunkZ = fastFloor(position.z() / (float)CHUNK_SIZE);
+        int chunkX = fastFloor(position.x() / (float) CHUNK_SIZE);
+        int chunkZ = fastFloor(position.z() / (float) CHUNK_SIZE);
 
         chunks.stream()
             .filter(c -> c.getPosition().equals(new ChunkPosition(chunkX, chunkZ)))
             .findFirst()
             .ifPresent(chunk -> {
-                // Update faces of adjacent blocks before removing the target block
+                // Update the faces of adjacent blocks before removing the target block
                 updateAdjacentBlockFaces(position);
 
                 chunk.removeBlock(position);
                 updateChunkBlockFaces(chunk);
 
-                // Update neighboring chunks if the block was on a border
+                // Update neighboring chunks if the block was on a chunk border
                 int localX = position.x() - chunkX * CHUNK_SIZE;
                 int localZ = position.z() - chunkZ * CHUNK_SIZE;
 
@@ -234,10 +318,20 @@ public class World {
             });
     }
 
+    /**
+     * Retrieves the seed used for generating the world.
+     *
+     * @return The world seed.
+     */
     public long getSeed() {
         return seed;
     }
 
+    /**
+     * Updates the world based on the player's current position, ensuring that the correct chunks are loaded.
+     *
+     * @param playerPos The current position of the player.
+     */
     public void update(Vector3f playerPos) {
         updateLoadedChunks(playerPos);
     }

@@ -5,16 +5,23 @@ import controller.event.RenderEvent;
 import org.joml.Vector3f;
 import java.util.Random;
 
+/**
+ * The Model class represents the core game model, managing the game's state,
+ * camera, world, collision system, and block interactions.
+ */
 public class Model {
-    private final GameState gameState;
-    private final Camera camera;
-    private final World world;
-    private final CollisionSystem collisionSystem;
-    private final long worldSeed;
-    private Block highlightedBlock;
-    private float breakingProgress = 0.0f;
-    private boolean isBreaking = false;
+    private final GameState gameState;              // Tracks the running state of the game
+    private final Camera camera;                    // Manages the player's view and movement
+    private final World world;                      // Represents the game world
+    private final CollisionSystem collisionSystem;  // Handles collision detection
+    private final long worldSeed;                   // Seed for world generation
+    private Block highlightedBlock;                 // Currently highlighted block
+    private float breakingProgress = 0.0f;          // Progress of breaking a block
+    private boolean isBreaking = false;             // Whether a block is being broken
 
+    /**
+     * Default constructor initializes the game with a random world seed.
+     */
     public Model() {
         this.gameState = new GameState();
         Vector3f initialPosition = new Vector3f(0, 50, 0);
@@ -24,6 +31,11 @@ public class Model {
         this.camera = new Camera(collisionSystem, initialPosition);
     }
 
+    /**
+     * Constructor initializes the game with a specific world seed.
+     *
+     * @param seed The seed for world generation.
+     */
     public Model(long seed) {
         this.gameState = new GameState();
         Vector3f initialPosition = new Vector3f(0, 50, 0);
@@ -33,6 +45,7 @@ public class Model {
         this.camera = new Camera(collisionSystem, initialPosition);
     }
 
+    // Getters for core components
     public GameState getGameState() {
         return gameState;
     }
@@ -41,12 +54,19 @@ public class Model {
         return camera;
     }
 
+    /**
+     * Updates the game logic, including block highlighting, breaking, and world updates.
+     *
+     * @param deltaTime The time elapsed since the last update, in seconds.
+     */
     public void updateGame(float deltaTime) {
+        // Reset highlighting for the previously highlighted block
         if (highlightedBlock != null) {
             highlightedBlock.setHighlighted(false);
             highlightedBlock = null;
         }
 
+        // Determine the currently highlighted block
         highlightedBlock = RayCaster.getTargetBlock(
             camera.getPosition(),
             camera.getYaw(),
@@ -55,6 +75,7 @@ public class Model {
             world
         );
 
+        // Update highlighting and breaking logic
         if (highlightedBlock != null) {
             highlightedBlock.setHighlighted(true);
             if (isBreaking && highlightedBlock.getType() != BlockType.BEDROCK) {
@@ -71,17 +92,24 @@ public class Model {
             isBreaking = false;
         }
 
+        // Update game state and notify the event bus
         gameState.update();
         EventBus.getInstance().post(new RenderEvent(camera, world.getVisibleBlocks()));
         world.update(camera.getPosition());
     }
 
+    /**
+     * Initiates the breaking process for the highlighted block, if applicable.
+     */
     public void startBreaking() {
         if (highlightedBlock != null && highlightedBlock.getType() != BlockType.BEDROCK) {
             isBreaking = true;
         }
     }
 
+    /**
+     * Stops the breaking process and resets progress.
+     */
     public void stopBreaking() {
         isBreaking = false;
         breakingProgress = 0.0f;
@@ -90,34 +118,29 @@ public class Model {
         }
     }
 
+    /**
+     * Attempts to place a block adjacent to the highlighted block.
+     */
     public void placeBlock() {
-        // Debug print
-        //System.out.println("Attempting to place block...");
-        //System.out.println("Highlighted block: " + (highlightedBlock != null ? highlightedBlock.getPosition() : "null"));
-
         if (highlightedBlock != null) {
             Position pos = highlightedBlock.getPosition();
             BlockDirection facing = RayCaster.getTargetFace(
-                camera.getPosition(),
-                camera.getYaw(),
-                camera.getPitch(),
-                camera.getRoll(),
-                world
+                    camera.getPosition(),
+                    camera.getYaw(),
+                    camera.getPitch(),
+                    camera.getRoll(),
+                    world
             );
 
-            // Debug print
-            //System.out.println("Target face: " + facing);
-
             if (facing != null) {
+                // Calculate the new block position
                 Position newPos = new Position(
-                    pos.x() + facing.getDx(),
-                    pos.y() + facing.getDy(),
-                    pos.z() + facing.getDz()
+                        pos.x() + facing.getDx(),
+                        pos.y() + facing.getDy(),
+                        pos.z() + facing.getDz()
                 );
 
-                // Debug print
-                //System.out.println("New position: " + newPos);
-
+                // Check for collisions and existing blocks
                 BoundingBox newBlockBounds = new BoundingBox(1.0f, 1.0f, 1.0f);
                 newBlockBounds.update(new Vector3f(newPos.x(), newPos.y(), newPos.z()));
 
@@ -125,14 +148,9 @@ public class Model {
                 boolean intersects = newBlockBounds.intersects(playerBounds);
                 boolean existingBlock = world.getBlock(newPos) != null;
 
-                // Debug print
-                //System.out.println("Intersects with player: " + intersects);
-                //System.out.println("Existing block at position: " + existingBlock);
-
+                // Place the block if valid
                 if (!intersects && !existingBlock) {
                     world.placeBlock(newPos, BlockType.DIRT);
-                    // Debug print
-                    //System.out.println("Block placed successfully");
                 }
             }
         }

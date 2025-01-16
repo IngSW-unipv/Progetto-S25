@@ -7,38 +7,54 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.FloatBuffer;
 
+/**
+ * A class representing an OpenGL shader program.
+ * It is responsible for loading, compiling, linking, and managing shaders.
+ */
 public class ShaderProgram {
 
     private int programID;
 
+    /**
+     * Creates a new shader program by loading, compiling, and linking vertex and fragment shaders.
+     *
+     * @param vertexShaderPath   The path to the vertex shader file.
+     * @param fragmentShaderPath The path to the fragment shader file.
+     */
     public ShaderProgram(String vertexShaderPath, String fragmentShaderPath) {
-        // Carica il codice sorgente degli shader
+        // Load shader source code
         String vertexShaderSource = ShaderUtils.loadShaderFile(vertexShaderPath);
         String fragmentShaderSource = ShaderUtils.loadShaderFile(fragmentShaderPath);
 
-        // Crea e compila gli shader
+        // Create and compile the shaders
         int vertexShaderID = loadShader(vertexShaderSource, GL20.GL_VERTEX_SHADER);
         int fragmentShaderID = loadShader(fragmentShaderSource, GL20.GL_FRAGMENT_SHADER);
 
-        // Crea il programma shader e linka gli shader
+        // Create the shader program and link the shaders
         programID = GL20.glCreateProgram();
         GL20.glAttachShader(programID, vertexShaderID);
         GL20.glAttachShader(programID, fragmentShaderID);
         GL20.glLinkProgram(programID);
         GL20.glValidateProgram(programID);
 
-        // Controlla eventuali errori nel linking
+        // Check for errors during linking
         if (GL20.glGetProgrami(programID, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
             System.out.println(GL20.glGetProgramInfoLog(programID, 500));
             throw new RuntimeException("Could not link shader program.");
         }
 
-        // Pulisce gli shader compilati (non più necessari dopo il linking)
+        // Clean up the compiled shaders (no longer needed after linking)
         GL20.glDeleteShader(vertexShaderID);
         GL20.glDeleteShader(fragmentShaderID);
     }
 
-    // Metodo per caricare un singolo shader
+    /**
+     * Loads and compiles a shader from source code.
+     *
+     * @param source The source code of the shader.
+     * @param type   The type of shader (vertex or fragment).
+     * @return The shader ID.
+     */
     private static int loadShader(String source, int type) {
         int shaderID = GL20.glCreateShader(type);
         GL20.glShaderSource(shaderID, source);
@@ -50,17 +66,26 @@ public class ShaderProgram {
         return shaderID;
     }
 
-    // Metodo per attivare il programma shader
+    /**
+     * Activates the shader program.
+     */
     public void start() {
         GL20.glUseProgram(programID);
     }
 
-    // Metodo per disattivare il programma shader
+    /**
+     * Deactivates the shader program.
+     */
     public void stop() {
         GL20.glUseProgram(0);
     }
 
-    // Metodo per caricare una matrice come uniform
+    /**
+     * Loads a 4x4 matrix as a uniform variable into the shader program.
+     *
+     * @param uniformName The name of the uniform variable in the shader.
+     * @param matrix      The matrix to load into the shader.
+     */
     public void loadMatrix(String uniformName, Matrix4f matrix) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             FloatBuffer buffer = stack.mallocFloat(16);
@@ -73,12 +98,19 @@ public class ShaderProgram {
         }
     }
 
-    // Metodo per liberare le risorse OpenGL
+    /**
+     * Cleans up the OpenGL resources used by the shader program.
+     */
     public void cleanup() {
         stop();
         GL20.glDeleteProgram(programID);
     }
 
+    /**
+     * Gets the OpenGL program ID of the shader program.
+     *
+     * @return The program ID.
+     */
     public int getProgramID() {
         return programID;
     }

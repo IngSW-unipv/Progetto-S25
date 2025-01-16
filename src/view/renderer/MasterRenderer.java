@@ -16,6 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * The MasterRenderer class is responsible for rendering the entire world and HUD elements in the game.
+ * It manages multiple shaders, textures, meshes, and handles rendering blocks, highlights, and breaking animations.
+ * It also manages the camera's view and projection matrices, as well as the rendering of various game elements.
+ */
 public class MasterRenderer implements WorldRenderer {
     private ShaderProgram blockShader;
     private ShaderProgram highlightShader;
@@ -32,6 +37,11 @@ public class MasterRenderer implements WorldRenderer {
     private BatchedMesh highlightMesh;
     private BatchedMesh breakingMesh;
 
+    /**
+     * Constructs a MasterRenderer instance, subscribing to the RENDER event and initializing necessary components.
+     *
+     * @param windowManager The window manager for handling window-related tasks.
+     */
     public MasterRenderer(WindowManager windowManager) {
         EventBus.getInstance().subscribe(EventType.RENDER, this::onEvent);
 
@@ -60,6 +70,12 @@ public class MasterRenderer implements WorldRenderer {
         projectionViewMatrix = new Matrix4f();
     }
 
+    /**
+     * Renders the world and HUD, including blocks, block highlights, breaking animations, and HUD elements.
+     *
+     * @param blocks The list of blocks to be rendered.
+     * @param camera The camera used for rendering the world from its perspective.
+     */
     @Override
     public void render(List<Block> blocks, Camera camera) {
         updateProjectionMatrix();
@@ -163,6 +179,9 @@ public class MasterRenderer implements WorldRenderer {
         GL11.glEnable(GL11.GL_DEPTH_TEST);
     }
 
+    /**
+     * Updates the projection matrix used for rendering.
+     */
     private void updateProjectionMatrix() {
         projectionMatrix = new Matrix4f().perspective(
                 (float) Math.toRadians(60.0f),
@@ -172,11 +191,19 @@ public class MasterRenderer implements WorldRenderer {
         );
     }
 
+    /**
+     * Prepares the OpenGL context for rendering by clearing the screen and setting the background color.
+     */
     private void prepare() {
         GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
     }
 
+    /**
+     * Loads the texture for a specific block type if it hasn't been loaded yet.
+     *
+     * @param type The block type for which to load the texture.
+     */
     private void loadBlockTexture(BlockType type) {
         if (!blockTextureIds.containsKey(type)) {
             int textureId = textureManager.loadTexture(type.getTexturePath());
@@ -184,6 +211,9 @@ public class MasterRenderer implements WorldRenderer {
         }
     }
 
+    /**
+     * Cleans up OpenGL resources used by the renderer, including shaders, textures, and meshes.
+     */
     public void cleanUp() {
         blockMeshes.values().forEach(BatchedMesh::cleanup);
         textureManager.cleanup();
@@ -195,6 +225,11 @@ public class MasterRenderer implements WorldRenderer {
         breakingMesh.cleanup();
     }
 
+    /**
+     * Handles incoming game events, specifically RenderEvents, to trigger rendering actions.
+     *
+     * @param event The game event to handle.
+     */
     public void onEvent(GameEvent event) {
         if (event instanceof RenderEvent renderEvent) {
             render(renderEvent.blocks(), renderEvent.camera());

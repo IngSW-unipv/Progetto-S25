@@ -9,21 +9,32 @@ import org.lwjgl.system.MemoryStack;
 
 import java.util.Objects;
 
+/**
+ * The WindowManager class is responsible for creating and managing the game window,
+ * including handling window resizing, fullscreen toggling, and updating the display.
+ */
 public class WindowManager {
-    private static long window;
-    private static final int WIDTH = 1280;
-    private static final int HEIGHT = 720;
-    private static boolean isFullscreen = false;
-    private int currentWidth = WIDTH;
-    private int currentHeight = HEIGHT;
+    private static long window;  // The window handle
+    private static final int WIDTH = 1280;  // Default window width
+    private static final int HEIGHT = 720; // Default window height
+    private static boolean isFullscreen = false; // Flag indicating if the window is fullscreen
+    private int currentWidth = WIDTH;  // Current width of the window
+    private int currentHeight = HEIGHT; // Current height of the window
 
+    /**
+     * Initializes the GLFW window system and creates the game window.
+     * Sets up OpenGL context and window hints, and centers the window on the screen.
+     */
     public void createDisplay() {
+        // Set GLFW error callback
         GLFWErrorCallback.createPrint(System.err).set();
 
+        // Initialize GLFW
         if (!GLFW.glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
+        // Set window hints
         GLFW.glfwDefaultWindowHints();
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -31,16 +42,18 @@ public class WindowManager {
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_TRUE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
 
+        // Create the window
         window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "Voxel", 0, 0);
         if (window == 0) {
             throw new RuntimeException("Failed to create window");
         }
 
+        // Center the window on the screen
         try (MemoryStack stack = MemoryStack.stackPush()) {
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
             GLFW.glfwSetWindowPos(window,
-                (Objects.requireNonNull(vidmode).width() - WIDTH) / 2,
-                (Objects.requireNonNull(vidmode).height() - HEIGHT) / 2
+                    (Objects.requireNonNull(vidmode).width() - WIDTH) / 2,
+                    (Objects.requireNonNull(vidmode).height() - HEIGHT) / 2
             );
         }
 
@@ -51,18 +64,29 @@ public class WindowManager {
             updateViewport();
         });
 
+        // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(window);
         GL.createCapabilities();
 
+        // Set clear color and update the viewport
         GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         updateViewport();
+
+        // Enable V-Sync
         GLFW.glfwSwapInterval(1);
     }
 
+    /**
+     * Updates the viewport to match the current window size.
+     */
     private void updateViewport() {
         GL11.glViewport(0, 0, currentWidth, currentHeight);
     }
 
+    /**
+     * Toggles between fullscreen and windowed mode.
+     * Adjusts the window size and position accordingly.
+     */
     public void toggleFullscreen() {
         if (isFullscreen) {
             // Switch to windowed mode
@@ -70,7 +94,7 @@ public class WindowManager {
             currentWidth = WIDTH;
             currentHeight = HEIGHT;
         } else {
-            // Switch to fullscreen
+            // Switch to fullscreen mode
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
             GLFW.glfwSetWindowMonitor(window, GLFW.glfwGetPrimaryMonitor(), 0, 0,
                     Objects.requireNonNull(vidmode).width(), Objects.requireNonNull(vidmode).height(), vidmode.refreshRate());
@@ -81,16 +105,28 @@ public class WindowManager {
         updateViewport();
     }
 
+    /**
+     * Updates the display by swapping buffers and polling for events.
+     */
     public void updateDisplay() {
-        GLFW.glfwSwapBuffers(window);
-        GLFW.glfwPollEvents();
+        GLFW.glfwSwapBuffers(window);  // Swap the front and back buffers
+        GLFW.glfwPollEvents();         // Poll for window events
     }
 
+    /**
+     * Closes the display and terminates GLFW.
+     */
     public void closeDisplay() {
-        GLFW.glfwDestroyWindow(window);
-        GLFW.glfwTerminate();
+        GLFW.glfwDestroyWindow(window);  // Destroy the window
+        GLFW.glfwTerminate();            // Terminate GLFW
     }
 
+    /**
+     * Retrieves the window handle.
+     *
+     * @return the window handle.
+     * @throws IllegalStateException if the window has not been properly initialized.
+     */
     public long getWindow() {
         if (window == 0) {
             throw new IllegalStateException("Window not properly initialized");
@@ -98,6 +134,11 @@ public class WindowManager {
         return window;
     }
 
+    /**
+     * Gets the aspect ratio of the window based on its current width and height.
+     *
+     * @return the aspect ratio of the window.
+     */
     public float getAspectRatio() {
         return (float) currentWidth / currentHeight;
     }
