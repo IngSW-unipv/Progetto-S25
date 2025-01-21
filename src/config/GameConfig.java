@@ -8,6 +8,8 @@ public class GameConfig {
     public static float GRAVITY = -5f; // The force of gravity affecting the player
     public static float JUMP_FORCE = 6.0f; // The force applied when the player jumps
     public static float TERMINAL_VELOCITY = -1f; // The maximum falling speed (terminal velocity)
+    public static float RAY_MAX_DISTANCE = 5.0f; // Maximum raycasting distance in blocks
+    public static float STEP = 0.05f; // Size of each ray step in world units
 
     private GameConfig() {} // Prevent instantiation
 }

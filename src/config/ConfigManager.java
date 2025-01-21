@@ -23,6 +23,8 @@ public class ConfigManager {
         props.setProperty("GRAVITY", String.valueOf(GameConfig.GRAVITY));
         props.setProperty("JUMP_FORCE", String.valueOf(GameConfig.JUMP_FORCE));
         props.setProperty("TERMINAL_VELOCITY", String.valueOf(GameConfig.TERMINAL_VELOCITY));
+        props.setProperty("RAY_MAX_DISTANCE", String.valueOf(GameConfig.RAY_MAX_DISTANCE));
+        props.setProperty("STEP", String.valueOf(GameConfig.STEP));
 
         try (FileOutputStream out = new FileOutputStream(CONFIG_FILE)) {
             props.store(out, "Game Configuration"); // Save properties with a comment
@@ -54,6 +56,8 @@ public class ConfigManager {
             GameConfig.GRAVITY = Float.parseFloat(props.getProperty("GRAVITY"));
             GameConfig.JUMP_FORCE = Float.parseFloat(props.getProperty("JUMP_FORCE"));
             GameConfig.TERMINAL_VELOCITY = Float.parseFloat(props.getProperty("TERMINAL_VELOCITY"));
+            GameConfig.RAY_MAX_DISTANCE = Float.parseFloat(props.getProperty("RAY_MAX_DISTANCE"));
+            GameConfig.STEP = Float.parseFloat(props.getProperty("STEP"));
         } catch (IOException e) {
             e.printStackTrace(); // Print any IO exceptions
         }
