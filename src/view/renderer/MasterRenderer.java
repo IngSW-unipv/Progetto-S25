@@ -118,7 +118,6 @@ public class MasterRenderer implements WorldRenderer {
         blockShader.loadMatrix("projectionMatrix", projectionMatrix);
         blockShader.loadMatrix("modelMatrix", modelMatrix);
 
-        // Load textures
         for (BlockType type : BlockType.values()) {
             loadBlockTexture(type);
         }
@@ -159,6 +158,8 @@ public class MasterRenderer implements WorldRenderer {
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDepthMask(false);
+            GL11.glLineWidth(3.0f);
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 
             highlightShader.start();
             highlightShader.loadMatrix("viewMatrix", viewMatrix);
@@ -169,6 +170,7 @@ public class MasterRenderer implements WorldRenderer {
             highlightMesh.render();
             highlightShader.stop();
 
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
             GL11.glDepthMask(true);
             GL11.glDisable(GL11.GL_BLEND);
         }

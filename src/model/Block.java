@@ -221,6 +221,34 @@ public class Block {
         return result;
     }
 
+    public float[] getOutlineVertices() {
+        float x = position.x();
+        float y = position.y();
+        float z = position.z();
+
+        // 8 vertici del cubo
+        return new float[] {
+                // Bordo inferiore
+                x - 0.5f, y - 0.5f, z - 0.5f,
+                x + 0.5f, y - 0.5f, z - 0.5f,
+                x + 0.5f, y - 0.5f, z + 0.5f,
+                x - 0.5f, y - 0.5f, z + 0.5f,
+                // Bordo superiore
+                x - 0.5f, y + 0.5f, z - 0.5f,
+                x + 0.5f, y + 0.5f, z - 0.5f,
+                x + 0.5f, y + 0.5f, z + 0.5f,
+                x - 0.5f, y + 0.5f, z + 0.5f
+        };
+    }
+
+    public int[] getOutlineIndices() {
+        return new int[] {
+                0, 1, 1, 2, 2, 3, 3, 0, // bordo inferiore
+                4, 5, 5, 6, 6, 7, 7, 4, // bordo superiore
+                0, 4, 1, 5, 2, 6, 3, 7  // linee verticali
+        };
+    }
+
     /**
      * Adds the vertices of a face to the provided list of vertices.
      * Each face is defined by four vertices, with their respective 3D coordinates (x, y, z)
