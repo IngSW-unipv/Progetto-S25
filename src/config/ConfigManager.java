@@ -17,6 +17,7 @@ public class ConfigManager {
     public static void saveConfig() {
         Properties props = new Properties();
         props.setProperty("RENDER_DISTANCE", String.valueOf(GameConfig.RENDER_DISTANCE));
+        props.setProperty("EYE_HEIGHT", String.valueOf(GameConfig.EYE_HEIGHT));
         props.setProperty("CAMERA_MOVE_SPEED", String.valueOf(GameConfig.CAMERA_MOVE_SPEED));
         props.setProperty("CAMERA_MOUSE_SENSITIVITY", String.valueOf(GameConfig.CAMERA_MOUSE_SENSITIVITY));
         props.setProperty("CAMERA_MOVEMENT_INCREMENT", String.valueOf(GameConfig.CAMERA_MOVEMENT_INCREMENT));
@@ -50,6 +51,7 @@ public class ConfigManager {
 
             // Set game configuration values from the loaded properties
             GameConfig.RENDER_DISTANCE = Integer.parseInt(props.getProperty("RENDER_DISTANCE"));
+            GameConfig.EYE_HEIGHT = Float.parseFloat(props.getProperty("EYE_HEIGHT"));
             GameConfig.CAMERA_MOVE_SPEED = Float.parseFloat(props.getProperty("CAMERA_MOVE_SPEED"));
             GameConfig.CAMERA_MOUSE_SENSITIVITY = Float.parseFloat(props.getProperty("CAMERA_MOUSE_SENSITIVITY"));
             GameConfig.CAMERA_MOVEMENT_INCREMENT = Float.parseFloat(props.getProperty("CAMERA_MOVEMENT_INCREMENT"));

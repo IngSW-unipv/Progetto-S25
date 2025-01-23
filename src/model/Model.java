@@ -20,7 +20,7 @@ public class Model {
     /** Name of the current world for save/load operations */
     private final String worldName;
     /** Timestamp of the last auto-save operation */
-    private long lastSaveTime;
+    private final long lastSaveTime;
     /** Interval between auto-saves in milliseconds (5 minutes) */
     private static final long SAVE_INTERVAL = 5 * 60 * 1000;
 
@@ -51,12 +51,11 @@ public class Model {
             initialPosition = new Vector3f(0, 50, 0);
         }
 
-        // Create world and restore any modified blocks from save
-        if (savedData != null && savedData.getModifications() != null) {
-            // Load world first
-            this.world = new World(initialPosition, seed);
+        // Always create the world first
+        this.world = new World(initialPosition, seed);
 
-            // Apply modifications
+        // Apply saved modifications if they exist
+        if (savedData != null && savedData.getModifications() != null) {
             for (BlockModification mod : savedData.getModifications()) {
                 if (mod.getType() != null) {
                     world.placeBlock(mod.getPosition(), mod.getType());

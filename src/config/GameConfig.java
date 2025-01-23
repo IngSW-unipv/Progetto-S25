@@ -2,6 +2,7 @@ package config;
 
 public class GameConfig {
     public static int RENDER_DISTANCE = 3; // The maximum distance for rendering chunks
+    public static float EYE_HEIGHT = 1.6f; // The maximum distance for rendering chunks
     public static float CAMERA_MOVE_SPEED = 10f; // The speed at which the camera moves
     public static float CAMERA_MOUSE_SENSITIVITY = 0.08f; // The sensitivity of the mouse for camera rotation
     public static float CAMERA_MOVEMENT_INCREMENT = 0.05f; // The increment for camera movement

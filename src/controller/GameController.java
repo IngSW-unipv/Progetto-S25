@@ -21,7 +21,7 @@ public class GameController implements EventListener {
      */
     public GameController(Model model) {
         this.model = model;
-        EventBus.getInstance().subscribe(EventType.INPUT, this); // Subscribe to input events
+        EventBus.getInstance().subscribe(EventType.INPUT, this);
     }
 
     /**
@@ -31,7 +31,7 @@ public class GameController implements EventListener {
      */
     public void onEvent(GameEvent event) {
         if (event instanceof InputEvent inputEvent) {
-            handleInput(inputEvent); // Handle the input event
+            handleInput(inputEvent);
         }
     }
 
@@ -47,8 +47,8 @@ public class GameController implements EventListener {
             case MOVE_RIGHT -> right = event.value() > 0; // Move right if the value is greater than 0
             case MOVE_UP -> up = event.value() > 0; // Move up if the value is greater than 0
             case MOVE_DOWN -> down = event.value() > 0; // Move down if the value is greater than 0
-            case LOOK_X -> model.getCamera().rotate(event.value(), 0); // Rotate the camera along the X axis
-            case LOOK_Y -> model.getCamera().rotate(0, event.value()); // Rotate the camera along the Y axis
+            case LOOK_X -> model.getPlayer().rotate(event.value(), 0); // Rotate the camera along the X axis
+            case LOOK_Y -> model.getPlayer().rotate(0, event.value()); // Rotate the camera along the Y axis
             case PLACE_BLOCK -> {
                 if (event.value() > 0) {
                     model.placeBlock(); // Place a block if the value is greater than 0
@@ -69,7 +69,7 @@ public class GameController implements EventListener {
             }
         }
 
-        model.getCamera().move(forward, backward, left, right, up, down, deltaTime); // Update camera movement based on flags
+        model.getPlayer().move(forward, backward, left, right, up, down, deltaTime); // Update camera movement based on flags
     }
 
     /**
