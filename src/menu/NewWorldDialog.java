@@ -15,6 +15,8 @@ public class NewWorldDialog extends JDialog {
     private final Color TEXT_COLOR = new Color(255, 255, 255);              // Color of the text on buttons and labels
     private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24); // Font used for the title
     private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16); // Font used for the main text and labels
+    private JTextField nameField;
+    private String worldName;
 
     /**
      * Constructs a NewWorldDialog instance, setting up the dialog's UI and behavior.
@@ -46,6 +48,41 @@ public class NewWorldDialog extends JDialog {
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(TEXT_COLOR);
         mainPanel.add(titleLabel, gbc);
+
+        JPanel namePanel = new JPanel(new GridBagLayout());
+        namePanel.setOpaque(false);
+
+        JLabel nameLabel = new JLabel("World Name:");
+        nameLabel.setFont(MAIN_FONT);
+        nameLabel.setForeground(TEXT_COLOR);
+
+        nameField = new JTextField(20) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(BUTTON_COLOR);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 5, 5);
+                super.paintComponent(g);
+            }
+        };
+        nameField.setFont(MAIN_FONT);
+        nameField.setForeground(TEXT_COLOR);
+        nameField.setCaretColor(TEXT_COLOR);
+        nameField.setBackground(new Color(0, 0, 0, 0));
+        nameField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.BLACK),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+
+        GridBagConstraints nameGbc = new GridBagConstraints();
+        nameGbc.insets = new Insets(5, 5, 5, 5);
+        namePanel.add(nameLabel, nameGbc);
+        nameGbc.gridx = 1;
+        nameGbc.weightx = 1;
+        nameGbc.fill = GridBagConstraints.HORIZONTAL;
+        namePanel.add(nameField, nameGbc);
+
+        mainPanel.add(namePanel, gbc);
 
         // Random seed by default
         seed = new Random().nextLong(); // Generate a random seed by default
@@ -106,6 +143,14 @@ public class NewWorldDialog extends JDialog {
         confirmButton.addActionListener(e -> {
             try {
                 seed = Long.parseLong(seedField.getText()); // Parse the seed from the text field
+                worldName = nameField.getText().trim();
+                if(worldName.isEmpty()) {
+                    JOptionPane.showMessageDialog(this,
+                            "Please enter a world name.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 confirmed = true;  // Mark the dialog as confirmed
                 dispose();         // Close the dialog
             } catch (NumberFormatException ex) {
@@ -192,5 +237,9 @@ public class NewWorldDialog extends JDialog {
      */
     public long getSeed() {
         return seed;
+    }
+
+    public String getWorldName() {
+        return worldName;
     }
 }

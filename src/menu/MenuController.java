@@ -3,6 +3,8 @@ package menu;
 import controller.GameController;
 import controller.InputController;
 import model.Model;
+import model.WorldData;
+import model.WorldManager;
 import view.View;
 
 /**
@@ -23,6 +25,7 @@ public class MenuController {
         this.model = model;
         this.view = view;
         this.view.setController(this);
+        WorldManager.initialize();
         updateView();
     }
 
@@ -59,6 +62,8 @@ public class MenuController {
 
         if (dialog.isConfirmed()) {
             long seed = dialog.getSeed();
+            String name = dialog.getWorldName();
+            WorldManager.saveWorldMetadata(new WorldData(name, seed));
             startNewGame(seed);
         }
     }
@@ -95,8 +100,13 @@ public class MenuController {
      * This method is currently a placeholder for future implementation.
      */
     public void onLoadWorldPressed() {
-        // TODO: Implement world loading functionality
-        System.out.println("Loading world...");
+        WorldListDialog dialog = new WorldListDialog(view);
+        dialog.setVisible(true);
+
+        if (dialog.isConfirmed() && dialog.getSelectedWorld() != null) {
+            WorldData selectedWorld = dialog.getSelectedWorld();
+            startNewGame(selectedWorld.seed());
+        }
     }
 
     /**
