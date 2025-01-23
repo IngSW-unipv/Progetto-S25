@@ -6,6 +6,7 @@ import controller.event.GameEvent;
 import controller.event.RenderEvent;
 import model.*;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import view.shader.ShaderProgram;
@@ -124,7 +125,7 @@ public class MasterRenderer implements WorldRenderer {
 
         Map<BlockType, List<Block>> blocksByType = blocks.stream()
                 .filter(block -> {
-                    Position pos = block.getPosition();
+                    Vector3f pos = block.getPosition();
                     return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
                 })
                 .collect(Collectors.groupingBy(Block::getType));

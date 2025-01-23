@@ -1,5 +1,7 @@
 package model;
 
+import org.joml.Vector3f;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +11,7 @@ import java.util.Map;
  */
 public class Chunk {
     private final ChunkPosition position;                           // Position of the chunk in the world
-    private final Map<Position, Block> blocks = new HashMap<>();    // Map of blocks within the chunk
+    private final Map<Vector3f, Block> blocks = new HashMap<>();    // Map of blocks within the chunk
 
     /**
      * Constructs a new chunk at the specified position.
@@ -35,7 +37,7 @@ public class Chunk {
      * @param position The position of the block to retrieve.
      * @return The block at the specified position, or {@code null} if no block exists.
      */
-    public Block getBlock(Position position) {
+    public Block getBlock(Vector3f position) {
         return blocks.get(position);
     }
 
@@ -44,7 +46,7 @@ public class Chunk {
      *
      * @param position The position of the block to remove.
      */
-    public void removeBlock(Position position) {
+    public void removeBlock(Vector3f position) {
         blocks.remove(position);
     }
 

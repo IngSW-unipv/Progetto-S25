@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class Block {
     private final BlockType type;           // The type of the block (e.g., material, texture).
-    private final Position position;        // The position of the block in the world.
+    private final Vector3f position;        // The position of the block in the world.
     private final BoundingBox boundingBox;  // The bounding box used for collision detection.
     private boolean[] visibleFaces;         // Tracks which faces of the block are visible.
     private boolean isVisible = true;       // Indicates if the block is visible for rendering.
@@ -32,7 +32,7 @@ public class Block {
      * @param type     The type of the block.
      * @param position The position of the block in the world.
      */
-    public Block(BlockType type, Position position) {
+    public Block(BlockType type, Vector3f position) {
         this.type = type;
         this.position = position;
         this.visibleFaces = new boolean[]{true, true, true, true, true, true};
@@ -97,7 +97,7 @@ public class Block {
      * @return True if the face should be rendered; false otherwise.
      */
     private boolean shouldRenderFace(World world, int dx, int dy, int dz) {
-        Position adjacentPos = new Position(
+        Vector3f adjacentPos = new Vector3f(
                 position.x() + dx,
                 position.y() + dy,
                 position.z() + dz
@@ -132,7 +132,7 @@ public class Block {
      * @return True if there is an adjacent block; false otherwise.
      */
     private boolean hasAdjacentBlock(World world, int dx, int dy, int dz) {
-        Position adjacentPos = new Position(
+        Vector3f adjacentPos = new Vector3f(
                 position.x() + dx,
                 position.y() + dy,
                 position.z() + dz
@@ -347,9 +347,9 @@ public class Block {
     /**
      * Retrieves the position of the block in 3D space.
      *
-     * @return the position of the block as a {@link Position} object.
+     * @return the position of the block as a {@link Vector3f} object.
      */
-    public Position getPosition() {
+    public Vector3f getPosition() {
         return position;
     }
 

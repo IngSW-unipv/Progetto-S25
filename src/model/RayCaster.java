@@ -39,7 +39,7 @@ public class RayCaster {
             );
 
             // Convert to block coordinates with center offset
-            Position blockPos = new Position(
+            Vector3f blockPos = new Vector3f(
                 (int) Math.floor(checkPos.x + 0.5f),
                 (int) Math.floor(checkPos.y + 0.5f),
                 (int) Math.floor(checkPos.z + 0.5f)
@@ -83,7 +83,7 @@ public class RayCaster {
             float blockY = checkPos.y - (float) Math.floor(checkPos.y);
             float blockZ = checkPos.z - (float) Math.floor(checkPos.z);
 
-            Position blockPos = new Position(
+            Vector3f blockPos = new Vector3f(
                 (int) Math.floor(checkPos.x),
                 (int) Math.floor(checkPos.y),
                 (int) Math.floor(checkPos.z)

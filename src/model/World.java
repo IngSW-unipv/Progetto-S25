@@ -70,7 +70,7 @@ public class World {
      * @param position The position of the block.
      * @return The block at the specified position, or null if it does not exist.
      */
-    public Block getBlock(Position position) {
+    public Block getBlock(Vector3f position) {
         int chunkX = fastFloor(position.x() / (float) CHUNK_SIZE);
         int chunkZ = fastFloor(position.z() / (float) CHUNK_SIZE);
 
@@ -175,7 +175,7 @@ public class World {
                     }
 
                     BlockType type = determineBlockType(y, height);
-                    Position blockPos = new Position(worldX, y, worldZ);
+                    Vector3f blockPos = new Vector3f(worldX, y, worldZ);
                     Block block = new Block(type, blockPos);
                     chunk.setBlock(block);
                 }
@@ -240,7 +240,7 @@ public class World {
      * @param position The position where the block should be placed.
      * @param type     The type of block to place.
      */
-    public void placeBlock(Position position, BlockType type) {
+    public void placeBlock(Vector3f position, BlockType type) {
         int chunkX = fastFloor(position.x() / (float) CHUNK_SIZE);
         int chunkZ = fastFloor(position.z() / (float) CHUNK_SIZE);
 
@@ -253,8 +253,8 @@ public class World {
                 updateChunkBlockFaces(chunk);
 
                 // Update neighboring chunks if the block is placed on a chunk border
-                int localX = position.x() - chunkX * CHUNK_SIZE;
-                int localZ = position.z() - chunkZ * CHUNK_SIZE;
+                float localX = position.x() - chunkX * CHUNK_SIZE;
+                float localZ = position.z() - chunkZ * CHUNK_SIZE;
 
                 if (localX == 0) updateNeighborChunk(chunkX - 1, chunkZ);
                 if (localX == CHUNK_SIZE - 1) updateNeighborChunk(chunkX + 1, chunkZ);
@@ -268,19 +268,19 @@ public class World {
      *
      * @param position The position of the block whose neighbors should be updated.
      */
-    private void updateAdjacentBlockFaces(Position position) {
+    private void updateAdjacentBlockFaces(Vector3f position) {
         // Define all six adjacent positions
-        Position[] adjacentPositions = {
-            new Position(position.x() + 1, position.y(), position.z()), // Right
-            new Position(position.x() - 1, position.y(), position.z()), // Left
-            new Position(position.x(), position.y() + 1, position.z()), // Top
-            new Position(position.x(), position.y() - 1, position.z()), // Bottom
-            new Position(position.x(), position.y(), position.z() + 1), // Front
-            new Position(position.x(), position.y(), position.z() - 1)  // Back
+        Vector3f[] adjacentPositions = {
+            new Vector3f(position.x() + 1, position.y(), position.z()), // Right
+            new Vector3f(position.x() - 1, position.y(), position.z()), // Left
+            new Vector3f(position.x(), position.y() + 1, position.z()), // Top
+            new Vector3f(position.x(), position.y() - 1, position.z()), // Bottom
+            new Vector3f(position.x(), position.y(), position.z() + 1), // Front
+            new Vector3f(position.x(), position.y(), position.z() - 1)  // Back
         };
 
         // Update the visible faces for each adjacent block
-        for (Position adjacentPos : adjacentPositions) {
+        for (Vector3f adjacentPos : adjacentPositions) {
             Block adjacentBlock = getBlock(adjacentPos);
             if (adjacentBlock != null) {
                 adjacentBlock.updateVisibleFaces(this);
@@ -293,7 +293,7 @@ public class World {
      *
      * @param position The position of the block to destroy.
      */
-    public void destroyBlock(Position position) {
+    public void destroyBlock(Vector3f position) {
         int chunkX = fastFloor(position.x() / (float) CHUNK_SIZE);
         int chunkZ = fastFloor(position.z() / (float) CHUNK_SIZE);
 
@@ -308,8 +308,8 @@ public class World {
                 updateChunkBlockFaces(chunk);
 
                 // Update neighboring chunks if the block was on a chunk border
-                int localX = position.x() - chunkX * CHUNK_SIZE;
-                int localZ = position.z() - chunkZ * CHUNK_SIZE;
+                float localX = position.x() - chunkX * CHUNK_SIZE;
+                float localZ = position.z() - chunkZ * CHUNK_SIZE;
 
                 if (localX == 0) updateNeighborChunk(chunkX - 1, chunkZ);
                 if (localX == CHUNK_SIZE - 1) updateNeighborChunk(chunkX + 1, chunkZ);

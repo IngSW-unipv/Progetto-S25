@@ -123,7 +123,7 @@ public class Model {
      */
     public void placeBlock() {
         if (highlightedBlock != null) {
-            Position pos = highlightedBlock.getPosition();
+            Vector3f pos = highlightedBlock.getPosition();
             BlockDirection facing = RayCaster.getTargetFace(
                     camera.getPosition(),
                     camera.getYaw(),
@@ -134,7 +134,7 @@ public class Model {
 
             if (facing != null) {
                 // Calculate the new block position
-                Position newPos = new Position(
+                Vector3f newPos = new Vector3f(
                         pos.x() + facing.getDx(),
                         pos.y() + facing.getDy(),
                         pos.z() + facing.getDz()
