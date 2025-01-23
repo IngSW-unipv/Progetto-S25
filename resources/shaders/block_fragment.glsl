@@ -1,15 +1,13 @@
 #version 330 core
 
-// Input texture coordinates passed from the vertex shader
-in vec2 pass_texCoord;
+in vec2 TexCoord;
+in float LightIntensity; // Intensità della luce dal vertex shader
 
-// Output color of the fragment (pixel)
-out vec4 fragColor;
+out vec4 FragColor;
 
-// Uniform variable to sample the texture
 uniform sampler2D textureSampler;
 
 void main() {
-    // Sample the texture at the provided texture coordinates
-    fragColor = texture(textureSampler, pass_texCoord);
+    vec4 texColor = texture(textureSampler, TexCoord);
+    FragColor = texColor * vec4(vec3(LightIntensity), 1.0); // Applica la luce
 }

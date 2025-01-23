@@ -16,6 +16,7 @@ public class Block {
     private boolean isVisible = true;       // Indicates if the block is visible for rendering.
     private boolean isHighlighted = false;  // Indicates if the block is highlighted (e.g., selected).
     private float breakProgress = 0.0f;     // Tracks the progress of breaking the block.
+    private int lightLevel = 15;
 
     // Indices for each face of the block
     private static final int FRONT = 0;  // Z+
@@ -221,34 +222,6 @@ public class Block {
         return result;
     }
 
-    public float[] getOutlineVertices() {
-        float x = position.x();
-        float y = position.y();
-        float z = position.z();
-
-        // 8 vertici del cubo
-        return new float[] {
-                // Bordo inferiore
-                x - 0.5f, y - 0.5f, z - 0.5f,
-                x + 0.5f, y - 0.5f, z - 0.5f,
-                x + 0.5f, y - 0.5f, z + 0.5f,
-                x - 0.5f, y - 0.5f, z + 0.5f,
-                // Bordo superiore
-                x - 0.5f, y + 0.5f, z - 0.5f,
-                x + 0.5f, y + 0.5f, z - 0.5f,
-                x + 0.5f, y + 0.5f, z + 0.5f,
-                x - 0.5f, y + 0.5f, z + 0.5f
-        };
-    }
-
-    public int[] getOutlineIndices() {
-        return new int[] {
-                0, 1, 1, 2, 2, 3, 3, 0, // bordo inferiore
-                4, 5, 5, 6, 6, 7, 7, 4, // bordo superiore
-                0, 4, 1, 5, 2, 6, 3, 7  // linee verticali
-        };
-    }
-
     /**
      * Adds the vertices of a face to the provided list of vertices.
      * Each face is defined by four vertices, with their respective 3D coordinates (x, y, z)
@@ -261,10 +234,11 @@ public class Block {
      * @param x4, y4, z4, u4, v4 The coordinates and texture coordinates for the fourth vertex.
      */
     private void addFaceVertices(List<Float> vertices,
-         float x1, float y1, float z1, float u1, float v1,
-         float x2, float y2, float z2, float u2, float v2,
-         float x3, float y3, float z3, float u3, float v3,
-         float x4, float y4, float z4, float u4, float v4) {
+                                 float x1, float y1, float z1, float u1, float v1,
+                                 float x2, float y2, float z2, float u2, float v2,
+                                 float x3, float y3, float z3, float u3, float v3,
+                                 float x4, float y4, float z4, float u4, float v4) {
+        float l = lightLevel / 15.0f;  // Usiamo lo stesso livello di luce per tutti i vertici della faccia
         vertices.add(x1); vertices.add(y1); vertices.add(z1); vertices.add(u1); vertices.add(v1);
         vertices.add(x2); vertices.add(y2); vertices.add(z2); vertices.add(u2); vertices.add(v2);
         vertices.add(x3); vertices.add(y3); vertices.add(z3); vertices.add(u3); vertices.add(v3);
@@ -363,5 +337,9 @@ public class Block {
     }
     public void setVisible(boolean visible) {
         isVisible = visible;
+    }
+
+    public int getLightLevel() {
+        return lightLevel;
     }
 }

@@ -1,3 +1,5 @@
+// src/view/renderer/BatchedMesh.java
+
 package view.renderer;
 
 import org.lwjgl.BufferUtils;
@@ -49,11 +51,15 @@ public class BatchedMesh {
      * of the block mesh to the existing batched mesh.
      *
      * @param blockVertices The vertices of the block mesh.
-     * @param blockIndices The indices of the block mesh.
-     * @param indexOffset The offset to apply to the indices to avoid conflicts with other meshes.
+     * @param blockIndices  The indices of the block mesh.
+     * @param indexOffset   The offset to apply to the indices to avoid conflicts with other meshes.
+     * @param lightLevel    The light level of the block (0 to 15).
      */
-    public void addBlockMesh(float[] blockVertices, int[] blockIndices, int indexOffset) {
-        for (float vertex : blockVertices) {
+    public void addBlockMesh(float[] blockVertices, int[] blockIndices, int indexOffset, int lightLevel) {
+        // Add light data to the vertices
+        float[] extendedVertices = addLightDataToVertices(blockVertices, lightLevel);
+
+        for (float vertex : extendedVertices) {
             vertices.add(vertex);
         }
 
@@ -64,47 +70,72 @@ public class BatchedMesh {
     }
 
     /**
+     * Adds light data to the vertices of a block mesh.
+     *
+     * @param blockVertices The original vertices of the block mesh.
+     * @param lightLevel    The light level to add (normalized to 0.0 - 1.0).
+     * @return An array of vertices with the light data appended.
+     */
+    private float[] addLightDataToVertices(float[] blockVertices, int lightLevel) {
+        float normalizedLight = lightLevel / 15.0f; // Normalize the light level
+        List<Float> extendedVertices = new ArrayList<>();
+
+        for (int i = 0; i < blockVertices.length; i += 5) {
+            // Copy existing vertex attributes
+            extendedVertices.add(blockVertices[i]);     // x
+            extendedVertices.add(blockVertices[i + 1]); // y
+            extendedVertices.add(blockVertices[i + 2]); // z
+            extendedVertices.add(blockVertices[i + 3]); // u
+            extendedVertices.add(blockVertices[i + 4]); // v
+            // Add light level
+            extendedVertices.add(normalizedLight);      // light
+        }
+
+        // Convert list to array
+        float[] result = new float[extendedVertices.size()];
+        for (int i = 0; i < extendedVertices.size(); i++) {
+            result[i] = extendedVertices.get(i);
+        }
+        return result;
+    }
+
+    /**
      * Updates the OpenGL buffers with the current vertex and index data.
      * This method should be called when the mesh data has changed.
      */
     public void updateGLBuffers() {
         if (!isDirty) return;
 
-        // Create buffers for vertices and indices
         FloatBuffer vertexBuffer = BufferUtils.createFloatBuffer(vertices.size());
-        for (float v : vertices) {
-            vertexBuffer.put(v);
-        }
+        for (float v : vertices) vertexBuffer.put(v);
         vertexBuffer.flip();
 
         IntBuffer indexBuffer = BufferUtils.createIntBuffer(indices.size());
-        for (int i : indices) {
-            indexBuffer.put(i);
-        }
+        for (int i : indices) indexBuffer.put(i);
         indexBuffer.flip();
 
-        // Bind the VAO and update the buffers
         GL30.glBindVertexArray(vaoID);
 
-        // Update the vertex buffer
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexVBO);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertexBuffer, GL15.GL_STATIC_DRAW);
 
-        // Define vertex attribute pointers
-        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 5 * Float.BYTES, 0);
+        // Position (3 float)
+        GL20.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 6 * Float.BYTES, 0);
         GL20.glEnableVertexAttribArray(0);
 
-        GL20.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, 5 * Float.BYTES, 3 * Float.BYTES);
+        // Texture coords (2 float)
+        GL20.glVertexAttribPointer(1, 2, GL11.GL_FLOAT, false, 6 * Float.BYTES, 3 * Float.BYTES);
         GL20.glEnableVertexAttribArray(1);
 
-        // Update the index buffer
+        // Light intensity (1 float)
+        GL20.glVertexAttribPointer(2, 1, GL11.GL_FLOAT, false, 6 * Float.BYTES, 5 * Float.BYTES);
+        GL20.glEnableVertexAttribArray(2);
+
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, indexVBO);
         GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
 
-        // Unbind the VAO
         GL30.glBindVertexArray(0);
 
-        // Update the vertex count and mark the mesh as not dirty
         vertexCount = indices.size();
         isDirty = false;
     }

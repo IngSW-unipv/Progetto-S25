@@ -98,7 +98,7 @@ public class MasterRenderer implements WorldRenderer {
         for (Block block : blocks) {
             if (block.getBreakProgress() > 0) {
                 BatchedMesh breakMesh = new BatchedMesh();
-                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0);
+                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
                 breakMesh.updateGLBuffers();
 
                 textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
@@ -136,7 +136,7 @@ public class MasterRenderer implements WorldRenderer {
 
             int vertexOffset = 0;
             for (Block block : typeBlocks) {
-                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset);
+                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset, block.getLightLevel()); // Aggiunto lightLevel
                 vertexOffset += block.getVertices().length / 5;
             }
 
@@ -152,7 +152,7 @@ public class MasterRenderer implements WorldRenderer {
         blocks.stream()
                 .filter(Block::isHighlighted)
                 .forEach(block -> {
-                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0);
+                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
                 });
 
         if (blocks.stream().anyMatch(Block::isHighlighted)) {
