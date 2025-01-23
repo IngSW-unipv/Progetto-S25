@@ -29,6 +29,9 @@ public class World {
     /** World generation seed */
     private final long seed;
 
+    private final ChunkLoader chunkLoader;
+    private final Object chunksLock = new Object();
+
     /**
      * Creates a world with specific player position and seed.
      * Initializes noise generators and generates initial terrain.
@@ -41,6 +44,8 @@ public class World {
         Random random = new Random(seed);
         this.terrainNoise = new PerlinNoiseGenerator(random.nextLong());
         this.caveNoise = new PerlinNoiseGenerator(random.nextLong());
+
+        this.chunkLoader = new ChunkLoader(this, Runtime.getRuntime().availableProcessors() - 1);
 
         generateSuperFlat();
     }
@@ -99,23 +104,18 @@ public class World {
      */
     private void generateSuperFlat() {
         Vector3f playerChunkPos = calculateChunkCoordinates(lastKnownPlayerPos);
-
-        // Generate chunks in render distance cube
         for (int x = -GameConfig.RENDER_DISTANCE; x <= GameConfig.RENDER_DISTANCE; x++) {
             for (int y = -GameConfig.RENDER_DISTANCE; y <= GameConfig.RENDER_DISTANCE; y++) {
                 for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                     Vector3f newPos = new Vector3f(
-                        playerChunkPos.x() + x,
-                        playerChunkPos.y() + y,
-                        playerChunkPos.z() + z
+                            playerChunkPos.x() + x,
+                            playerChunkPos.y() + y,
+                            playerChunkPos.z() + z
                     );
-                    generateChunkTerrain(newPos);
+                    chunkLoader.queueChunkLoad(newPos);
                 }
             }
         }
-
-        // Update block faces after all chunks generated
-        chunks.forEach(this::updateChunkBlockFaces);
     }
 
     /**
@@ -155,9 +155,9 @@ public class World {
             for (int y = -GameConfig.RENDER_DISTANCE; y <= GameConfig.RENDER_DISTANCE; y++) {
                 for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                     Vector3f newPos = new Vector3f(
-                            playerChunkPos.x() + x,
-                            playerChunkPos.y() + y,
-                            playerChunkPos.z() + z
+                        playerChunkPos.x() + x,
+                        playerChunkPos.y() + y,
+                        playerChunkPos.z() + z
                     );
                     // Add if chunk doesn't exist
                     if (chunks.stream().noneMatch(c -> c.getPosition().equals(newPos))) {
@@ -201,19 +201,23 @@ public class World {
     /**
      * Generates terrain for a single chunk.
      */
-    private void generateChunkTerrain(Vector3f pos) {
-        Chunk chunk = new Chunk(pos);
+    public synchronized void generateChunkTerrain(Vector3f pos) {
+        synchronized(chunksLock) {
+            if (chunks.stream().anyMatch(c -> c.getPosition().equals(pos))) {
+                return;
+            }
 
-        // Generate blocks in chunk
-        for (int bx = 0; bx < CHUNK_SIZE; bx++) {
-            for (int by = 0; by < CHUNK_SIZE; by++) {
-                for (int bz = 0; bz < CHUNK_SIZE; bz++) {
-                    generateBlockAt(chunk, pos, bx, by, bz);
+            Chunk chunk = new Chunk(pos);
+            for (int bx = 0; bx < CHUNK_SIZE; bx++) {
+                for (int by = 0; by < CHUNK_SIZE; by++) {
+                    for (int bz = 0; bz < CHUNK_SIZE; bz++) {
+                        generateBlockAt(chunk, pos, bx, by, bz);
+                    }
                 }
             }
+            chunks.add(chunk);
+            updateChunkBlockFaces(chunk);
         }
-
-        chunks.add(chunk);
     }
 
     /**
@@ -377,5 +381,9 @@ public class World {
      */
     public void update(Vector3f playerPos) {
         updateLoadedChunks(playerPos);
+    }
+
+    public void cleanup() {
+        chunkLoader.shutdown();
     }
 }
