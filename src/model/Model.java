@@ -3,45 +3,46 @@ package model;
 import controller.event.EventBus;
 import controller.event.RenderEvent;
 import org.joml.Vector3f;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The Model class represents the core game model, managing the game's state,
- * camera, world, collision system, and block interactions.
+ * Core model class implementing the Model component of MVC pattern.
+ * Manages the game state, world, player and coordinates their interactions.
+ * Handles saving/loading of game data and updates the game state.
  */
 public class Model {
-    private final GameState gameState;              // Tracks the running state of the game
-    private final Camera camera;                    // Manages the player's view and movement
-    private final World world;                      // Represents the game world
-    private final CollisionSystem collisionSystem;  // Handles collision detection
-    private final long worldSeed;                   // Seed for world generation
-    private Block highlightedBlock;                 // Currently highlighted block
-    private float breakingProgress = 0.0f;          // Progress of breaking a block
-    private boolean isBreaking = false;             // Whether a block is being broken
-    private final String worldName;                 // Name of the current world
-    private long lastSaveTime;                      // Timestamp of last auto-save
-    private static final long SAVE_INTERVAL = 5 * 60 * 1000; // Auto-save every 5 minutes
+    /** Tracks the running state of the game */
+    private final GameState gameState;
+    /** Player entity with position, camera and interaction capabilities */
+    private final Player player;
+    /** The game world containing all blocks and terrain */
+    private final World world;
+    /** Name of the current world for save/load operations */
+    private final String worldName;
+    /** Timestamp of the last auto-save operation */
+    private long lastSaveTime;
+    /** Interval between auto-saves in milliseconds (5 minutes) */
+    private static final long SAVE_INTERVAL = 5 * 60 * 1000;
 
     /**
-     * Constructor initializes the game with a specific world name and seed.
-     * Loads saved data if it exists, otherwise starts a new world.
+     * Creates a new Model instance, initializing or loading a world.
+     * Handles loading saved game data or creating new world if no save exists.
      *
-     * @param worldName The name of the world
-     * @param seed The seed for world generation
+     * @param worldName Name of the world to load or create
+     * @param seed Seed for world generation if creating new world
      */
     public Model(String worldName, long seed) {
         this.worldName = worldName;
-        this.worldSeed = seed;
         this.gameState = new GameState();
         this.lastSaveTime = System.currentTimeMillis();
 
-        // Load saved data if it exists
+        // Load saved game data if it exists
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
         Vector3f initialPosition;
         float initialPitch = 0;
         float initialYaw = 0;
 
+        // Set initial player position and rotation from save data or defaults
         if (savedData != null) {
             initialPosition = savedData.getPlayerPosition();
             initialPitch = savedData.getPlayerPitch();
@@ -50,87 +51,51 @@ public class Model {
             initialPosition = new Vector3f(0, 50, 0);
         }
 
-        // Load modified blocks from save data
+        // Create world and restore any modified blocks from save
+        this.world = new World(initialPosition, seed);
         if (savedData != null && savedData.getModifications() != null) {
-            initialPosition = savedData.getPlayerPosition();
-            initialPitch = savedData.getPlayerPitch();
-            initialYaw = savedData.getPlayerYaw();
-
-            // Load world first
-            this.world = new World(initialPosition, worldSeed);
-
-            // Apply modifications
-        } else {
-            initialPosition = new Vector3f(0, 50, 0);
-            this.world = new World(initialPosition, worldSeed);
+            for (BlockModification mod : savedData.getModifications()) {
+                world.placeBlock(mod.getPosition(), mod.getType());
+            }
         }
 
-        this.collisionSystem = new CollisionSystem(world);
-        this.camera = new Camera(collisionSystem, initialPosition);
-
-        if (savedData != null) {
-            camera.setPitch(initialPitch);
-            camera.setYaw(initialYaw);
-        }
+        // Initialize player with position and rotation
+        this.player = new Player(world, initialPosition, initialPitch, initialYaw);
     }
 
     /**
-     * Saves the current game state to disk.
+     * Saves the current game state including player position, rotation,
+     * and all modified blocks in the world.
      */
     public void saveGame() {
         Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks();
         WorldSaveData saveData = new WorldSaveData(
                 modifiedBlocks,
-                camera.getRawPosition(),
-                camera.getPitch(),
-                camera.getYaw()
+                player.getPosition(),
+                player.getPitch(),
+                player.getYaw()
         );
         WorldManager.saveWorldData(worldName, saveData);
         lastSaveTime = System.currentTimeMillis();
     }
 
     /**
-     * Updates the game logic, including block highlighting, breaking, and world updates.
+     * Updates the game state, including player interaction, world state,
+     * and triggers auto-save if needed.
      *
-     * @param deltaTime The time elapsed since the last update
+     * @param deltaTime Time elapsed since last update in seconds
      */
     public void updateGame(float deltaTime) {
-        // Reset highlighting for the previously highlighted block
-        if (highlightedBlock != null) {
-            highlightedBlock.setHighlighted(false);
-            highlightedBlock = null;
-        }
+        // Update player's targeted block and breaking progress
+        player.updateTargetedBlock();
+        player.updateBreaking(deltaTime);
 
-        // Determine the currently highlighted block
-        highlightedBlock = RayCaster.getTargetBlock(
-                camera.getPosition(),
-                camera.getYaw(),
-                camera.getPitch(),
-                camera.getRoll(),
-                world
-        );
-
-        // Update highlighting and breaking logic
-        if (highlightedBlock != null) {
-            highlightedBlock.setHighlighted(true);
-            if (isBreaking && !highlightedBlock.getType().isUnbreakable()) {
-                breakingProgress += deltaTime;
-                highlightedBlock.setBreakProgress(breakingProgress / highlightedBlock.getType().getBreakTime());
-                if (breakingProgress >= highlightedBlock.getType().getBreakTime()) {
-                    world.destroyBlock(highlightedBlock.getPosition());
-                    breakingProgress = 0.0f;
-                    isBreaking = false;
-                }
-            }
-        } else {
-            breakingProgress = 0.0f;
-            isBreaking = false;
-        }
-
-        // Update game state and notify the event bus
+        // Update general game state
         gameState.update();
-        EventBus.getInstance().post(new RenderEvent(camera, world.getVisibleBlocks()));
-        world.update(camera.getPosition());
+        // Post render event with current game state
+        EventBus.getInstance().post(new RenderEvent(player.getCamera(), world.getVisibleBlocks()));
+        // Update world based on player position
+        world.update(player.getCamera().getPosition());
 
         // Check for auto-save
         if (shouldAutoSave()) {
@@ -139,88 +104,60 @@ public class Model {
     }
 
     /**
-     * Checks if it's time for an auto-save.
+     * Checks if enough time has passed for an auto-save.
      *
-     * @return true if enough time has passed since the last save
+     * @return true if it's time to auto-save, false otherwise
      */
     private boolean shouldAutoSave() {
         return System.currentTimeMillis() - lastSaveTime >= SAVE_INTERVAL;
     }
 
     /**
-     * Initiates block breaking if possible.
+     * Initiates block breaking process through the player.
      */
     public void startBreaking() {
-        if (highlightedBlock == null || highlightedBlock.getType() == BlockType.BEDROCK) {
-            return;
-        }
-        isBreaking = true;
-
-        if (breakingProgress >= highlightedBlock.getType().getBreakTime()) {
-            world.destroyBlock(highlightedBlock.getPosition());
-            breakingProgress = 0.0f;
-            isBreaking = false;
-            saveGame(); // Save after block destruction
-        }
+        player.startBreaking();
     }
 
     /**
-     * Stops the breaking process and resets progress.
+     * Stops the block breaking process through the player.
      */
     public void stopBreaking() {
-        isBreaking = false;
-        breakingProgress = 0.0f;
-        if (highlightedBlock != null) {
-            highlightedBlock.setBreakProgress(0.0f);
-        }
+        player.stopBreaking();
     }
 
     /**
-     * Attempts to place a block adjacent to the highlighted block.
+     * Places a block through the player and saves the game.
      */
     public void placeBlock() {
-        if (highlightedBlock != null) {
-            Vector3f pos = highlightedBlock.getPosition();
-            BlockDirection facing = RayCaster.getTargetFace(
-                    camera.getPosition(),
-                    camera.getYaw(),
-                    camera.getPitch(),
-                    camera.getRoll(),
-                    world
-            );
-
-            if (facing != null) {
-                Vector3f newPos = new Vector3f(
-                        pos.x() + facing.getDx(),
-                        pos.y() + facing.getDy(),
-                        pos.z() + facing.getDz()
-                );
-
-                // Check for collisions and existing blocks
-                BoundingBox newBlockBounds = new BoundingBox(1.0f, 1.0f, 1.0f);
-                newBlockBounds.update(newPos);
-
-                BoundingBox playerBounds = camera.getBoundingBox();
-                boolean intersects = newBlockBounds.intersects(playerBounds);
-                boolean existingBlock = world.getBlock(newPos) != null;
-
-                // Place the block if valid
-                if (!intersects && !existingBlock) {
-                    world.placeBlock(newPos, BlockType.DIRT);
-                    saveGame(); // Save after block placement
-                }
-            }
-        }
+        player.placeBlock();
+        saveGame();
     }
 
+    /**
+     * @return The current game state
+     */
     public GameState getGameState() {
         return gameState;
     }
 
-    public Camera getCamera() {
-        return camera;
+    /**
+     * @return The player instance
+     */
+    public Player getPlayer() {
+        return player;
     }
 
+    /**
+     * @return The player's camera instance
+     */
+    public Camera getCamera() {
+        return player.getCamera();
+    }
+
+    /**
+     * @return The game world instance
+     */
     public World getWorld() {
         return world;
     }
