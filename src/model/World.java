@@ -38,6 +38,10 @@ public class World {
      */
     private final Frustum frustum = new Frustum();
 
+    // Aggiungi questo campo alla classe World
+    private final OcclusionCulling occlusionCulling = new OcclusionCulling();
+
+
     /**
      * Creates a world with specific player position and seed.
      * Initializes noise generators and generates initial terrain.
@@ -72,18 +76,22 @@ public class World {
     public List<Block> getVisibleBlocks() {
         List<Block> visibleBlocks = new ArrayList<>();
         synchronized(chunksLock) {
-            PerformanceMetrics.resetFrameMetrics();
+            int occludedCount = 0;
+
             for (Chunk chunk : chunks) {
                 PerformanceMetrics.logChunk(!frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE));
-                // Only process chunks that are within the view frustum
-                if (frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE)) {
-                    chunk.getBlocks().stream()
-                            .filter(Block::isVisible)
-                            .forEach(visibleBlocks::add);
+
+                for (Block block : chunk.getBlocks()) {
+                    if (!block.isVisible()) {
+                        occludedCount++;
+                    } else if (frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE)) {
+                        visibleBlocks.add(block);
+                    }
                 }
             }
+
             int totalBlocks = chunks.stream().mapToInt(c -> c.getBlocks().size()).sum();
-            PerformanceMetrics.logBlocks(totalBlocks, visibleBlocks.size());
+            PerformanceMetrics.logBlocks(totalBlocks, visibleBlocks.size(), occludedCount);
         }
         return visibleBlocks;
     }
@@ -269,6 +277,7 @@ public class World {
      */
     private void updateChunkBlockFaces(Chunk chunk) {
         chunk.getBlocks().forEach(block -> block.updateVisibleFaces(this));
+        occlusionCulling.updateOcclusion(chunk, this);
     }
 
     /**

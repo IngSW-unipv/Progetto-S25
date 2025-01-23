@@ -361,4 +361,7 @@ public class Block {
     public boolean isVisible() {
         return isVisible;
     }
+    public void setVisible(boolean visible) {
+        isVisible = visible;
+    }
 }
