@@ -1,110 +1,128 @@
 package model;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-/**
- * Represents a view frustum used for frustum culling in 3D rendering.
- * It defines six planes (left, right, bottom, top, near, far) that form the frustum.
- */
 public class Frustum {
-    private final Vector4f[] planes; // Left, Right, Bottom, Top, Near, Far
+    private final FrustumPlane[] planes;
+    private static final int TOP = 0;
+    private static final int BOTTOM = 1;
+    private static final int LEFT = 2;
+    private static final int RIGHT = 3;
+    private static final int NEAR = 4;
+    private static final int FAR = 5;
 
-    /**
-     * Constructs a new Frustum object with uninitialized planes.
-     */
     public Frustum() {
-        planes = new Vector4f[6];
+        planes = new FrustumPlane[6];
         for (int i = 0; i < 6; i++) {
-            planes[i] = new Vector4f();
+            planes[i] = new FrustumPlane();
         }
     }
 
-    /**
-     * Updates the frustum planes based on the provided projection-view matrix.
-     * This method calculates the six planes that define the frustum.
-     *
-     * @param projectionViewMatrix The combined projection-view matrix.
-     */
     public void update(Matrix4f projectionViewMatrix) {
         // Left plane
-        planes[0].x = projectionViewMatrix.m03() + projectionViewMatrix.m00();
-        planes[0].y = projectionViewMatrix.m13() + projectionViewMatrix.m10();
-        planes[0].z = projectionViewMatrix.m23() + projectionViewMatrix.m20();
-        planes[0].w = projectionViewMatrix.m33() + projectionViewMatrix.m30();
+        planes[LEFT].normal.x = projectionViewMatrix.m03() + projectionViewMatrix.m00();
+        planes[LEFT].normal.y = projectionViewMatrix.m13() + projectionViewMatrix.m10();
+        planes[LEFT].normal.z = projectionViewMatrix.m23() + projectionViewMatrix.m20();
+        planes[LEFT].distance = projectionViewMatrix.m33() + projectionViewMatrix.m30();
 
         // Right plane
-        planes[1].x = projectionViewMatrix.m03() - projectionViewMatrix.m00();
-        planes[1].y = projectionViewMatrix.m13() - projectionViewMatrix.m10();
-        planes[1].z = projectionViewMatrix.m23() - projectionViewMatrix.m20();
-        planes[1].w = projectionViewMatrix.m33() - projectionViewMatrix.m30();
+        planes[RIGHT].normal.x = projectionViewMatrix.m03() - projectionViewMatrix.m00();
+        planes[RIGHT].normal.y = projectionViewMatrix.m13() - projectionViewMatrix.m10();
+        planes[RIGHT].normal.z = projectionViewMatrix.m23() - projectionViewMatrix.m20();
+        planes[RIGHT].distance = projectionViewMatrix.m33() - projectionViewMatrix.m30();
 
         // Bottom plane
-        planes[2].x = projectionViewMatrix.m03() + projectionViewMatrix.m01();
-        planes[2].y = projectionViewMatrix.m13() + projectionViewMatrix.m11();
-        planes[2].z = projectionViewMatrix.m23() + projectionViewMatrix.m21();
-        planes[2].w = projectionViewMatrix.m33() + projectionViewMatrix.m31();
+        planes[BOTTOM].normal.x = projectionViewMatrix.m03() + projectionViewMatrix.m01();
+        planes[BOTTOM].normal.y = projectionViewMatrix.m13() + projectionViewMatrix.m11();
+        planes[BOTTOM].normal.z = projectionViewMatrix.m23() + projectionViewMatrix.m21();
+        planes[BOTTOM].distance = projectionViewMatrix.m33() + projectionViewMatrix.m31();
 
         // Top plane
-        planes[3].x = projectionViewMatrix.m03() - projectionViewMatrix.m01();
-        planes[3].y = projectionViewMatrix.m13() - projectionViewMatrix.m11();
-        planes[3].z = projectionViewMatrix.m23() - projectionViewMatrix.m21();
-        planes[3].w = projectionViewMatrix.m33() - projectionViewMatrix.m31();
+        planes[TOP].normal.x = projectionViewMatrix.m03() - projectionViewMatrix.m01();
+        planes[TOP].normal.y = projectionViewMatrix.m13() - projectionViewMatrix.m11();
+        planes[TOP].normal.z = projectionViewMatrix.m23() - projectionViewMatrix.m21();
+        planes[TOP].distance = projectionViewMatrix.m33() - projectionViewMatrix.m31();
 
         // Near plane
-        planes[4].x = projectionViewMatrix.m03() + projectionViewMatrix.m02();
-        planes[4].y = projectionViewMatrix.m13() + projectionViewMatrix.m12();
-        planes[4].z = projectionViewMatrix.m23() + projectionViewMatrix.m22();
-        planes[4].w = projectionViewMatrix.m33() + projectionViewMatrix.m32();
+        planes[NEAR].normal.x = projectionViewMatrix.m03() + projectionViewMatrix.m02();
+        planes[NEAR].normal.y = projectionViewMatrix.m13() + projectionViewMatrix.m12();
+        planes[NEAR].normal.z = projectionViewMatrix.m23() + projectionViewMatrix.m22();
+        planes[NEAR].distance = projectionViewMatrix.m33() + projectionViewMatrix.m32();
 
         // Far plane
-        planes[5].x = projectionViewMatrix.m03() - projectionViewMatrix.m02();
-        planes[5].y = projectionViewMatrix.m13() - projectionViewMatrix.m12();
-        planes[5].z = projectionViewMatrix.m23() - projectionViewMatrix.m22();
-        planes[5].w = projectionViewMatrix.m33() - projectionViewMatrix.m32();
+        planes[FAR].normal.x = projectionViewMatrix.m03() - projectionViewMatrix.m02();
+        planes[FAR].normal.y = projectionViewMatrix.m13() - projectionViewMatrix.m12();
+        planes[FAR].normal.z = projectionViewMatrix.m23() - projectionViewMatrix.m22();
+        planes[FAR].distance = projectionViewMatrix.m33() - projectionViewMatrix.m32();
 
-        // Normalize planes
-        for (Vector4f plane : planes) {
-            float length = (float) Math.sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
-            plane.div(length); // Normalize the plane equation
+        // Normalize all planes
+        for (FrustumPlane plane : planes) {
+            float length = (float) Math.sqrt(plane.normal.x * plane.normal.x +
+                    plane.normal.y * plane.normal.y +
+                    plane.normal.z * plane.normal.z);
+            plane.normal.div(length);
+            plane.distance /= length;
         }
     }
 
-    /**
-     * Checks if a box is within the frustum.
-     * This method tests if any part of the box is inside the frustum.
-     *
-     * @param x    The x-coordinate of the box's center.
-     * @param y    The y-coordinate of the box's center.
-     * @param z    The z-coordinate of the box's center.
-     * @param size The size of the box (assumed to be a cube).
-     * @return True if the box is inside the frustum, false otherwise.
-     */
     public boolean isBoxInFrustum(float x, float y, float z, float size) {
-        // Corners of the box
-        float[] corners = {
-                x - size / 2, x + size / 2,
-                y - size / 2, y + size / 2,
-                z - size / 2, z + size / 2
-        };
+        return isAABBInFrustum(
+                x - size/2, y - size/2, z - size/2,
+                x + size/2, y + size/2, z + size/2
+        );
+    }
 
-        // Check if the box intersects with all frustum planes
-        for (Vector4f plane : planes) {
-            boolean anyPointIn = false;
-            for (int i = 0; i < 8; i++) {
-                // Determine the corner position based on bitmasking
-                float px = (i & 1) == 0 ? corners[0] : corners[1];
-                float py = (i & 2) == 0 ? corners[2] : corners[3];
-                float pz = (i & 4) == 0 ? corners[4] : corners[5];
+    public boolean isAABBInFrustum(float minX, float minY, float minZ,
+                                   float maxX, float maxY, float maxZ) {
+        for (FrustumPlane plane : planes) {
+            Vector3f normal = plane.normal;
 
-                // If any corner is inside the plane, the box intersects the frustum
-                if (plane.x * px + plane.y * py + plane.z * pz + plane.w >= 0) {
-                    anyPointIn = true;
-                    break;
-                }
+            float pVertex_x = (normal.x >= 0) ? maxX : minX;
+            float pVertex_y = (normal.y >= 0) ? maxY : minY;
+            float pVertex_z = (normal.z >= 0) ? maxZ : minZ;
+
+            float nVertex_x = (normal.x >= 0) ? minX : maxX;
+            float nVertex_y = (normal.y >= 0) ? minY : maxY;
+            float nVertex_z = (normal.z >= 0) ? minZ : maxZ;
+
+            // Test p-vertex
+            if ((normal.x * pVertex_x + normal.y * pVertex_y +
+                    normal.z * pVertex_z + plane.distance) < 0) {
+                return false;
             }
-            if (!anyPointIn) return false; // If no corner is inside, return false
+
+            // Test n-vertex (optional, provides early acceptance)
+            if ((normal.x * nVertex_x + normal.y * nVertex_y +
+                    normal.z * nVertex_z + plane.distance) < 0) {
+                continue;
+            }
+
+            // If we reach here, this plane is crossed by the AABB
+            return true;
         }
-        return true; // The box is inside the frustum
+        return true;
+    }
+
+    public boolean isChunkInFrustum(Vector3f chunkPos, int chunkSize) {
+        float minX = chunkPos.x * chunkSize;
+        float minY = chunkPos.y * chunkSize;
+        float minZ = chunkPos.z * chunkSize;
+        float maxX = minX + chunkSize;
+        float maxY = minY + chunkSize;
+        float maxZ = minZ + chunkSize;
+
+        return isAABBInFrustum(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    private static class FrustumPlane {
+        Vector3f normal;
+        float distance;
+
+        FrustumPlane() {
+            normal = new Vector3f();
+            distance = 0;
+        }
     }
 }

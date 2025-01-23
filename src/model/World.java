@@ -1,6 +1,7 @@
 package model;
 
 import config.GameConfig;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import java.util.*;
 
@@ -33,6 +34,11 @@ public class World {
     private final Object chunksLock = new Object();
 
     /**
+     * Frustum object for view frustum culling optimization
+     */
+    private final Frustum frustum = new Frustum();
+
+    /**
      * Creates a world with specific player position and seed.
      * Initializes noise generators and generates initial terrain.
      */
@@ -59,15 +65,25 @@ public class World {
     }
 
     /**
-     * Returns all visible blocks from loaded chunks.
+     * Returns all visible blocks from loaded chunks, using frustum culling optimization.
+     *
+     * @return List of visible blocks that are within the view frustum
      */
     public List<Block> getVisibleBlocks() {
         List<Block> visibleBlocks = new ArrayList<>();
-        // Only collect blocks marked as visible
-        for (Chunk chunk : chunks) {
-            chunk.getBlocks().stream()
-                .filter(Block::isVisible)
-                .forEach(visibleBlocks::add);
+        synchronized(chunksLock) {
+            PerformanceMetrics.resetFrameMetrics();
+            for (Chunk chunk : chunks) {
+                PerformanceMetrics.logChunk(!frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE));
+                // Only process chunks that are within the view frustum
+                if (frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE)) {
+                    chunk.getBlocks().stream()
+                            .filter(Block::isVisible)
+                            .forEach(visibleBlocks::add);
+                }
+            }
+            int totalBlocks = chunks.stream().mapToInt(c -> c.getBlocks().size()).sum();
+            PerformanceMetrics.logBlocks(totalBlocks, visibleBlocks.size());
         }
         return visibleBlocks;
     }
@@ -376,14 +392,20 @@ public class World {
         return seed;
     }
 
-    /**
-     * Updates world state based on player position.
-     */
-    public void update(Vector3f playerPos) {
-        updateLoadedChunks(playerPos);
-    }
-
     public void cleanup() {
         chunkLoader.shutdown();
+    }
+
+    /**
+     * Updates the world state based on player position and view frustum.
+     *
+     * @param playerPos Current player position in world coordinates
+     * @param projectionViewMatrix Combined projection-view matrix for frustum culling
+     */
+    public void update(Vector3f playerPos, Matrix4f projectionViewMatrix) {
+        // Update frustum planes for culling
+        frustum.update(projectionViewMatrix);
+        // Update chunks around player
+        updateLoadedChunks(playerPos);
     }
 }

@@ -180,6 +180,9 @@ public class MasterRenderer implements WorldRenderer {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         hudRenderer.render();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+        PerformanceMetrics.updateFrameMetrics();
+        System.out.println(PerformanceMetrics.getMetricsString());
     }
 
     /**
@@ -229,13 +232,17 @@ public class MasterRenderer implements WorldRenderer {
     }
 
     /**
-     * Handles incoming game events, specifically RenderEvents, to trigger rendering actions.
+     * Handles incoming game events, specifically RenderEvents.
+     * Updates the world's frustum culling and triggers rendering.
      *
-     * @param event The game event to handle.
+     * @param event The game event to handle
      */
     public void onEvent(GameEvent event) {
         if (event instanceof RenderEvent renderEvent) {
+            // Render the current frame
             render(renderEvent.blocks(), renderEvent.camera());
+            // Update world with current view frustum
+            renderEvent.world().update(renderEvent.camera().getPosition(), projectionViewMatrix);
         }
     }
 }

@@ -91,16 +91,12 @@ public class Model {
      * @param deltaTime Time elapsed since last update in seconds
      */
     public void updateGame(float deltaTime) {
-        // Update player's targeted block and breaking progress
         player.updateTargetedBlock();
         player.updateBreaking(deltaTime);
-
-        // Update general game state
         gameState.update();
-        // Post render event with current game state
-        EventBus.getInstance().post(new RenderEvent(player.getCamera(), world.getVisibleBlocks()));
-        // Update world based on player position
-        world.update(player.getCamera().getPosition());
+
+        // Aggiornare RenderEvent per includere il world
+        EventBus.getInstance().post(new RenderEvent(player.getCamera(), world.getVisibleBlocks(), world));
 
         // Check for auto-save
         if (shouldAutoSave()) {
