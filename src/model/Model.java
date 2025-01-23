@@ -16,7 +16,7 @@ public class Model {
     /** Player entity with position, camera and interaction capabilities */
     private final Player player;
     /** The game world containing all blocks and terrain */
-    private final World world;
+    private World world;
     /** Name of the current world for save/load operations */
     private final String worldName;
     /** Timestamp of the last auto-save operation */
@@ -52,10 +52,17 @@ public class Model {
         }
 
         // Create world and restore any modified blocks from save
-        this.world = new World(initialPosition, seed);
         if (savedData != null && savedData.getModifications() != null) {
+            // Load world first
+            this.world = new World(initialPosition, seed);
+
+            // Apply modifications
             for (BlockModification mod : savedData.getModifications()) {
-                world.placeBlock(mod.getPosition(), mod.getType());
+                if (mod.getType() != null) {
+                    world.placeBlock(mod.getPosition(), mod.getType());
+                } else {
+                    world.destroyBlock(mod.getPosition());
+                }
             }
         }
 
@@ -68,15 +75,14 @@ public class Model {
      * and all modified blocks in the world.
      */
     public void saveGame() {
-        Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks();
+        Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks(); // This method doesn't exist
         WorldSaveData saveData = new WorldSaveData(
-                modifiedBlocks,
-                player.getPosition(),
-                player.getPitch(),
-                player.getYaw()
+            modifiedBlocks,
+            player.getCamera().getRawPosition(),
+            player.getCamera().getPitch(),
+            player.getCamera().getYaw()
         );
         WorldManager.saveWorldData(worldName, saveData);
-        lastSaveTime = System.currentTimeMillis();
     }
 
     /**

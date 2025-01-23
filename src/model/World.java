@@ -336,6 +336,7 @@ public class World {
                 updateNeighboringChunks(position, chunkPos);
                 modifiedBlocks.put(position, type);
             });
+        modifiedBlocks.put(new Vector3f(position), type);
     }
 
     /**
@@ -354,6 +355,7 @@ public class World {
                 updateNeighboringChunks(position, chunkPos);
                 modifiedBlocks.remove(position);
             });
+        modifiedBlocks.put(new Vector3f(position), null); // null indicates block removal
     }
 
     /**
