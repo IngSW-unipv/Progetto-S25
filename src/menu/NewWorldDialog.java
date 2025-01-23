@@ -3,6 +3,8 @@ package menu;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.Random;
 
 public class NewWorldDialog extends JDialog {
@@ -73,6 +75,14 @@ public class NewWorldDialog extends JDialog {
                 BorderFactory.createLineBorder(Color.BLACK),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
+        nameField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    attemptWorldCreation();
+                }
+            }
+        });
 
         GridBagConstraints nameGbc = new GridBagConstraints();
         nameGbc.insets = new Insets(5, 5, 5, 5);
@@ -112,6 +122,14 @@ public class NewWorldDialog extends JDialog {
                 BorderFactory.createLineBorder(Color.BLACK),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
+        seedField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    attemptWorldCreation();
+                }
+            }
+        });
 
         JButton randomButton = createStyledButton("Random");
         randomButton.addActionListener(e -> {
@@ -140,26 +158,7 @@ public class NewWorldDialog extends JDialog {
         JButton confirmButton = createStyledButton("Create");
         JButton cancelButton = createStyledButton("Cancel");
 
-        confirmButton.addActionListener(e -> {
-            try {
-                seed = Long.parseLong(seedField.getText()); // Parse the seed from the text field
-                worldName = nameField.getText().trim();
-                if(worldName.isEmpty()) {
-                    JOptionPane.showMessageDialog(this,
-                            "Please enter a world name.",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                confirmed = true;  // Mark the dialog as confirmed
-                dispose();         // Close the dialog
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this,
-                        "Invalid seed. Please enter a valid number.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        confirmButton.addActionListener(e -> attemptWorldCreation());
 
         cancelButton.addActionListener(e -> dispose()); // Close the dialog without confirming
 
@@ -219,6 +218,39 @@ public class NewWorldDialog extends JDialog {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         return button;
+    }
+
+    private void attemptWorldCreation() {
+        try {
+            worldName = nameField.getText().trim();
+            String seedText = seedField.getText().trim();
+
+            if (worldName.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Please enter a world name.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (seedText.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Please enter a world seed.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            seed = Long.parseLong(seedText);
+            confirmed = true;
+            dispose();
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Invalid seed. Please enter a valid number.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**

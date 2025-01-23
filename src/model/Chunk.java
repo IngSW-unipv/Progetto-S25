@@ -10,7 +10,7 @@ import java.util.Map;
  * Represents a chunk in the world, which contains blocks and is identified by its position.
  */
 public class Chunk {
-    private final ChunkPosition position;                           // Position of the chunk in the world
+    private final Vector3f position;                           // Position of the chunk in the world
     private final Map<Vector3f, Block> blocks = new HashMap<>();    // Map of blocks within the chunk
 
     /**
@@ -18,7 +18,7 @@ public class Chunk {
      *
      * @param position The position of the chunk.
      */
-    public Chunk(ChunkPosition position) {
+    public Chunk(Vector3f position) {
         this.position = position;
     }
 
@@ -64,7 +64,7 @@ public class Chunk {
      *
      * @return The position of the chunk in the world.
      */
-    public ChunkPosition getPosition() {
+    public Vector3f getPosition() {
         return position;
     }
 }

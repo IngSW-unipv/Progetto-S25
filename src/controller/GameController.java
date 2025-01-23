@@ -63,7 +63,8 @@ public class GameController implements EventListener {
             }
             case EXIT -> {
                 if (event.value() > 0) {
-                    model.getGameState().setRunning(false); // Stop the game if the value is greater than 0
+                    model.saveGame(); // Save game before exit
+                    model.getGameState().setRunning(false);
                 }
             }
         }

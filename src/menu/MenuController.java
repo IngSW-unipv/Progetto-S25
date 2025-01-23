@@ -64,7 +64,7 @@ public class MenuController {
             long seed = dialog.getSeed();
             String name = dialog.getWorldName();
             WorldManager.saveWorldMetadata(new WorldData(name, seed));
-            startNewGame(seed);
+            startNewGame(name, seed);
         }
     }
 
@@ -74,11 +74,11 @@ public class MenuController {
      *
      * @param seed The seed used to generate the world.
      */
-    private void startNewGame(long seed) {
+    private void startNewGame(String worldName, long seed) {
         view.dispose(); // Close the menu
 
         // Initialize the game components
-        Model model = new Model(seed);
+        Model model = new Model(worldName, seed);
         View view = new View();
         view.createDisplay();
 
@@ -105,7 +105,7 @@ public class MenuController {
 
         if (dialog.isConfirmed() && dialog.getSelectedWorld() != null) {
             WorldData selectedWorld = dialog.getSelectedWorld();
-            startNewGame(selectedWorld.seed());
+            startNewGame(selectedWorld.name(), selectedWorld.seed());
         }
     }
 

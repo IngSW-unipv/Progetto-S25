@@ -52,6 +52,7 @@ public class WorldListDialog extends JDialog {
         worlds.forEach(listModel::addElement);
 
         JList<WorldData> worldList = new JList<>(listModel);
+        worldList.setCellRenderer(new WorldListRenderer());
         worldList.setFont(MAIN_FONT);
         worldList.setForeground(TEXT_COLOR);
         worldList.setBackground(BUTTON_COLOR);
@@ -137,5 +138,54 @@ public class WorldListDialog extends JDialog {
 
     public WorldData getSelectedWorld() {
         return selectedWorld;
+    }
+
+    private class WorldListRenderer extends JPanel implements ListCellRenderer<WorldData> {
+        private final JLabel nameLabel;
+        private final JLabel seedLabel;
+        private final JPanel contentPanel;
+
+        public WorldListRenderer() {
+            setLayout(new BorderLayout());
+            setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+            setOpaque(true);
+
+            contentPanel = new JPanel(new GridBagLayout());
+            contentPanel.setOpaque(false);
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbc.anchor = GridBagConstraints.WEST;
+
+            nameLabel = new JLabel();
+            nameLabel.setFont(new Font("Minecraft", Font.BOLD, 18));
+            nameLabel.setForeground(TEXT_COLOR);
+
+            seedLabel = new JLabel();
+            seedLabel.setFont(new Font("Minecraft", Font.PLAIN, 14));
+            seedLabel.setForeground(new Color(170, 170, 170));
+
+            contentPanel.add(nameLabel, gbc);
+            gbc.insets = new Insets(4, 20, 0, 0);
+            contentPanel.add(seedLabel, gbc);
+
+            add(contentPanel, BorderLayout.CENTER);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList<? extends WorldData> list,
+                                                      WorldData world, int index, boolean isSelected, boolean cellHasFocus) {
+            nameLabel.setText(world.name());
+            seedLabel.setText("Seed: " + world.seed());
+
+            if (isSelected) {
+                setBackground(new Color(65, 65, 90));
+                contentPanel.setBackground(new Color(65, 65, 90));
+            } else {
+                setBackground(BUTTON_COLOR);
+                contentPanel.setBackground(BUTTON_COLOR);
+            }
+
+            return this;
+        }
     }
 }

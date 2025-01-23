@@ -235,11 +235,19 @@ public class Camera {
         return pitch;
     }
 
+    public void setPitch(float pitch) {
+        this.pitch = Math.max(-89.0f, Math.min(89.0f, pitch));
+    }
+
     /**
      * @return Horizontal rotation in degrees
      */
     public float getYaw() {
         return yaw;
+    }
+
+    public void setYaw(float yaw) {
+        this.yaw = yaw % 360;
     }
 
     /**
