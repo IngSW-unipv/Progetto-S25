@@ -38,6 +38,8 @@ public class Player {
 
     private float fallSpeed = 0.0f;  // Velocità attuale di caduta
 
+    private static final float COLLISION_MARGIN = 0.05f;
+
     /** Player dimensions */
     private static final float PLAYER_HEIGHT = 1.8f;
     private static final float PLAYER_WIDTH = 0.6f;
@@ -81,30 +83,27 @@ public class Player {
      * @return true if movement is valid (no collision at either height)
      */
     private boolean canMoveToPosition(Vector3f newPosition, Direction direction) {
-        Vector3f groundPosition = new Vector3f(camera.getRawPosition());
-        Vector3f eyePosition = new Vector3f(camera.getPosition());
+        Vector3f groundCheckOffset = new Vector3f(0, -0.1f, 0);
 
-        switch (direction) {
-            case HORIZONTAL:
-                groundPosition.x = newPosition.x;
-                groundPosition.z = newPosition.z;
-                eyePosition.x = newPosition.x;
-                eyePosition.z = newPosition.z;
-                break;
-            case VERTICAL:
-                groundPosition.y = newPosition.y;
-                eyePosition.y = newPosition.y + EYE_HEIGHT;
-                break;
+        if (direction == Direction.HORIZONTAL) {
+            // Check posizione attuale
+            boundingBox.update(newPosition);
+            if (collisionSystem.checkCollision(boundingBox)) {
+                return false;
+            }
+
+            // Check se c'è terreno sotto
+            Vector3f groundPosition = new Vector3f(newPosition).add(groundCheckOffset);
+            boundingBox.update(groundPosition);
+            if (!collisionSystem.checkCollision(boundingBox)) {
+                isGrounded = false;
+            }
+
+            return true;
+        } else {
+            boundingBox.update(newPosition);
+            return !collisionSystem.checkCollision(boundingBox);
         }
-
-        // Check collisions at both positions
-        boundingBox.update(groundPosition);
-        if (collisionSystem.checkCollision(boundingBox)) return false;
-
-        boundingBox.update(eyePosition);
-        if (collisionSystem.checkCollision(boundingBox)) return false;
-
-        return true;
     }
 
     /**
@@ -127,37 +126,38 @@ public class Player {
         if (left) dx -= CAMERA_MOVEMENT_INCREMENT;
         if (right) dx += CAMERA_MOVEMENT_INCREMENT;
 
-        // Normalizza movimento diagonale
+        // Normalizzazione diagonale
         if (dx != 0 && dz != 0) {
             dx *= 0.707f;
             dz *= 0.707f;
         }
 
-        // Fisica verticale
+        // Gestione gravità e salto
         if (up && isGrounded) {
-            verticalVelocity = 6.0f; // Velocità iniziale salto più bassa
+            verticalVelocity = JUMP_FORCE;
             isGrounded = false;
         }
 
-        // Applica gravità se in aria
         if (!isGrounded) {
-            verticalVelocity -= 15.0f * deltaTime; // Accelerazione gravità costante
+            verticalVelocity += GRAVITY * deltaTime;
+            if (verticalVelocity < TERMINAL_VELOCITY) {
+                verticalVelocity = TERMINAL_VELOCITY;
+            }
         }
-
-        // Limita velocità massima caduta
-        verticalVelocity = Math.max(verticalVelocity, -15.0f);
 
         // Movimento nel world space
         float angle = (float) Math.toRadians(camera.getYaw());
         Vector3f currentPos = camera.getRawPosition();
         Vector3f newPosition = new Vector3f(currentPos);
+
+        // Movimento orizzontale con collisioni
         Vector3f horizontalMove = new Vector3f(
                 (float)(dx * Math.cos(angle) - dz * Math.sin(angle)) * CAMERA_MOVE_SPEED * deltaTime,
                 0,
                 (float)(dx * Math.sin(angle) + dz * Math.cos(angle)) * CAMERA_MOVE_SPEED * deltaTime
         );
 
-        // Movimento orizzontale con collisioni
+        // Test movimento completo
         newPosition.x = currentPos.x + horizontalMove.x;
         newPosition.z = currentPos.z + horizontalMove.z;
 
@@ -169,34 +169,23 @@ public class Player {
             moved = true;
         }
 
-        // Prova movimento su X
+        // Se bloccato, prova movimento singoli assi
         if (!moved) {
-            newPosition.x = currentPos.x + horizontalMove.x;
-            newPosition.z = currentPos.z;
+            // Prova X
+            newPosition.set(currentPos);
+            newPosition.x += horizontalMove.x;
             if (canMoveToPosition(newPosition, Direction.HORIZONTAL)) {
                 camera.setPosition(newPosition);
                 moved = true;
             }
-        }
 
-        // Prova movimento su Z
-        if (!moved) {
-            newPosition.x = currentPos.x;
-            newPosition.z = currentPos.z + horizontalMove.z;
-            if (canMoveToPosition(newPosition, Direction.HORIZONTAL)) {
-                camera.setPosition(newPosition);
-                moved = true;
-            }
-        }
-
-        // Scivola lungo i muri se bloccato
-        if (!moved) {
-            Vector3f slideDir = new Vector3f(horizontalMove).normalize();
-            newPosition.x = currentPos.x + slideDir.x * 0.7f;
-            newPosition.z = currentPos.z + slideDir.z * 0.7f;
-
-            if (canMoveToPosition(newPosition, Direction.HORIZONTAL)) {
-                camera.setPosition(newPosition);
+            // Prova Z
+            if (!moved) {
+                newPosition.set(currentPos);
+                newPosition.z += horizontalMove.z;
+                if (canMoveToPosition(newPosition, Direction.HORIZONTAL)) {
+                    camera.setPosition(newPosition);
+                }
             }
         }
 
@@ -208,15 +197,22 @@ public class Player {
             camera.setPosition(newPosition);
             isGrounded = false;
         } else {
+            // Se c'è collisione verso il basso
             if (verticalVelocity < 0) {
                 isGrounded = true;
-                verticalVelocity = 0;
-            } else if (verticalVelocity > 0) {
+            }
+            // Se c'è collisione verso l'alto
+            if (verticalVelocity > 0) {
                 verticalVelocity = 0;
             }
         }
 
-        // Aggiorna bounding box finale
+        // Forza la velocità verticale a 0 quando grounded
+        if (isGrounded) {
+            verticalVelocity = 0;
+        }
+
+        // Aggiorna bounding box
         boundingBox.update(camera.getRawPosition());
     }
 
