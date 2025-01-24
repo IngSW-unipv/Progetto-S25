@@ -41,6 +41,8 @@ public class World {
     // Aggiungi questo campo alla classe World
     private final OcclusionCulling occlusionCulling = new OcclusionCulling();
 
+    private final DayNightCycle dayNightCycle = new DayNightCycle();
+
 
     /**
      * Creates a world with specific player position and seed.
@@ -403,6 +405,13 @@ public class World {
 
     public void cleanup() {
         chunkLoader.shutdown();
+    }
+
+    public DayNightCycle getDayNightCycle() {
+        return dayNightCycle;
+    }
+    public void updateDayNightCycle(float deltaTime) {
+        dayNightCycle.update(deltaTime);
     }
 
     /**

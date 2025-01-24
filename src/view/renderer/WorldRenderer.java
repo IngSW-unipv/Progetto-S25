@@ -2,6 +2,7 @@ package view.renderer;
 
 import model.Block;
 import model.Camera;
+import model.World;
 
 import java.util.List;
 
@@ -18,5 +19,5 @@ public interface WorldRenderer {
      * @param blocks The list of blocks that make up the world to be rendered.
      * @param camera The camera used to determine the viewpoint for rendering.
      */
-    void render(List<Block> blocks, Camera camera);
+    void render(List<Block> blocks, Camera camera, World world);
 }

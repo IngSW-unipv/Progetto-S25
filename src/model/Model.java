@@ -24,6 +24,8 @@ public class Model {
     /** Interval between auto-saves in milliseconds (5 minutes) */
     private static final long SAVE_INTERVAL = 5 * 60 * 1000;
 
+    private final DayNightCycle dayNightCycle;
+
     /**
      * Creates a new Model instance, initializing or loading a world.
      * Handles loading saved game data or creating new world if no save exists.
@@ -35,6 +37,7 @@ public class Model {
         this.worldName = worldName;
         this.gameState = new GameState();
         this.lastSaveTime = System.currentTimeMillis();
+        this.dayNightCycle = new DayNightCycle();
 
         // Load saved game data if it exists
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
@@ -94,6 +97,7 @@ public class Model {
         player.updateTargetedBlock();
         player.updateBreaking(deltaTime);
         gameState.update();
+        world.updateDayNightCycle(deltaTime);
 
         // Aggiornare RenderEvent per includere il world
         EventBus.getInstance().post(new RenderEvent(player.getCamera(), world.getVisibleBlocks(), world));

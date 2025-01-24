@@ -37,6 +37,7 @@ public class MasterRenderer implements WorldRenderer {
     private Map<BlockType, BatchedMesh> blockMeshes;
     private BatchedMesh highlightMesh;
     private BatchedMesh breakingMesh;
+    private final DayNightCycle dayNightCycle = new DayNightCycle();
 
     /**
      * Constructs a MasterRenderer instance, subscribing to the RENDER event and initializing necessary components.
@@ -69,120 +70,6 @@ public class MasterRenderer implements WorldRenderer {
         hudRenderer = new HUDRenderer();
         frustum = new Frustum();
         projectionViewMatrix = new Matrix4f();
-    }
-
-    /**
-     * Renders the world and HUD, including blocks, block highlights, breaking animations, and HUD elements.
-     *
-     * @param blocks The list of blocks to be rendered.
-     * @param camera The camera used for rendering the world from its perspective.
-     */
-    @Override
-    public void render(List<Block> blocks, Camera camera) {
-        updateProjectionMatrix();
-        prepare();
-
-        Matrix4f viewMatrix = camera.getViewMatrix();
-        projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
-        frustum.update(projectionViewMatrix);
-
-        // Breaking animation rendering
-        breakingShader.start();
-        breakingShader.loadMatrix("viewMatrix", viewMatrix);
-        breakingShader.loadMatrix("projectionMatrix", projectionMatrix);
-        breakingShader.loadMatrix("modelMatrix", modelMatrix);
-
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-        for (Block block : blocks) {
-            if (block.getBreakProgress() > 0) {
-                BatchedMesh breakMesh = new BatchedMesh();
-                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
-                breakMesh.updateGLBuffers();
-
-                textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
-                int breakProgressLocation = GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress");
-                GL20.glUniform1f(breakProgressLocation, block.getBreakProgress());
-
-                breakMesh.render();
-                breakMesh.cleanup();
-            }
-        }
-
-        breakingShader.stop();
-        GL11.glDisable(GL11.GL_BLEND);
-
-        // Normal block rendering
-        blockShader.start();
-        blockShader.loadMatrix("viewMatrix", viewMatrix);
-        blockShader.loadMatrix("projectionMatrix", projectionMatrix);
-        blockShader.loadMatrix("modelMatrix", modelMatrix);
-
-        for (BlockType type : BlockType.values()) {
-            loadBlockTexture(type);
-        }
-
-        Map<BlockType, List<Block>> blocksByType = blocks.stream()
-                .filter(block -> {
-                    Vector3f pos = block.getPosition();
-                    return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
-                })
-                .collect(Collectors.groupingBy(Block::getType));
-
-        blocksByType.forEach((type, typeBlocks) -> {
-            BatchedMesh mesh = blockMeshes.computeIfAbsent(type, k -> new BatchedMesh());
-            mesh.clear();
-
-            int vertexOffset = 0;
-            for (Block block : typeBlocks) {
-                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset, block.getLightLevel()); // Aggiunto lightLevel
-                vertexOffset += block.getVertices().length / 5;
-            }
-
-            mesh.updateGLBuffers();
-            textureManager.bindTexture(blockTextureIds.get(type), 0);
-            mesh.render();
-        });
-
-        blockShader.stop();
-
-        // Highlight rendering
-        highlightMesh.clear();
-        blocks.stream()
-                .filter(Block::isHighlighted)
-                .forEach(block -> {
-                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
-                });
-
-        if (blocks.stream().anyMatch(Block::isHighlighted)) {
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glDepthMask(false);
-            GL11.glLineWidth(3.0f);
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-
-            highlightShader.start();
-            highlightShader.loadMatrix("viewMatrix", viewMatrix);
-            highlightShader.loadMatrix("projectionMatrix", projectionMatrix);
-            highlightShader.loadMatrix("modelMatrix", modelMatrix);
-
-            highlightMesh.updateGLBuffers();
-            highlightMesh.render();
-            highlightShader.stop();
-
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-            GL11.glDepthMask(true);
-            GL11.glDisable(GL11.GL_BLEND);
-        }
-
-        // Render HUD
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-        hudRenderer.render();
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-        PerformanceMetrics.updateFrameMetrics();
-        System.out.println(PerformanceMetrics.getMetricsString());
     }
 
     /**
@@ -239,10 +126,126 @@ public class MasterRenderer implements WorldRenderer {
      */
     public void onEvent(GameEvent event) {
         if (event instanceof RenderEvent renderEvent) {
-            // Render the current frame
-            render(renderEvent.blocks(), renderEvent.camera());
-            // Update world with current view frustum
+            render(renderEvent.blocks(), renderEvent.camera(), renderEvent.world());
             renderEvent.world().update(renderEvent.camera().getPosition(), projectionViewMatrix);
         }
+    }
+
+    /**
+     * Renders the world and HUD, including blocks, block highlights, breaking animations, and HUD elements.
+     *
+     * @param blocks The list of blocks to be rendered.
+     * @param camera The camera used for rendering the world from its perspective.
+     */
+    @Override
+    public void render(List<Block> blocks, Camera camera, World world) {
+        updateProjectionMatrix();
+        prepare();
+
+        Matrix4f viewMatrix = camera.getViewMatrix();
+        projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
+        frustum.update(projectionViewMatrix);
+
+        // Breaking animation rendering
+        breakingShader.start();
+        breakingShader.loadMatrix("viewMatrix", viewMatrix);
+        breakingShader.loadMatrix("projectionMatrix", projectionMatrix);
+        breakingShader.loadMatrix("modelMatrix", modelMatrix);
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        for (Block block : blocks) {
+            if (block.getBreakProgress() > 0) {
+                BatchedMesh breakMesh = new BatchedMesh();
+                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
+                breakMesh.updateGLBuffers();
+
+                textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
+                int breakProgressLocation = GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress");
+                GL20.glUniform1f(breakProgressLocation, block.getBreakProgress());
+
+                breakMesh.render();
+                breakMesh.cleanup();
+            }
+        }
+
+        breakingShader.stop();
+        GL11.glDisable(GL11.GL_BLEND);
+
+        // Normal block rendering
+        blockShader.start();
+        blockShader.loadMatrix("viewMatrix", viewMatrix);
+        blockShader.loadMatrix("projectionMatrix", projectionMatrix);
+        blockShader.loadMatrix("modelMatrix", modelMatrix);
+
+        for (BlockType type : BlockType.values()) {
+            loadBlockTexture(type);
+        }
+
+        Map<BlockType, List<Block>> blocksByType = blocks.stream()
+                .filter(block -> {
+                    Vector3f pos = block.getPosition();
+                    return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
+                })
+                .collect(Collectors.groupingBy(Block::getType));
+
+        float ambientLight = world.getDayNightCycle().getAmbientLight();
+        int ambientLightLocation = GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight");
+        GL20.glUniform1f(ambientLightLocation, ambientLight);
+
+        blocksByType.forEach((type, typeBlocks) -> {
+            BatchedMesh mesh = blockMeshes.computeIfAbsent(type, k -> new BatchedMesh());
+            mesh.clear();
+
+            int vertexOffset = 0;
+            for (Block block : typeBlocks) {
+                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset, block.getLightLevel()); // Aggiunto lightLevel
+                vertexOffset += block.getVertices().length / 5;
+            }
+
+            mesh.updateGLBuffers();
+            textureManager.bindTexture(blockTextureIds.get(type), 0);
+            mesh.render();
+        });
+
+        blockShader.stop();
+
+        // Highlight rendering
+        highlightMesh.clear();
+        blocks.stream()
+                .filter(Block::isHighlighted)
+                .forEach(block -> {
+                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
+                });
+
+        if (blocks.stream().anyMatch(Block::isHighlighted)) {
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glDepthMask(false);
+            GL11.glLineWidth(3.0f);
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+
+            highlightShader.start();
+            highlightShader.loadMatrix("viewMatrix", viewMatrix);
+            highlightShader.loadMatrix("projectionMatrix", projectionMatrix);
+            highlightShader.loadMatrix("modelMatrix", modelMatrix);
+
+            highlightMesh.updateGLBuffers();
+            highlightMesh.render();
+            highlightShader.stop();
+
+            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+            GL11.glDepthMask(true);
+            GL11.glDisable(GL11.GL_BLEND);
+        }
+
+        // Render HUD
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        hudRenderer.render();
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+        PerformanceMetrics.updateFrameMetrics();
+        System.out.println(PerformanceMetrics.getMetricsString());
     }
 }
