@@ -274,19 +274,31 @@ public class Player {
      * Uses raycasting to detect blocks in the player's line of sight.
      */
     public void updateTargetedBlock() {
+        Block previousTarget = targetedBlock;
+
+        // Clear highlight from old target
         if (targetedBlock != null) {
             targetedBlock.setHighlighted(false);
-            targetedBlock = null;
         }
 
+        // Find new target
         targetedBlock = RayCaster.getTargetBlock(
-            camera.getPosition(),
-            camera.getYaw(),
-            camera.getPitch(),
-            camera.getRoll(),
-            world
+                camera.getPosition(),
+                camera.getYaw(),
+                camera.getPitch(),
+                camera.getRoll(),
+                world
         );
 
+        // If target changed, reset breaking state
+        if (previousTarget != null && previousTarget != targetedBlock) {
+            previousTarget.setBreakProgress(0.0f); // Clear breaking effect from old target
+            if (isBreaking) {
+                stopBreaking(); // Reset breaking state for new target
+            }
+        }
+
+        // Highlight new target if any
         if (targetedBlock != null) {
             targetedBlock.setHighlighted(true);
         }
@@ -318,14 +330,19 @@ public class Player {
      * @param deltaTime Time elapsed since last update
      */
     public void updateBreaking(float deltaTime) {
-        if (isBreaking && targetedBlock != null && !targetedBlock.getType().isUnbreakable()) {
+        // If we're breaking but have no target or it's unbreakable, stop breaking
+        if (isBreaking && (targetedBlock == null || targetedBlock.getType().isUnbreakable())) {
+            stopBreaking();
+            return;
+        }
+
+        if (isBreaking && targetedBlock != null) {
             breakingProgress += deltaTime;
             targetedBlock.setBreakProgress(breakingProgress / targetedBlock.getType().getBreakTime());
 
             if (breakingProgress >= targetedBlock.getType().getBreakTime()) {
                 world.destroyBlock(targetedBlock.getPosition());
-                breakingProgress = 0.0f;
-                isBreaking = false;
+                stopBreaking();
             }
         }
     }

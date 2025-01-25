@@ -24,6 +24,13 @@ public class PerformanceMetrics {
         if (frameTimes.size() > 100) {
             frameTimes.poll();
         }
+
+        // Reset counters at start of frame
+        totalChunks = 0;
+        culledChunks = 0;
+        totalBlocks = 0;
+        renderedBlocks = 0;
+        occludedBlocks = 0;
     }
 
     public static void resetFrameMetrics() {
