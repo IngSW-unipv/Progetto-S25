@@ -1,6 +1,12 @@
+//world
+
 package model;
 
 import config.GameConfig;
+import controller.event.EventBus;
+import controller.event.EventType;
+import controller.event.GameEvent;
+import controller.event.WorldGenerationEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import java.util.*;
@@ -10,7 +16,7 @@ import java.util.*;
  * Uses chunks for efficient memory usage and Perlin noise for procedural generation.
  * Handles block placement/destruction and world persistence.
  */
-public class World {
+public class World implements EventListener {
     /** Size of each chunk in blocks */
     public static final int CHUNK_SIZE = 6;
 
@@ -57,17 +63,17 @@ public class World {
         this.terrainNoise = new PerlinNoiseGenerator(random.nextLong());
         this.caveNoise = new PerlinNoiseGenerator(random.nextLong());
 
-        this.chunkLoader = new ChunkLoader(this, Runtime.getRuntime().availableProcessors() - 1);
+        EventBus.getInstance().subscribe(EventType.WORLD_GENERATION, this::onEvent);
+
+        this.chunkLoader = new ChunkLoader(Runtime.getRuntime().availableProcessors() - 1);
 
         generateSuperFlat();
     }
 
-    /**
-     * Creates a world with specific player position and random seed.
-     */
-    public World(Vector3f initialPosition) {
-        // Use current time as random seed
-        this(initialPosition, System.currentTimeMillis());
+    public void onEvent(GameEvent event) {
+        if (event instanceof WorldGenerationEvent worldGen) {
+            generateChunkTerrain(worldGen.chunkPosition());
+        }
     }
 
     /**
@@ -107,10 +113,10 @@ public class World {
 
         // Find chunk and get block
         return chunks.stream()
-            .filter(c -> c.getPosition().equals(chunkPos))
-            .findFirst()
-            .map(c -> c.getBlock(position))
-            .orElse(null);
+                .filter(c -> c.getPosition().equals(chunkPos))
+                .findFirst()
+                .map(c -> c.getBlock(position))
+                .orElse(null);
     }
 
     /**
@@ -119,9 +125,9 @@ public class World {
     private Vector3f calculateChunkCoordinates(Vector3f position) {
         // Use fast floor division for efficiency
         return new Vector3f(
-            fastFloor(position.x() / CHUNK_SIZE),
-            fastFloor(position.y() / CHUNK_SIZE),
-            fastFloor(position.z() / CHUNK_SIZE)
+                fastFloor(position.x() / CHUNK_SIZE),
+                fastFloor(position.y() / CHUNK_SIZE),
+                fastFloor(position.z() / CHUNK_SIZE)
         );
     }
 
@@ -151,7 +157,6 @@ public class World {
         lastKnownPlayerPos = playerPos;
         Vector3f playerChunkPos = calculateChunkCoordinates(playerPos);
 
-        // Unload chunks outside render distance
         chunks.removeIf(chunk -> {
             Vector3f pos = chunk.getPosition();
             float dx = Math.abs(pos.x() - playerChunkPos.x());
@@ -162,11 +167,9 @@ public class World {
                     dz > GameConfig.RENDER_DISTANCE;
         });
 
-        // Find and generate missing chunks
         List<Vector3f> newChunks = findMissingChunks(playerChunkPos);
-        newChunks.forEach(this::generateChunkTerrain);
+        newChunks.forEach(pos -> EventBus.getInstance().post(new WorldGenerationEvent(pos)));
 
-        // Update affected chunks and neighbors
         updateAffectedChunks(newChunks);
     }
 
@@ -181,9 +184,9 @@ public class World {
             for (int y = -GameConfig.RENDER_DISTANCE; y <= GameConfig.RENDER_DISTANCE; y++) {
                 for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                     Vector3f newPos = new Vector3f(
-                        playerChunkPos.x() + x,
-                        playerChunkPos.y() + y,
-                        playerChunkPos.z() + z
+                            playerChunkPos.x() + x,
+                            playerChunkPos.y() + y,
+                            playerChunkPos.z() + z
                     );
                     // Add if chunk doesn't exist
                     if (chunks.stream().noneMatch(c -> c.getPosition().equals(newPos))) {
@@ -207,9 +210,9 @@ public class World {
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dz = -1; dz <= 1; dz++) {
                         chunksToUpdate.add(new Vector3f(
-                            pos.x() + dx,
-                            pos.y() + dy,
-                            pos.z() + dz
+                                pos.x() + dx,
+                                pos.y() + dy,
+                                pos.z() + dz
                         ));
                     }
                 }
@@ -218,9 +221,9 @@ public class World {
 
         // Update each chunk's block faces
         chunksToUpdate.forEach(pos ->
-            chunks.stream()
-                .filter(c -> c.getPosition().equals(pos))
-                .forEach(this::updateChunkBlockFaces)
+                chunks.stream()
+                        .filter(c -> c.getPosition().equals(pos))
+                        .forEach(this::updateChunkBlockFaces)
         );
     }
 
@@ -325,9 +328,9 @@ public class World {
     private void updateNeighborChunk(int x, int y, int z) {
         Vector3f neighborPos = new Vector3f(x, y, z);
         chunks.stream()
-            .filter(c -> c.getPosition().equals(neighborPos))
-            .findFirst()
-            .ifPresent(this::updateChunkBlockFaces);
+                .filter(c -> c.getPosition().equals(neighborPos))
+                .findFirst()
+                .ifPresent(this::updateChunkBlockFaces);
     }
 
     /**
@@ -336,18 +339,18 @@ public class World {
     private void updateAdjacentBlockFaces(Vector3f position) {
         // Define adjacent positions
         Vector3f[] adjacentPositions = {
-            new Vector3f(position.x() + 1, position.y(), position.z()),
-            new Vector3f(position.x() - 1, position.y(), position.z()),
-            new Vector3f(position.x(), position.y() + 1, position.z()),
-            new Vector3f(position.x(), position.y() - 1, position.z()),
-            new Vector3f(position.x(), position.y(), position.z() + 1),
-            new Vector3f(position.x(), position.y(), position.z() - 1)
+                new Vector3f(position.x() + 1, position.y(), position.z()),
+                new Vector3f(position.x() - 1, position.y(), position.z()),
+                new Vector3f(position.x(), position.y() + 1, position.z()),
+                new Vector3f(position.x(), position.y() - 1, position.z()),
+                new Vector3f(position.x(), position.y(), position.z() + 1),
+                new Vector3f(position.x(), position.y(), position.z() - 1)
         };
 
         // Update each adjacent block
         for (Vector3f adjacentPos : adjacentPositions) {
             Optional.ofNullable(getBlock(adjacentPos))
-                .ifPresent(block -> block.updateVisibleFaces(this));
+                    .ifPresent(block -> block.updateVisibleFaces(this));
         }
     }
 
@@ -357,16 +360,16 @@ public class World {
     public void placeBlock(Vector3f position, BlockType type) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         chunks.stream()
-            .filter(c -> c.getPosition().equals(chunkPos))
-            .findFirst()
-            .ifPresent(chunk -> {
-                // Create and place new block
-                Block newBlock = new Block(type, position);
-                chunk.setBlock(newBlock);
-                updateChunkBlockFaces(chunk);
-                updateNeighboringChunks(position, chunkPos);
-                modifiedBlocks.put(position, type);
-            });
+                .filter(c -> c.getPosition().equals(chunkPos))
+                .findFirst()
+                .ifPresent(chunk -> {
+                    // Create and place new block
+                    Block newBlock = new Block(type, position);
+                    chunk.setBlock(newBlock);
+                    updateChunkBlockFaces(chunk);
+                    updateNeighboringChunks(position, chunkPos);
+                    modifiedBlocks.put(position, type);
+                });
         modifiedBlocks.put(new Vector3f(position), type);
     }
 
@@ -376,16 +379,16 @@ public class World {
     public void destroyBlock(Vector3f position) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         chunks.stream()
-            .filter(c -> c.getPosition().equals(chunkPos))
-            .findFirst()
-            .ifPresent(chunk -> {
-                // Update neighbors before removal
-                updateAdjacentBlockFaces(position);
-                chunk.removeBlock(position);
-                updateChunkBlockFaces(chunk);
-                updateNeighboringChunks(position, chunkPos);
-                modifiedBlocks.remove(position);
-            });
+                .filter(c -> c.getPosition().equals(chunkPos))
+                .findFirst()
+                .ifPresent(chunk -> {
+                    // Update neighbors before removal
+                    updateAdjacentBlockFaces(position);
+                    chunk.removeBlock(position);
+                    updateChunkBlockFaces(chunk);
+                    updateNeighboringChunks(position, chunkPos);
+                    modifiedBlocks.remove(position);
+                });
         modifiedBlocks.put(new Vector3f(position), null); // null indicates block removal
     }
 

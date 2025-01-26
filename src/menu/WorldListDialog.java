@@ -1,3 +1,5 @@
+//worldlistdialog
+
 package menu;
 
 import model.WorldData;
@@ -21,7 +23,7 @@ public class WorldListDialog extends JDialog {
     private boolean confirmed = false;
 
     public WorldListDialog(Frame parent) {
-        super(parent, "Select World", true);
+        super(parent, "Load World", true); // Changed title
         setBackground(BACKGROUND_COLOR);
 
         worlds.addAll(WorldManager.getWorlds());
@@ -35,19 +37,26 @@ public class WorldListDialog extends JDialog {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(BACKGROUND_COLOR);
+                GradientPaint gradient = new GradientPaint(
+                        0, 0, new Color(24, 20, 37),
+                        0, getHeight(), new Color(65, 41, 90));
+                g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // Title
-        JLabel titleLabel = new JLabel("Select World", SwingConstants.CENTER);
+        // Title Panel
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setOpaque(false);
+        JLabel titleLabel = new JLabel("Load World", SwingConstants.CENTER);
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(TEXT_COLOR);
-        mainPanel.add(titleLabel, BorderLayout.NORTH);
+        titleLabel.setBorder(new EmptyBorder(0, 0, 20, 0));
+        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        mainPanel.add(titlePanel, BorderLayout.NORTH);
 
-        // World list
+        // World List
         DefaultListModel<WorldData> listModel = new DefaultListModel<>();
         worlds.forEach(listModel::addElement);
 
@@ -60,13 +69,17 @@ public class WorldListDialog extends JDialog {
 
         JScrollPane scrollPane = new JScrollPane(worldList);
         scrollPane.setPreferredSize(new Dimension(400, 300));
+        scrollPane.setBorder(BorderFactory.createLineBorder(BUTTON_COLOR));
+        scrollPane.getViewport().setBackground(BUTTON_COLOR);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Buttons
+        // Button Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setOpaque(false);
+        buttonPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
 
         JButton loadButton = createStyledButton("Load");
+        JButton deleteButton = createStyledButton("Delete");
         JButton cancelButton = createStyledButton("Cancel");
 
         loadButton.addActionListener(e -> {
@@ -82,9 +95,31 @@ public class WorldListDialog extends JDialog {
             }
         });
 
+        deleteButton.addActionListener(e -> {
+            WorldData selectedWorld = worldList.getSelectedValue();
+            if (selectedWorld != null) {
+                int result = JOptionPane.showConfirmDialog(this,
+                        "Are you sure you want to delete world '" + selectedWorld.name() + "'?",
+                        "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+
+                if (result == JOptionPane.YES_OPTION) {
+                    WorldManager.deleteWorld(selectedWorld.name());
+                    listModel.removeElement(selectedWorld);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Please select a world to delete.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         cancelButton.addActionListener(e -> dispose());
 
         buttonPanel.add(loadButton);
+        buttonPanel.add(deleteButton);
         buttonPanel.add(cancelButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 

@@ -1,3 +1,5 @@
+//masterrenderer
+
 package view.renderer;
 
 import controller.event.EventBus;
@@ -146,6 +148,9 @@ public class MasterRenderer implements WorldRenderer {
         projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
         frustum.update(projectionViewMatrix);
 
+        // Get ambient light once for all shaders
+        float ambientLight = world.getDayNightCycle().getAmbientLight();
+
         // Breaking animation rendering
         breakingShader.start();
         breakingShader.loadMatrix("viewMatrix", viewMatrix);
@@ -155,10 +160,13 @@ public class MasterRenderer implements WorldRenderer {
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
+        int ambientLightLocation = GL20.glGetUniformLocation(breakingShader.getProgramID(), "ambientLight");
+        GL20.glUniform1f(ambientLightLocation, ambientLight);
+
         for (Block block : blocks) {
             if (block.getBreakProgress() > 0) {
                 BatchedMesh breakMesh = new BatchedMesh();
-                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
+                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel());
                 breakMesh.updateGLBuffers();
 
                 textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
@@ -190,8 +198,7 @@ public class MasterRenderer implements WorldRenderer {
                 })
                 .collect(Collectors.groupingBy(Block::getType));
 
-        float ambientLight = world.getDayNightCycle().getAmbientLight();
-        int ambientLightLocation = GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight");
+        ambientLightLocation = GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight");
         GL20.glUniform1f(ambientLightLocation, ambientLight);
 
         blocksByType.forEach((type, typeBlocks) -> {
@@ -200,7 +207,7 @@ public class MasterRenderer implements WorldRenderer {
 
             int vertexOffset = 0;
             for (Block block : typeBlocks) {
-                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset, block.getLightLevel()); // Aggiunto lightLevel
+                mesh.addBlockMesh(block.getVertices(), block.getIndices(), vertexOffset, block.getLightLevel());
                 vertexOffset += block.getVertices().length / 5;
             }
 
@@ -216,7 +223,7 @@ public class MasterRenderer implements WorldRenderer {
         blocks.stream()
                 .filter(Block::isHighlighted)
                 .forEach(block -> {
-                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()); // Aggiunto lightLevel
+                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel());
                 });
 
         if (blocks.stream().anyMatch(Block::isHighlighted)) {
@@ -245,7 +252,7 @@ public class MasterRenderer implements WorldRenderer {
         hudRenderer.render();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
 
-        PerformanceMetrics.updateFrameMetrics();
-        System.out.println(PerformanceMetrics.getMetricsString());
+        //PerformanceMetrics.updateFrameMetrics();
+        //System.out.println(PerformanceMetrics.getMetricsString());
     }
 }

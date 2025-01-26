@@ -1,23 +1,25 @@
+//chunkloader
+
 package model;
+
+import controller.event.EventBus;
+import controller.event.WorldGenerationEvent;
+import org.joml.Vector3f;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import org.joml.Vector3f;
 
 public class ChunkLoader {
     private final ExecutorService executorService;
     private final LinkedBlockingQueue<ChunkLoadTask> chunkLoadQueue;
-    private final World world;
     private volatile boolean isRunning;
 
-    public ChunkLoader(World world, int threadCount) {
-        this.world = world;
+    public ChunkLoader(int threadCount) {
         this.executorService = Executors.newFixedThreadPool(threadCount);
         this.chunkLoadQueue = new LinkedBlockingQueue<>();
         this.isRunning = true;
-
         startProcessingQueue();
     }
 
@@ -27,7 +29,7 @@ public class ChunkLoader {
                 try {
                     ChunkLoadTask task = chunkLoadQueue.poll(100, TimeUnit.MILLISECONDS);
                     if (task != null) {
-                        executorService.submit(() -> task.execute(world));
+                        executorService.submit(task::execute);
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -40,6 +42,7 @@ public class ChunkLoader {
     }
 
     public void queueChunkLoad(Vector3f position) {
+        EventBus.getInstance().post(new WorldGenerationEvent(position));
         chunkLoadQueue.offer(new ChunkLoadTask(position));
     }
 

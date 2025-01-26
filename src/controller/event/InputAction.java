@@ -1,3 +1,5 @@
+//InputAction
+
 package controller.event;
 
 public enum InputAction {
@@ -5,6 +7,7 @@ public enum InputAction {
     MOVE_BACKWARD, // Move the player backward
     MOVE_LEFT, // Move the player to the left
     MOVE_RIGHT, // Move the player to the right
+    SPRINT,
     MOVE_UP, // Move the player upwards
     MOVE_DOWN, // Move the player downwards
     LOOK_X, // Rotate the camera along the X-axis

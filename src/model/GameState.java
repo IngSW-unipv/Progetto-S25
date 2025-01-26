@@ -1,3 +1,5 @@
+//gamestate
+
 package model;
 
 /**
@@ -6,11 +8,20 @@ package model;
  */
 public class GameState {
     private boolean isRunning = true; // Indicates whether the game is currently running
+    private boolean isPaused = false;
 
     /**
      * Constructs a new GameState instance with the default state of running.
      */
     public GameState() {
+    }
+
+    public void setPaused(boolean paused) {
+        this.isPaused = paused;
+    }
+
+    public boolean isPaused() {
+        return isPaused;
     }
 
     /**

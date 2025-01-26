@@ -1,3 +1,5 @@
+//inputcontroller
+
 package controller;
 
 import controller.event.EventBus;
@@ -53,6 +55,7 @@ public class InputController {
         eventBus.post(new InputEvent(InputAction.MOVE_BACKWARD, getKeyState(GLFW.GLFW_KEY_S))); // Move backward
         eventBus.post(new InputEvent(InputAction.MOVE_LEFT, getKeyState(GLFW.GLFW_KEY_A))); // Move left
         eventBus.post(new InputEvent(InputAction.MOVE_RIGHT, getKeyState(GLFW.GLFW_KEY_D))); // Move right
+        eventBus.post(new InputEvent(InputAction.SPRINT, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT))); // Sprint
         eventBus.post(new InputEvent(InputAction.MOVE_UP, getKeyState(GLFW.GLFW_KEY_SPACE))); // Move up (jump)
         eventBus.post(new InputEvent(InputAction.MOVE_DOWN, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT))); // Move down (crouch)
         eventBus.post(new InputEvent(InputAction.EXIT, getKeyState(GLFW.GLFW_KEY_ESCAPE))); // Exit the game

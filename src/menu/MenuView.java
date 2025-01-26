@@ -1,3 +1,4 @@
+//menuview
 package menu;
 
 import javax.swing.*;
@@ -123,7 +124,19 @@ public class MenuView extends JFrame {
 
         playButton.addActionListener(e -> controller.onPlayPressed());
         settingsButton.addActionListener(e -> controller.onSettingsPressed());
-        quitButton.addActionListener(e -> System.exit(0));
+        quitButton.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to quit?",
+                    "Confirm Exit",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (result == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
 
         mainPanel.add(Box.createVerticalStrut(120), gbc);
         mainPanel.add(playButton, gbc);
@@ -138,6 +151,7 @@ public class MenuView extends JFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
                 // Gradient background
                 GradientPaint gradient = new GradientPaint(
@@ -145,6 +159,14 @@ public class MenuView extends JFrame {
                         0, getHeight(), new Color(65, 41, 90));
                 g2d.setPaint(gradient);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
+
+                // Title
+                g2d.setFont(TITLE_FONT);
+                g2d.setColor(TEXT_COLOR);
+                String title = "Play Game";
+                FontMetrics fm = g2d.getFontMetrics();
+                int x = (getWidth() - fm.stringWidth(title)) / 2;
+                g2d.drawString(title, x, 100);
             }
         };
         worldSelectPanel.setLayout(new GridBagLayout());

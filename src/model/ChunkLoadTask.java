@@ -1,5 +1,9 @@
+//chunkloadtask
+
 package model;
 
+import controller.event.EventBus;
+import controller.event.WorldGenerationEvent;
 import org.joml.Vector3f;
 
 public class ChunkLoadTask {
@@ -9,7 +13,7 @@ public class ChunkLoadTask {
         this.position = new Vector3f(position);
     }
 
-    public void execute(World world) {
-        world.generateChunkTerrain(position);
+    public void execute() {
+        EventBus.getInstance().post(new WorldGenerationEvent(position));
     }
 }
