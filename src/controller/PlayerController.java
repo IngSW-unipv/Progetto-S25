@@ -1,17 +1,14 @@
-//
-//playercontroller
-/*
 package controller;
 
 import controller.event.EventBus;
-import controller.event.EventListener;
 import controller.event.EventType;
 import controller.event.GameEvent;
 import controller.event.InputEvent;
 import model.*;
 import org.joml.Vector3f;
 
-public class PlayerController implements EventListener {
+public class PlayerController {
+    //implements EventListener {
     private final Player player;
     private final World world;
 
@@ -32,10 +29,9 @@ public class PlayerController implements EventListener {
         this.player = player;
         this.world = world;
         EventBus eventBus = EventBus.getInstance();
-        eventBus.subscribe(EventType.INPUT, this);
+        eventBus.subscribe(EventType.INPUT, this::onEvent);
     }
 
-    @Override
     public void onEvent(GameEvent event) {
         if (event instanceof InputEvent inputEvent) {
             handleInput(inputEvent);
@@ -235,5 +231,5 @@ public class PlayerController implements EventListener {
         updateTargetedBlock();
         updateBreaking(deltaTime);
     }
+
 }
-*/

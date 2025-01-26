@@ -1,6 +1,6 @@
 //
 //physicssystem
-/*
+
 package model;
 
 import config.GameConfig;
@@ -17,6 +17,8 @@ public class PhysicsSystem {
         this.world = world;
         this.collisionSystem = new CollisionSystem(world);
     }
+
+
 
     public void updatePlayerPhysics(Player player, float deltaTime) {
         updateVelocity(player, deltaTime);
@@ -96,4 +98,4 @@ public class PhysicsSystem {
         boundingBox.update(position);
         return !collisionSystem.checkCollision(boundingBox);
     }
-}*/
+}

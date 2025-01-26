@@ -1,23 +1,25 @@
+//model
+
 package model;
 
-import controller.event.*;
+import controller.PlayerController;
 import org.joml.Vector3f;
+
 import java.util.Map;
 
-public class Model implements EventListener {
+public class Model {
     private final GameState gameState;
     private final Player player;
-    private World world;
+    private final PhysicsSystem physicsSystem;
+    private final World world;
     private final String worldName;
     private final long lastSaveTime;
     private static final long SAVE_INTERVAL = 5 * 60 * 1000;
-    private final DayNightCycle dayNightCycle;
 
     public Model(String worldName, long seed) {
         this.worldName = worldName;
         this.gameState = new GameState();
         this.lastSaveTime = System.currentTimeMillis();
-        this.dayNightCycle = new DayNightCycle();
 
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
         Vector3f initialPosition;
@@ -33,6 +35,7 @@ public class Model implements EventListener {
         }
 
         this.world = new World(initialPosition, seed);
+        this.physicsSystem = new PhysicsSystem(world);
 
         if (savedData != null && savedData.getModifications() != null) {
             for (BlockModification mod : savedData.getModifications()) {
@@ -44,39 +47,12 @@ public class Model implements EventListener {
             }
         }
 
-        this.player = new Player(world, initialPosition, initialPitch, initialYaw);
-        EventBus.getInstance().subscribe(EventType.INPUT, this);
-    }
-
-    @Override
-    public void onEvent(GameEvent event) {
-        if (event instanceof InputEvent inputEvent) {
-            handleInput(inputEvent);
-        }
-    }
-
-    private void handleInput(InputEvent event) {
-        switch (event.action()) {
-            case MOVE_FORWARD, MOVE_BACKWARD, MOVE_LEFT, MOVE_RIGHT, MOVE_UP, MOVE_DOWN, LOOK_X, LOOK_Y ->
-                    player.handleMovement(event.action(), event.value());
-            case PLACE_BLOCK -> {
-                if (event.value() > 0) player.placeBlock();
-            }
-            case DESTROY_BLOCK -> {
-                if (event.value() > 0) player.startBreaking();
-                else player.stopBreaking();
-            }
-            case EXIT -> {
-                if (event.value() > 0) {
-                    saveGame();
-                    world.cleanup();
-                    gameState.setRunning(false);
-                }
-            }
-        }
+        this.player = new Player(physicsSystem, initialPosition, initialPitch, initialYaw);
+        new PlayerController(player, world);
     }
 
     public void update(float deltaTime) {
+        physicsSystem.updatePlayerPhysics(player, deltaTime);
         player.update(deltaTime);
         gameState.update();
         world.updateDayNightCycle(deltaTime);
@@ -90,9 +66,9 @@ public class Model implements EventListener {
         Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks();
         WorldSaveData saveData = new WorldSaveData(
                 modifiedBlocks,
-                player.getCamera().getRawPosition(),
-                player.getCamera().getPitch(),
-                player.getCamera().getYaw()
+                player.getPosition(),
+                player.getPitch(),
+                player.getYaw()
         );
         WorldManager.saveWorldData(worldName, saveData);
     }
@@ -103,6 +79,8 @@ public class Model implements EventListener {
 
     public GameState getGameState() { return gameState; }
     public Player getPlayer() { return player; }
-    public Camera getCamera() { return player.getCamera(); }
     public World getWorld() { return world; }
+    public Vector3f getPlayerPosition() { return player.getPosition(); }
+    public float getPlayerPitch() { return player.getPitch(); }
+    public float getPlayerYaw() { return player.getYaw(); }
 }
