@@ -1,6 +1,6 @@
 //model
 
-package model;
+package model.game;
 
 import controller.input.PlayerController;
 import model.block.BlockModification;

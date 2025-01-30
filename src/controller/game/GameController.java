@@ -4,7 +4,7 @@ import controller.input.InputController;
 import controller.input.PlayerController;
 import controller.event.*;
 import view.menu.PauseMenuPanel;
-import model.Model;
+import model.game.Model;
 import org.lwjgl.glfw.GLFW;
 import view.View;
 import view.window.WindowManager;

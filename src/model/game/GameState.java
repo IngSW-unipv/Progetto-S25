@@ -1,6 +1,6 @@
 //gamestate
 
-package model;
+package model.game;
 
 /**
  * Represents the state of the game, managing whether the game is running

@@ -1,7 +1,7 @@
 package controller.input;
 
 import controller.event.*;
-import model.Model;
+import model.game.Model;
 import org.lwjgl.glfw.GLFW;
 
 /**

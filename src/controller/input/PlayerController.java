@@ -14,7 +14,6 @@ import model.world.World;
 import org.joml.Vector3f;
 
 public class PlayerController {
-    //implements EventListener {
     private final Player player;
     private final World world;
 
@@ -29,6 +28,9 @@ public class PlayerController {
     public boolean isBreaking = false;
     private Block targetedBlock;
     private Block lastTargetBlock;
+
+    private static final float PLACE_COOLDOWN = 0.2f; // 200ms cooldown
+    private long lastPlaceTime = 0;
 
 
     public PlayerController(Player player, World world) {
@@ -199,6 +201,11 @@ public class PlayerController {
     public void placeBlock() {
         if (targetedBlock == null) return;
 
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastPlaceTime < PLACE_COOLDOWN * 1000) {
+            return;
+        }
+
         Vector3f pos = targetedBlock.getPosition();
         BlockDirection facing = RayCaster.getTargetFace(
                 player.getCameraPosition(),
@@ -229,6 +236,7 @@ public class PlayerController {
 
             if (world.getBlock(newPos) == null) {
                 world.placeBlock(newPos, BlockType.DIRT);
+                lastPlaceTime = currentTime;
             }
         }
     }

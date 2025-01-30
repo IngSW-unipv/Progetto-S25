@@ -67,36 +67,55 @@ public class RayCaster {
      * @throws IllegalArgumentException if world is null
      */
     public static BlockDirection getTargetFace(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
+        if (world == null) {
+            throw new IllegalArgumentException("World cannot be null");
+        }
+
+        // Calculate normalized ray direction from angles
         Vector3f direction = calculateDirection(yaw, pitch);
 
-        // Step along ray checking for block faces
+        // Step along ray checking for blocks
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
+            // Calculate current position along ray
             Vector3f checkPos = new Vector3f(
-                cameraPosition.x + direction.x * distance,
-                cameraPosition.y + direction.y * distance,
-                cameraPosition.z + direction.z * distance
+                    cameraPosition.x + direction.x * distance,
+                    cameraPosition.y + direction.y * distance,
+                    cameraPosition.z + direction.z * distance
             );
 
-            // Get fractional position within block (0 to 1)
-            float blockX = checkPos.x - (float) Math.floor(checkPos.x);
-            float blockY = checkPos.y - (float) Math.floor(checkPos.y);
-            float blockZ = checkPos.z - (float) Math.floor(checkPos.z);
-
+            // Convert to block coordinates with center offset
             Vector3f blockPos = new Vector3f(
-                (int) Math.floor(checkPos.x),
-                (int) Math.floor(checkPos.y),
-                (int) Math.floor(checkPos.z)
+                    (int) Math.floor(checkPos.x + 0.5f),
+                    (int) Math.floor(checkPos.y + 0.5f),
+                    (int) Math.floor(checkPos.z + 0.5f)
             );
 
             Block block = world.getBlock(blockPos);
             if (block != null) {
-                // Return face based on which boundary was hit first
-                if (blockX < STEP) return BlockDirection.LEFT;
-                if (blockX > 1 - STEP) return BlockDirection.RIGHT;
-                if (blockY < STEP) return BlockDirection.BOTTOM;
-                if (blockY > 1 - STEP) return BlockDirection.TOP;
-                if (blockZ < STEP) return BlockDirection.BACK;
-                if (blockZ > 1 - STEP) return BlockDirection.FRONT;
+                // Calculate the position where the ray enters the block
+                Vector3f entryPoint = new Vector3f(
+                        checkPos.x - direction.x * STEP,
+                        checkPos.y - direction.y * STEP,
+                        checkPos.z - direction.z * STEP
+                );
+
+                // Determine which face was hit based on the entry point
+                float dx = entryPoint.x - blockPos.x;
+                float dy = entryPoint.y - blockPos.y;
+                float dz = entryPoint.z - blockPos.z;
+
+                // Find the face with the largest absolute delta
+                float absDx = Math.abs(dx);
+                float absDy = Math.abs(dy);
+                float absDz = Math.abs(dz);
+
+                if (absDx > absDy && absDx > absDz) {
+                    return dx > 0 ? BlockDirection.RIGHT : BlockDirection.LEFT;
+                } else if (absDy > absDz) {
+                    return dy > 0 ? BlockDirection.TOP : BlockDirection.BOTTOM;
+                } else {
+                    return dz > 0 ? BlockDirection.FRONT : BlockDirection.BACK;
+                }
             }
         }
         return null;
