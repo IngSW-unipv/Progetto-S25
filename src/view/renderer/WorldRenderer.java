@@ -1,8 +1,8 @@
 package view.renderer;
 
-import model.Block;
-import model.Camera;
-import model.World;
+import model.block.Block;
+import model.player.Camera;
+import model.world.World;
 
 import java.util.List;
 

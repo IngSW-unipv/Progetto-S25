@@ -3,7 +3,7 @@
 
 package controller.event;
 
-import model.World;
+import model.world.World;
 import org.joml.Vector3f;
 
 public record GameStateEvent(

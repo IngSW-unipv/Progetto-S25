@@ -42,7 +42,7 @@
 - **RNF2.1**: I controlli devono essere personalizzabili
 - **RNF2.2**: L'UI deve essere responsiva (<50ms)
 - **RNF2.3**: Il sistema deve fornire feedback visivo per le azioni
-- **RNF2.4**: Il sistema deve avere un menu intuitivo
+- **RNF2.4**: Il sistema deve avere un view.menu intuitivo
 
 ### 2.3 Affidabilità
 - **RNF3.1**: Il sistema deve gestire errori senza crash

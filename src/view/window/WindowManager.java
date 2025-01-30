@@ -15,8 +15,8 @@ import java.util.Objects;
  */
 public class WindowManager {
     private static long window;  // The window handle
-    private static final int WIDTH = 1280;  // Default window width
-    private static final int HEIGHT = 720; // Default window height
+    public static final int WIDTH = 1280;  // Default window width
+    public static final int HEIGHT = 720; // Default window height
     private static boolean isFullscreen = false; // Flag indicating if the window is fullscreen
     private int currentWidth = WIDTH;  // Current width of the window
     private int currentHeight = HEIGHT; // Current height of the window
@@ -117,8 +117,9 @@ public class WindowManager {
      * Closes the display and terminates GLFW.
      */
     public void closeDisplay() {
-        GLFW.glfwDestroyWindow(window);  // Destroy the window
-        GLFW.glfwTerminate();            // Terminate GLFW
+        GLFW.glfwDestroyWindow(window);  // Distrugge la finestra
+        GLFW.glfwTerminate();            // Termina GLFW
+        System.exit(0);            // Forza la terminazione del processo
     }
 
     /**

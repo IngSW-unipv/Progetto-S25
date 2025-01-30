@@ -6,7 +6,7 @@
 - **Attore principale**: Giocatore
 - **Precondizioni**: Nessuna
 - **Flusso principale**:
-  1. Il giocatore seleziona "Play" dal menu principale
+  1. Il giocatore seleziona "Play" dal view.menu principale
   2. Il giocatore seleziona "New World"
   3. Il giocatore inserisce un seed (opzionale)
   4. Il sistema genera il mondo utilizzando il seed
@@ -75,7 +75,7 @@
 - **Attore principale**: Giocatore
 - **Precondizioni**: Nessuna
 - **Flusso principale**:
-  1. Il giocatore accede al menu impostazioni
+  1. Il giocatore accede al view.menu impostazioni
   2. Il giocatore modifica parametri:
      - Render distance
      - Sensibilità mouse

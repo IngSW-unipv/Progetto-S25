@@ -2,7 +2,15 @@
 
 package model;
 
-import controller.PlayerController;
+import controller.input.PlayerController;
+import model.block.BlockModification;
+import model.block.BlockType;
+import model.physics.PhysicsSystem;
+import model.player.Player;
+import model.save.WorldManager;
+import model.save.WorldSaveData;
+import model.world.World;
+import model.world.WorldData;
 import org.joml.Vector3f;
 
 import java.util.Map;
