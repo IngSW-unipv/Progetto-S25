@@ -2,6 +2,8 @@
 
 package menu;
 
+import controller.event.EventBus;
+import controller.event.StartGameMenuEvent;
 import model.WorldData;
 import model.WorldManager;
 
@@ -86,7 +88,8 @@ public class WorldListDialog extends JDialog {
             selectedWorld = worldList.getSelectedValue();
             if (selectedWorld != null) {
                 confirmed = true;
-                dispose();
+                setVisible(false);
+                EventBus.getInstance().post(new StartGameMenuEvent(selectedWorld.name(), selectedWorld.seed()));
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Please select a world to load.",

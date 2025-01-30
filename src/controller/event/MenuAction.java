@@ -1,0 +1,14 @@
+package controller.event;
+
+public enum MenuAction {
+    SHOW_MAIN_MENU,
+    SHOW_WORLD_SELECT,
+    SHOW_SETTINGS,
+    SHOW_NEW_WORLD_DIALOG,
+    SHOW_LOAD_WORLD_DIALOG,
+    RESUME_GAME,
+    TOGGLE_PAUSE,
+    SAVE_SETTINGS,
+    QUIT_GAME,
+    BACK_TO_MAIN
+}

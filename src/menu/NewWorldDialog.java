@@ -1,5 +1,8 @@
 package menu;
 
+import controller.event.EventBus;
+import controller.event.StartGameMenuEvent;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -9,16 +12,13 @@ import java.util.Random;
 
 public class NewWorldDialog extends JDialog {
 
-    private boolean confirmed = false;                                              // Flag to check if the dialog was confirmed
     private long seed;                                                              // Seed for the new world
-    private JTextField seedField;                                                   // Text field to display and edit the seed
+    private final JTextField seedField;                                                   // Text field to display and edit the seed
     private final Color BACKGROUND_COLOR = new Color(24, 20, 37);           // Background color of the dialog
     private final Color BUTTON_COLOR = new Color(65, 65, 65);               // Color of the buttons
     private final Color TEXT_COLOR = new Color(255, 255, 255);              // Color of the text on buttons and labels
-    private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24); // Font used for the title
     private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16); // Font used for the main text and labels
-    private JTextField nameField;
-    private String worldName;
+    private final JTextField nameField;
 
     /**
      * Constructs a NewWorldDialog instance, setting up the dialog's UI and behavior.
@@ -47,6 +47,8 @@ public class NewWorldDialog extends JDialog {
 
         // Title
         JLabel titleLabel = new JLabel("Create New World", SwingConstants.CENTER);
+        // Font used for the title
+        Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24);
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(TEXT_COLOR);
         mainPanel.add(titleLabel, gbc);
@@ -222,7 +224,7 @@ public class NewWorldDialog extends JDialog {
 
     private void attemptWorldCreation() {
         try {
-            worldName = nameField.getText().trim();
+            String worldName = nameField.getText().trim();
             String seedText = seedField.getText().trim();
 
             if (worldName.isEmpty()) {
@@ -242,7 +244,7 @@ public class NewWorldDialog extends JDialog {
             }
 
             seed = Long.parseLong(seedText);
-            confirmed = true;
+            EventBus.getInstance().post(new StartGameMenuEvent(worldName, seed));
             dispose();
 
         } catch (NumberFormatException ex) {
@@ -254,24 +256,11 @@ public class NewWorldDialog extends JDialog {
     }
 
     /**
-     * Returns whether the dialog was confirmed.
-     *
-     * @return True if confirmed, false otherwise.
-     */
-    public boolean isConfirmed() {
-        return confirmed;
-    }
-
-    /**
      * Returns the seed value entered or generated in the dialog.
      *
      * @return The seed value.
      */
     public long getSeed() {
         return seed;
-    }
-
-    public String getWorldName() {
-        return worldName;
     }
 }

@@ -22,7 +22,7 @@ public class Camera {
     private float roll = 0;
 
     /** Movement constants from config */
-    private static final float EYE_HEIGHT = GameConfig.EYE_HEIGHT;
+    private static final float EYE_HEIGHT = .8f;
     private static final float CAMERA_MOUSE_SENSITIVITY = GameConfig.CAMERA_MOUSE_SENSITIVITY;
 
     /**

@@ -1,94 +1,158 @@
-//inputcontroller
-
 package controller;
 
-import controller.event.EventBus;
-import controller.event.InputAction;
-import controller.event.InputEvent;
+import controller.event.*;
+import model.Model;
 import org.lwjgl.glfw.GLFW;
 
 /**
- * The InputController class handles input from the user through the keyboard and mouse.
- * It polls for input events and posts them to the EventBus for further processing.
+ * Handles user input through keyboard and mouse using the GLFW library.
+ * This class follows the Singleton pattern to ensure a single point of input handling
+ * and maintains consistent input state across the application.
+ * It processes input events and posts them to the EventBus for other components to react.
  */
 public class InputController {
-    private final long window; // The window handle for GLFW
-    private final EventBus eventBus; // The event bus to post input events
-    private double lastX = 400, lastY = 300; // The last mouse position (initialized to center of screen)
-    private boolean firstMouse = true; // Flag to handle the first mouse movement
+    /** The instance of the InputController (Singleton pattern) */
+    private static InputController instance;
+
+    /** The GLFW window handle */
+    private long window;
+
+    /** The event bus used to post input events */
+    private final EventBus eventBus;
+
+    /** The last recorded X-coordinate of the mouse position */
+    private double lastX = 400;
+
+    /** The last recorded Y-coordinate of the mouse position */
+    private double lastY = 300;
+
+    /** Flag indicating if the mouse is being moved for the first time */
+    private boolean firstMouse = true;
+
+    /** Flag for tracking key states */
+    private boolean escWasPressed = false;
+
+    private final Model model;
 
     /**
-     * Constructor for the InputController class.
-     * Initializes the GLFW input mode to hide the cursor and subscribes to input events.
-     * @param window The window handle for GLFW
+     * Private constructor for Singleton pattern.
+     * Configures the input mode to hide the cursor and initializes the event bus.
+     *
+     * @param window The GLFW window handle
+     * @param model  The Model instance
      */
-    public InputController(long window) {
+    private InputController(long window, Model model) {
         this.window = window;
+        this.model = model;  // Inizializza il riferimento al Model
         this.eventBus = EventBus.getInstance();
-        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED); // Hide cursor when moving the mouse
+        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
     }
 
     /**
-     * Polls for input from the keyboard and mouse.
-     * Posts the respective input events to the EventBus.
+     * Gets the singleton instance of the InputController.
+     * Creates a new instance if one doesn't exist.
+     *
+     * @param window The GLFW window handle
+     * @param model  The Model instance
+     * @return The InputController instance
      */
-    public void pollInput() {
-        handleKeyboardInput(); // Handle keyboard input events
-        handleMouseInput(); // Handle mouse input events
+    public static InputController getInstance(long window, Model model) {
+        if (instance == null) {
+            instance = new InputController(window, model);
+        }
+        return instance;
     }
 
     /**
-     * Returns the state of a given key (pressed or not).
+     * Gets the state of a specific key.
+     *
      * @param key The GLFW key code
      * @return 1.0f if the key is pressed, 0.0f otherwise
      */
-    private float getKeyState(int key) {
-        return GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS ? 1.0f : 0.0f; // Check if key is pressed
+    public float getKeyState(int key) {
+        return GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS ? 1.0f : 0.0f;
     }
 
     /**
-     * Handles the keyboard input by posting relevant events to the EventBus.
-     * Each key press is mapped to a specific action.
+     * Polls for input events from the keyboard and mouse, posting them to the EventBus.
+     * This method should be called every frame to process input.
+     */
+    public void pollInput() {
+        handleKeyboardInput();
+        handleMouseInput();
+    }
+
+    /**
+     * Processes keyboard input, mapping key presses to specific actions.
+     * Posts corresponding input events to the EventBus.
      */
     private void handleKeyboardInput() {
-        eventBus.post(new InputEvent(InputAction.MOVE_FORWARD, getKeyState(GLFW.GLFW_KEY_W))); // Move forward
-        eventBus.post(new InputEvent(InputAction.MOVE_BACKWARD, getKeyState(GLFW.GLFW_KEY_S))); // Move backward
-        eventBus.post(new InputEvent(InputAction.MOVE_LEFT, getKeyState(GLFW.GLFW_KEY_A))); // Move left
-        eventBus.post(new InputEvent(InputAction.MOVE_RIGHT, getKeyState(GLFW.GLFW_KEY_D))); // Move right
-        eventBus.post(new InputEvent(InputAction.SPRINT, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT))); // Sprint
-        eventBus.post(new InputEvent(InputAction.MOVE_UP, getKeyState(GLFW.GLFW_KEY_SPACE))); // Move up (jump)
-        eventBus.post(new InputEvent(InputAction.MOVE_DOWN, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT))); // Move down (crouch)
-        eventBus.post(new InputEvent(InputAction.EXIT, getKeyState(GLFW.GLFW_KEY_ESCAPE))); // Exit the game
-        eventBus.post(new InputEvent(InputAction.TOGGLE_FULLSCREEN, getKeyState(GLFW.GLFW_KEY_F11))); // Toggle fullscreen
+        float escValue = getKeyState(GLFW.GLFW_KEY_ESCAPE);
+
+        // Handle ESC key press/release for menu toggle
+        if (escValue > 0 && !escWasPressed) {
+            EventBus.getInstance().post(new MenuActionEvent(MenuAction.TOGGLE_PAUSE));
+            escWasPressed = true;
+        } else if (escValue == 0 && escWasPressed) {
+            escWasPressed = false;
+        }
+
+        // Usa il riferimento al Model per controllare lo stato del gioco
+        if (!model.getGameState().isPaused()) {
+            handleMovementInput();
+        }
+    }
+
+    private void handleMovementInput() {
+        eventBus.post(new InputEvent(InputAction.MOVE_FORWARD, getKeyState(GLFW.GLFW_KEY_W)));
+        eventBus.post(new InputEvent(InputAction.MOVE_BACKWARD, getKeyState(GLFW.GLFW_KEY_S)));
+        eventBus.post(new InputEvent(InputAction.MOVE_LEFT, getKeyState(GLFW.GLFW_KEY_A)));
+        eventBus.post(new InputEvent(InputAction.MOVE_RIGHT, getKeyState(GLFW.GLFW_KEY_D)));
+        eventBus.post(new InputEvent(InputAction.SPRINT, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT)));
+        eventBus.post(new InputEvent(InputAction.MOVE_UP, getKeyState(GLFW.GLFW_KEY_SPACE)));
+        eventBus.post(new InputEvent(InputAction.MOVE_DOWN, getKeyState(GLFW.GLFW_KEY_LEFT_SHIFT)));
+        eventBus.post(new InputEvent(InputAction.TOGGLE_FULLSCREEN, getKeyState(GLFW.GLFW_KEY_F11)));
     }
 
     /**
-     * Handles the mouse input by calculating mouse movement and button presses.
-     * Posts relevant events to the EventBus for mouse look and block actions.
+     * Processes mouse input, including movement and button presses.
+     * Posts events for mouse look and block interaction.
      */
     private void handleMouseInput() {
-        double[] xPos = new double[1]; // Array to hold the x position of the cursor
-        double[] yPos = new double[1]; // Array to hold the y position of the cursor
-        GLFW.glfwGetCursorPos(window, xPos, yPos); // Get the current cursor position
+        double[] xPos = new double[1];
+        double[] yPos = new double[1];
 
-        if (firstMouse) { // If it's the first mouse movement
-            lastX = xPos[0]; // Set the last X position to current
-            lastY = yPos[0]; // Set the last Y position to current
-            firstMouse = false; // Disable first mouse flag
-            return; // Skip the rest of the code
+        GLFW.glfwGetCursorPos(window, xPos, yPos);
+
+        if (firstMouse) {
+            lastX = xPos[0];
+            lastY = yPos[0];
+            firstMouse = false;
+            return;
         }
 
-        float dx = (float)(xPos[0] - lastX); // Calculate the difference in the X position
-        float dy = (float)(yPos[0] - lastY); // Calculate the difference in the Y position
+        float dx = (float) (xPos[0] - lastX);
+        float dy = (float) (yPos[0] - lastY);
 
-        lastX = xPos[0]; // Update the last X position
-        lastY = yPos[0]; // Update the last Y position
+        lastX = xPos[0];
+        lastY = yPos[0];
 
-        if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx)); // Post X-axis mouse look event
-        if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy)); // Post Y-axis mouse look event
+        //if(model.getGameState().isPaused()) return;
 
-        // Post events for mouse button presses (left for destroy, right for place)
+        if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx));
+        if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy));
+
         eventBus.post(new InputEvent(InputAction.DESTROY_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
         eventBus.post(new InputEvent(InputAction.PLACE_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
+    }
+
+    /**
+     * Updates the window handle and cursor mode.
+     * Call this when switching between game and menu windows.
+     *
+     * @param newWindow The new GLFW window handle
+     */
+    public void updateWindow(long newWindow) {
+        this.window = newWindow;
     }
 }

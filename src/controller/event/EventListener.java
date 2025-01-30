@@ -9,5 +9,5 @@ public interface EventListener {
      * Handles the event when it is triggered.
      * @param event The event that was posted.
      */
-    void onEvent(GameEvent event);  // Called when an event is posted, passing the event object
+    void onEvent(GameEvent event);
 }

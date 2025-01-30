@@ -1,6 +1,3 @@
-//
-//worldgenerationevent
-
 package controller.event;
 
 import org.joml.Vector3f;

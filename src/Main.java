@@ -1,7 +1,5 @@
 import config.ConfigManager;
-import menu.MenuController;
-import menu.MenuModel;
-import menu.MenuView;
+import controller.MenuController;
 
 /**
  * Main entry point of the application.
@@ -16,15 +14,7 @@ public class Main {
      * @param args Command-line arguments (not used in this application).
      */
     public static void main(String[] args) {
-        // Load saved configuration from file
         ConfigManager.loadConfig();
-
-        // Initialize the menu system
-        MenuModel menuModel = new MenuModel(); // Create the model to store menu data
-        MenuView menuView = new MenuView();    // Create the view to display the menu
-        new MenuController(menuModel, menuView); // Create the controller to handle interactions between model and view
-
-        // Make the menu visible to the user
-        menuView.setVisible(true);
+        new MenuController();
     }
 }

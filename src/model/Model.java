@@ -22,6 +22,10 @@ public class Model {
         this.lastSaveTime = System.currentTimeMillis();
 
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
+        if (savedData == null) {
+            // È un nuovo mondo
+            WorldManager.saveWorldMetadata(new WorldData(worldName, seed));
+        }
         Vector3f initialPosition;
         float initialPitch = 0;
         float initialYaw = 0;
@@ -36,6 +40,8 @@ public class Model {
 
         this.world = new World(initialPosition, seed);
         this.physicsSystem = new PhysicsSystem(world);
+
+        //System.out.println(this.world.findSpawnHeight());
 
         if (savedData != null && savedData.getModifications() != null) {
             for (BlockModification mod : savedData.getModifications()) {
@@ -52,10 +58,15 @@ public class Model {
     }
 
     public void update(float deltaTime) {
+
+        world.updateDayNightCycle(deltaTime);
+
         physicsSystem.updatePlayerPhysics(player, deltaTime);
         player.update(deltaTime);
-        gameState.update();
-        world.updateDayNightCycle(deltaTime);
+
+        if (!gameState.isPaused()) {
+
+        }
 
         if (shouldAutoSave()) {
             saveGame();
@@ -65,10 +76,10 @@ public class Model {
     public void saveGame() {
         Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks();
         WorldSaveData saveData = new WorldSaveData(
-                modifiedBlocks,
-                player.getPosition(),
-                player.getPitch(),
-                player.getYaw()
+            modifiedBlocks,
+            player.getPosition(),
+            player.getPitch(),
+            player.getYaw()
         );
         WorldManager.saveWorldData(worldName, saveData);
     }

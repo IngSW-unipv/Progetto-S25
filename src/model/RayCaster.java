@@ -27,15 +27,14 @@ public class RayCaster {
     public static Block getTargetBlock(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
         // Calculate normalized ray direction from angles
         Vector3f direction = calculateDirection(yaw, pitch);
-        Vector3f position = new Vector3f(cameraPosition);
 
         // Step along ray checking for blocks
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
             // Calculate current position along ray
             Vector3f checkPos = new Vector3f(
-                position.x + direction.x * distance,
-                position.y + direction.y * distance,
-                position.z + direction.z * distance
+                cameraPosition.x + direction.x * distance,
+                cameraPosition.y + direction.y * distance,
+                cameraPosition.z + direction.z * distance
             );
 
             // Convert to block coordinates with center offset
@@ -67,16 +66,13 @@ public class RayCaster {
     public static BlockDirection getTargetFace(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
         Vector3f direction = calculateDirection(yaw, pitch);
 
-        // Add eye height offset to camera position
-        Vector3f position = new Vector3f(cameraPosition).add(0, .8f, 0);
-
         // Step along ray checking for block faces
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
             Vector3f checkPos = new Vector3f(
-                position.x + direction.x * distance,
-                position.y + direction.y * distance,
-                position.z + direction.z * distance
-        );
+                cameraPosition.x + direction.x * distance,
+                cameraPosition.y + direction.y * distance,
+                cameraPosition.z + direction.z * distance
+            );
 
             // Get fractional position within block (0 to 1)
             float blockX = checkPos.x - (float) Math.floor(checkPos.x);
@@ -87,7 +83,7 @@ public class RayCaster {
                 (int) Math.floor(checkPos.x),
                 (int) Math.floor(checkPos.y),
                 (int) Math.floor(checkPos.z)
-        );
+            );
 
             Block block = world.getBlock(blockPos);
             if (block != null) {
@@ -120,6 +116,6 @@ public class RayCaster {
             (float) Math.sin(yawRad) * (float) Math.cos(pitchRad),
             (float) -Math.sin(pitchRad),
             (float) -Math.cos(yawRad) * (float) Math.cos(pitchRad)
-    ).normalize();
+        ).normalize();
     }
 }

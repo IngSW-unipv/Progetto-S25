@@ -18,13 +18,15 @@ public class WorldManager {
     }
 
     public static void saveWorldMetadata(WorldData world) {
-        Properties props = loadProperties();
-        props.setProperty(world.name() + ".seed", String.valueOf(world.seed()));
-
-        try (FileOutputStream out = new FileOutputStream(METADATA_FILE)) {
-            props.store(out, "World Metadata");
+        try {
+            Properties props = loadProperties();
+            props.setProperty(world.name() + ".seed", String.valueOf(world.seed()));
+            try (FileOutputStream out = new FileOutputStream(METADATA_FILE)) {
+                props.store(out, "World Metadata");
+            }
         } catch (IOException e) {
             e.printStackTrace();
+            // Log o gestione errore
         }
     }
 

@@ -38,15 +38,7 @@ public class GameState {
      *
      * @return {@code true} if the game is running, {@code false} otherwise.
      */
-    public boolean getRunning() {
+    public boolean isRunning() {
         return isRunning;
-    }
-
-    /**
-     * Updates the game state. This method is intended for game logic updates
-     * and can be extended to include additional functionality as needed.
-     */
-    public void update() {
-        // Placeholder for game logic updates
     }
 }

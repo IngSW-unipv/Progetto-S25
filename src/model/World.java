@@ -406,6 +406,20 @@ public class World implements EventListener {
         return seed;
     }
 
+    public int findSpawnHeight() {
+
+        int c = 0;
+
+        while(true){
+            Vector3f pos = new Vector3f(0, c, 0);
+            Block block = getBlock(pos);
+            if (block != null && getBlock(new Vector3f(0, c + 1, 0)) == null) {
+                return c + 1;
+            }
+            c++;
+        }
+    }
+    //PERCHE È INUTILIZZATO, DOVE VA?
     public void cleanup() {
         chunkLoader.shutdown();
     }

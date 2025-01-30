@@ -23,6 +23,8 @@ public class CollisionSystem {
      * @return True if a collision is detected, otherwise false.
      */
     public boolean checkCollision(BoundingBox boundingBox) {
+        //NON SI PUO FARE SOLO CON I BLOCCHI VICINI AL PLAYER? È UNO SPRECO ALLUCINANTE COSÌ
+
         // Iterate through all visible blocks in the world
         for (Block block : world.getVisibleBlocks()) {
             // Check if the bounding box intersects with the block's bounding box
