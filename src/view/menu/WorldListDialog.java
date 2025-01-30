@@ -1,9 +1,6 @@
 package view.menu;
 
-import controller.event.EventBus;
-import controller.event.MenuAction;
-import controller.event.MenuActionEvent;
-import controller.event.StartGameMenuEvent;
+import controller.event.*;
 import model.world.WorldData;
 import model.save.WorldManager;
 
@@ -87,7 +84,7 @@ public class WorldListDialog extends JDialog {
             selectedWorld = worldList.getSelectedValue();
             if (selectedWorld != null) {
                 setVisible(false);
-                EventBus.getInstance().post(new StartGameMenuEvent(selectedWorld.name(), selectedWorld.seed()));
+                EventBus.getInstance().post(MenuEvent.startGame(selectedWorld.name(), selectedWorld.seed()));
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Please select a world to load.",
@@ -112,9 +109,8 @@ public class WorldListDialog extends JDialog {
 
                     // Controlla se la lista è vuota dopo l'eliminazione
                     if (listModel.isEmpty()) {
-                        // Chiudi la finestra e torna alla schermata "World Select"
                         dispose();
-                        EventBus.getInstance().post(new MenuActionEvent(MenuAction.SHOW_WORLD_SELECT));
+                        EventBus.getInstance().post(MenuEvent.action(MenuAction.SHOW_WORLD_SELECT));
                     }
                 }
             } else {

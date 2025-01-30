@@ -1,14 +1,12 @@
 package controller.event;
 
 /**
- * Represents an input event that triggers specific actions in the game.
- * This event includes an action and a value associated with the action.
+ * Represents player input events with associated values.
  */
 public record InputEvent(InputAction action, float value) implements GameEvent {
 
     /**
-     * Returns the type of the event, which is INPUT in this case.
-     * @return The event type (INPUT).
+     * @return INPUT event type
      */
     @Override
     public EventType getType() {

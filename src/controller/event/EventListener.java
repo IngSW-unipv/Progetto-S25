@@ -1,13 +1,14 @@
 package controller.event;
 
 /**
- * Interface for event listeners in the game.
- * Any class that wants to listen for and handle events should implement this interface.
+ * Defines standard event listener interface.
+ * Implemented by classes needing to handle game events.
  */
 public interface EventListener {
     /**
-     * Handles the event when it is triggered.
-     * @param event The event that was posted.
+     * Called when subscribed event occurs.
+     *
+     * @param event The triggered event
      */
     void onEvent(GameEvent event);
 }

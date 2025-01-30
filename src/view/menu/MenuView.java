@@ -2,8 +2,8 @@ package view.menu;
 
 import controller.event.EventBus;
 import controller.event.MenuAction;
-import controller.event.MenuActionEvent;
 import config.ConfigManager;
+import controller.event.MenuEvent;
 import model.world.WorldData;
 import model.save.WorldManager;
 
@@ -127,7 +127,7 @@ public class MenuView extends JFrame {
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.addActionListener(e -> EventBus.getInstance().post(new MenuActionEvent(action)));
+        button.addActionListener(e -> EventBus.getInstance().post(MenuEvent.action(action)));
 
         return button;
     }

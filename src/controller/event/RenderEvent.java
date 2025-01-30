@@ -6,15 +6,12 @@ import model.world.World;
 import java.util.List;
 
 /**
- * Represents a render event that involves rendering the game scene.
- * Contains references to the camera, blocks to render, and the world.
+ * Contains state needed for rendering a frame.
  */
 public record RenderEvent(Camera camera, List<Block> blocks, World world) implements GameEvent {
 
     /**
-     * Returns the type of the event.
-     *
-     * @return The event type (RENDER)
+     * @return RENDER event type
      */
     @Override
     public EventType getType() {

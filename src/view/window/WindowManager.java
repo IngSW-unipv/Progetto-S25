@@ -49,7 +49,7 @@ public class WindowManager {
         }
 
         // Center the window on the screen
-        try (MemoryStack stack = MemoryStack.stackPush()) {
+        try (MemoryStack ignored = MemoryStack.stackPush()) {
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
             GLFW.glfwSetWindowPos(window,
                     (Objects.requireNonNull(vidmode).width() - WIDTH) / 2,

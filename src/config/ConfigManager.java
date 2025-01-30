@@ -8,7 +8,11 @@ import java.util.Properties;
  * It reads and writes the configuration to a properties file.
  */
 public class ConfigManager {
-    private static final String CONFIG_FILE = "src/config/game_config.properties"; // Path to the configuration file
+    /**
+     * Path to the configuration file.
+     */
+    private static final String CONFIG_FILE = "src/config/game_config.properties";
+
 
     /**
      * Saves the current game configuration to a properties file.
@@ -28,9 +32,9 @@ public class ConfigManager {
         props.setProperty("STEP", String.valueOf(GameConfig.STEP));
 
         try (FileOutputStream out = new FileOutputStream(CONFIG_FILE)) {
-            props.store(out, "Game Configuration"); // Save properties with a comment
+            props.store(out, "Game Configuration");
         } catch (IOException e) {
-            e.printStackTrace(); // Print any IO exceptions
+            e.printStackTrace();
         }
     }
 
@@ -41,13 +45,13 @@ public class ConfigManager {
     public static void loadConfig() {
         File configFile = new File(CONFIG_FILE);
         if (!configFile.exists()) {
-            saveConfig(); // Save default values if the config file doesn't exist
+            saveConfig();
             return;
         }
 
         Properties props = new Properties();
         try (FileInputStream in = new FileInputStream(configFile)) {
-            props.load(in); // Load properties from the file
+            props.load(in);
 
             // Set game configuration values from the loaded properties
             GameConfig.RENDER_DISTANCE = Integer.parseInt(props.getProperty("RENDER_DISTANCE"));
@@ -61,7 +65,7 @@ public class ConfigManager {
             GameConfig.RAY_MAX_DISTANCE = Float.parseFloat(props.getProperty("RAY_MAX_DISTANCE"));
             GameConfig.STEP = Float.parseFloat(props.getProperty("STEP"));
         } catch (IOException e) {
-            e.printStackTrace(); // Print any IO exceptions
+            e.printStackTrace();
         }
     }
 }

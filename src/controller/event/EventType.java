@@ -1,9 +1,18 @@
 package controller.event;
 
+/**
+ * Categorizes different event types in the game.
+ */
 public enum EventType {
-    INPUT,                // Event type related to user input actions
-    WORLD_GENERATION,     // Event type for world generation processes
-    GAME_STATE,           // Event type for changes in the game state
-    RENDER,               // Event type for rendering-related events
+    /** User input events */
+    INPUT,
+
+    /** World generation events */
+    WORLD_GENERATION,
+
+    /** Rendering events */
+    RENDER,
+
+    /** Menu interaction events */
     MENU
 }

@@ -1,7 +1,7 @@
 package view.menu;
 
 import controller.event.EventBus;
-import controller.event.StartGameMenuEvent;
+import controller.event.MenuEvent;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -252,7 +252,7 @@ public class NewWorldDialog extends JDialog {
             }
 
             seed = Long.parseLong(seedText);
-            EventBus.getInstance().post(new StartGameMenuEvent(worldName, seed));
+            EventBus.getInstance().post(MenuEvent.startGame(worldName, seed));
             dispose();
 
         } catch (NumberFormatException ex) {

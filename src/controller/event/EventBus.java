@@ -4,42 +4,68 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * Core event system managing publish/subscribe functionality.
+ * Uses singleton pattern to ensure centralized event handling.
+ */
 public class EventBus {
-    private static EventBus instance; // Singleton instance of EventBus
-    private final Map<EventType, List<EventListener>> listeners; // Map to hold event listeners for each event type
+    /** Singleton instance */
+    private static EventBus instance;
 
-    // Private constructor to prevent external instantiation
+    /** Thread-safe map holding event listeners */
+    private final Map<EventType, List<EventListener>> listeners;
+
+
+    /**
+     * Initializes thread-safe collections for event handling.
+     */
     private EventBus() {
-        listeners = new ConcurrentHashMap<>(); // Initialize the map to store listeners
-        // Initialize a listener list for each event type
+        listeners = new ConcurrentHashMap<>();
         for (EventType type : EventType.values()) {
-            listeners.put(type, new CopyOnWriteArrayList<>()); // Use CopyOnWriteArrayList for thread-safe operations
+            listeners.put(type, new CopyOnWriteArrayList<>());
         }
     }
 
-    // Singleton access method
+    /**
+     * Gets singleton instance, creating if needed.
+     *
+     * @return The EventBus instance
+     */
     public static EventBus getInstance() {
         if (instance == null) {
-            instance = new EventBus(); // Instantiate the EventBus if not already created
+            instance = new EventBus();
         }
-        return instance; // Return the single instance of EventBus
+        return instance;
     }
 
-    // Method to subscribe a listener to an event type
+    /**
+     * Registers listener for specified event type.
+     *
+     * @param type Event type to listen for
+     * @param listener Listener to notify
+     */
     public void subscribe(EventType type, EventListener listener) {
-        listeners.get(type).add(listener); // Add the listener to the list for the given event type
+        listeners.get(type).add(listener);
     }
 
-    // Method to unsubscribe a listener from an event type
+    /**
+     * Removes listener from specified event type.
+     *
+     * @param type Event type to unsubscribe from
+     * @param listener Listener to remove
+     */
     public void unsubscribe(EventType type, EventListener listener) {
-        listeners.get(type).remove(listener); // Remove the listener from the list for the given event type
+        listeners.get(type).remove(listener);
     }
 
-    // Method to post an event to all subscribed listeners
+    /**
+     * Notifies all listeners registered for event's type.
+     *
+     * @param event Event to broadcast
+     */
     public void post(GameEvent event) {
-        // Iterate through the listeners for the event's type and notify them
         for (EventListener listener : listeners.get(event.getType())) {
-            listener.onEvent(event); // Trigger the event listener's onEvent method
+            listener.onEvent(event);
         }
     }
 }

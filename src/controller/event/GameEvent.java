@@ -1,13 +1,13 @@
 package controller.event;
 
 /**
- * Interface representing a game event.
- * Any event in the game should implement this interface to provide the event type.
+ * Base interface for all game events.
+ * Provides type information for event routing.
  */
 public interface GameEvent {
     /**
-     * Returns the type of the event.
-     * @return The event type.
+     * Gets event category for routing.
+     * @return Event's type
      */
-    EventType getType();  // The type of event (e.g., input, world generation, game state, render)
+    EventType getType();
 }
