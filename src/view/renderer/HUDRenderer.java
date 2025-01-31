@@ -20,13 +20,13 @@ public class HUDRenderer {
 
     // Coordinates for the crosshair (vertical and horizontal lines)
     private static final float[] CROSSHAIR = {
-            // Vertical line
-            0.0f,  0.02f, // Top
-            0.0f, -0.02f, // Bottom
+        // Vertical line
+        0.0f,  0.02f, // Top
+        0.0f, -0.02f, // Bottom
 
-            // Horizontal line
-            -0.02f,  0.0f, // Left
-            0.02f,  0.0f  // Right
+        // Horizontal line
+        -0.02f,  0.0f, // Left
+        0.02f,  0.0f  // Right
     };
 
     /**
@@ -44,8 +44,8 @@ public class HUDRenderer {
      */
     private void setupShader() {
         shader = new ShaderProgram(
-                "resources/shaders/hud_vertex.glsl",
-                "resources/shaders/hud_fragment.glsl"
+    "resources/shaders/hud_vertex.glsl",
+    "resources/shaders/hud_fragment.glsl"
         );
     }
 

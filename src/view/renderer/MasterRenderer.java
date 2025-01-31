@@ -1,5 +1,3 @@
-//masterrenderer
-
 package view.renderer;
 
 import controller.event.EventBus;
@@ -9,7 +7,6 @@ import controller.event.RenderEvent;
 import model.block.Block;
 import model.block.BlockType;
 import model.player.Camera;
-import model.world.DayNightCycle;
 import model.world.Frustum;
 import model.world.World;
 import org.joml.Matrix4f;
@@ -25,94 +22,82 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The MasterRenderer class is responsible for rendering the entire world and HUD elements in the game.
- * It manages multiple shaders, textures, meshes, and handles rendering blocks, highlights, and breaking animations.
- * It also manages the camera's view and projection matrices, as well as the rendering of various game elements.
+ * Orchestrates rendering of game world, blocks, effects and HUD.
+ * Manages shader programs, textures and view matrices for rendering pipeline.
  */
 public class MasterRenderer implements WorldRenderer {
+    /** Shader programs for different rendering passes */
     private ShaderProgram blockShader;
     private ShaderProgram highlightShader;
     private ShaderProgram breakingShader;
+
+    /** View matrices */
     private Matrix4f projectionMatrix;
-    private Matrix4f modelMatrix;
-    private TextureManager textureManager;
-    private Map<BlockType, Integer> blockTextureIds;
-    private HUDRenderer hudRenderer;
-    private WindowManager windowManager;
-    private Frustum frustum;
-    private Matrix4f projectionViewMatrix;
-    private Map<BlockType, BatchedMesh> blockMeshes;
-    private BatchedMesh highlightMesh;
-    private BatchedMesh breakingMesh;
-    private final DayNightCycle dayNightCycle = new DayNightCycle();
+    private final Matrix4f modelMatrix;
+    private final Matrix4f projectionViewMatrix = new Matrix4f();
+
+    /** Texture management */
+    private final TextureManager textureManager;
+    private final Map<BlockType, Integer> blockTextureIds = new HashMap<>();
+
+    /** Mesh storage */
+    private final Map<BlockType, BatchedMesh> blockMeshes = new HashMap<>();
+    private final BatchedMesh highlightMesh;
+    private final BatchedMesh breakingMesh;
+
+    /** Render components */
+    private final HUDRenderer hudRenderer;
+    private final WindowManager windowManager;
+    private final Frustum frustum = new Frustum();
+
 
     /**
-     * Constructs a MasterRenderer instance, subscribing to the RENDER event and initializing necessary components.
-     *
-     * @param windowManager The window manager for handling window-related tasks.
+     * Initializes renderer components and subscribes to render events
      */
     public MasterRenderer(WindowManager windowManager) {
+        this.windowManager = windowManager;
         EventBus.getInstance().subscribe(EventType.RENDER, this::onEvent);
 
-        this.windowManager = windowManager;
+        // Initialize shaders
+        initializeShaders();
 
-        blockShader = new ShaderProgram("resources/shaders/block_vertex.glsl", "resources/shaders/block_fragment.glsl");
-        highlightShader = new ShaderProgram("resources/shaders/block_highlight_vertex.glsl", "resources/shaders/block_highlight_fragment.glsl");
-        breakingShader = new ShaderProgram("resources/shaders/block_breaking_vertex.glsl", "resources/shaders/block_breaking_fragment.glsl");
-
+        // Create meshes
         highlightMesh = new BatchedMesh();
         breakingMesh = new BatchedMesh();
 
+        // Setup textures and state
         textureManager = new TextureManager();
-        blockTextureIds = new HashMap<>();
-        blockMeshes = new HashMap<>();
-
         updateProjectionMatrix();
         modelMatrix = new Matrix4f().identity();
 
+        // Configure OpenGL state
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_FRONT);
 
         hudRenderer = new HUDRenderer();
-        frustum = new Frustum();
-        projectionViewMatrix = new Matrix4f();
     }
 
-    /**
-     * Updates the projection matrix used for rendering.
-     */
+    private void initializeShaders() {
+        blockShader = new ShaderProgram("resources/shaders/block_vertex.glsl",
+                "resources/shaders/block_fragment.glsl");
+        highlightShader = new ShaderProgram("resources/shaders/block_highlight_vertex.glsl",
+                "resources/shaders/block_highlight_fragment.glsl");
+        breakingShader = new ShaderProgram("resources/shaders/block_breaking_vertex.glsl",
+                "resources/shaders/block_breaking_fragment.glsl");
+    }
+
     private void updateProjectionMatrix() {
         projectionMatrix = new Matrix4f().perspective(
-                (float) Math.toRadians(60.0f),
-                windowManager.getAspectRatio(),
-                0.3f,
-                100.0f
+            (float) Math.toRadians(60.0f),
+            windowManager.getAspectRatio(),
+            0.3f,
+            100.0f
         );
     }
 
     /**
-     * Prepares the OpenGL context for rendering by clearing the screen and setting the background color.
-     */
-    private void prepare() {
-        GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-    }
-
-    /**
-     * Loads the texture for a specific block type if it hasn't been loaded yet.
-     *
-     * @param type The block type for which to load the texture.
-     */
-    private void loadBlockTexture(BlockType type) {
-        if (!blockTextureIds.containsKey(type)) {
-            int textureId = textureManager.loadTexture(type.getTexturePath());
-            blockTextureIds.put(type, textureId);
-        }
-    }
-
-    /**
-     * Cleans up OpenGL resources used by the renderer, including shaders, textures, and meshes.
+     * Cleans up renderer resources
      */
     public void cleanUp() {
         blockMeshes.values().forEach(BatchedMesh::cleanup);
@@ -126,10 +111,7 @@ public class MasterRenderer implements WorldRenderer {
     }
 
     /**
-     * Handles incoming game events, specifically RenderEvents.
-     * Updates the world's frustum culling and triggers rendering.
-     *
-     * @param event The game event to handle
+     * Handles render events
      */
     public void onEvent(GameEvent event) {
         if (event instanceof RenderEvent renderEvent) {
@@ -139,73 +121,111 @@ public class MasterRenderer implements WorldRenderer {
     }
 
     /**
-     * Renders the world and HUD, including blocks, block highlights, breaking animations, and HUD elements.
-     *
-     * @param blocks The list of blocks to be rendered.
-     * @param camera The camera used for rendering the world from its perspective.
+     * Performs complete render pass of world, effects and HUD
      */
     @Override
     public void render(List<Block> blocks, Camera camera, World world) {
         updateProjectionMatrix();
-        prepare();
+        prepareFrame();
 
         Matrix4f viewMatrix = camera.getViewMatrix();
-        projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
-        frustum.update(projectionViewMatrix);
-
-        // Get ambient light once for all shaders
+        updateProjectionView(viewMatrix);
         float ambientLight = world.getDayNightCycle().getAmbientLight();
 
-        // Breaking animation rendering
+        // Render phases
+        renderBreakingEffects(blocks, viewMatrix, ambientLight);
+        renderBlocks(blocks, viewMatrix, ambientLight);
+        renderHighlights(blocks, viewMatrix);
+        renderHUD();
+    }
+
+    private void prepareFrame() {
+        GL11.glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+    }
+
+    private void updateProjectionView(Matrix4f viewMatrix) {
+        projectionViewMatrix.set(projectionMatrix).mul(viewMatrix);
+        frustum.update(projectionViewMatrix);
+    }
+
+    private void renderBreakingEffects(List<Block> blocks, Matrix4f viewMatrix, float ambientLight) {
         breakingShader.start();
-        breakingShader.loadMatrix("viewMatrix", viewMatrix);
-        breakingShader.loadMatrix("projectionMatrix", projectionMatrix);
-        breakingShader.loadMatrix("modelMatrix", modelMatrix);
+        setupBreakingShader(viewMatrix, ambientLight);
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        int ambientLightLocation = GL20.glGetUniformLocation(breakingShader.getProgramID(), "ambientLight");
-        GL20.glUniform1f(ambientLightLocation, ambientLight);
-
-        for (Block block : blocks) {
-            if (block.getBreakProgress() > 0) {
-                BatchedMesh breakMesh = new BatchedMesh();
-                breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel());
-                breakMesh.updateGLBuffers();
-
-                textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
-                int breakProgressLocation = GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress");
-                GL20.glUniform1f(breakProgressLocation, block.getBreakProgress());
-
-                breakMesh.render();
-                breakMesh.cleanup();
-            }
-        }
+        renderBreakingBlocks(blocks);
 
         breakingShader.stop();
         GL11.glDisable(GL11.GL_BLEND);
+    }
 
-        // Normal block rendering
+    private void setupBreakingShader(Matrix4f viewMatrix, float ambientLight) {
+        breakingShader.loadMatrix("viewMatrix", viewMatrix);
+        breakingShader.loadMatrix("projectionMatrix", projectionMatrix);
+        breakingShader.loadMatrix("modelMatrix", modelMatrix);
+        GL20.glUniform1f(GL20.glGetUniformLocation(breakingShader.getProgramID(), "ambientLight"),
+                ambientLight);
+    }
+
+    private void renderBreakingBlocks(List<Block> blocks) {
+        for (Block block : blocks) {
+            if (block.getBreakProgress() > 0) {
+                renderBreakingBlock(block);
+            }
+        }
+    }
+
+    private void renderBreakingBlock(Block block) {
+        BatchedMesh breakMesh = new BatchedMesh();
+        breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel());
+        breakMesh.updateGLBuffers();
+
+        textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
+        GL20.glUniform1f(GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress"), block.getBreakProgress());
+
+        breakMesh.render();
+        breakMesh.cleanup();
+    }
+
+    private void renderBlocks(List<Block> blocks, Matrix4f viewMatrix, float ambientLight) {
         blockShader.start();
+        setupBlockShader(viewMatrix, ambientLight);
+
+        ensureBlockTextures();
+
+        Map<BlockType, List<Block>> blocksByType = blocks.stream()
+            .filter(this::isBlockInView)
+            .collect(Collectors.groupingBy(Block::getType));
+
+        renderBlockBatches(blocksByType);
+
+        blockShader.stop();
+    }
+
+    private void setupBlockShader(Matrix4f viewMatrix, float ambientLight) {
         blockShader.loadMatrix("viewMatrix", viewMatrix);
         blockShader.loadMatrix("projectionMatrix", projectionMatrix);
         blockShader.loadMatrix("modelMatrix", modelMatrix);
+        GL20.glUniform1f(GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight"), ambientLight);
+    }
 
+    private boolean isBlockInView(Block block) {
+        Vector3f pos = block.getPosition();
+        return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
+    }
+
+    private void ensureBlockTextures() {
         for (BlockType type : BlockType.values()) {
-            loadBlockTexture(type);
+            if (!blockTextureIds.containsKey(type)) {
+                blockTextureIds.put(type, textureManager.loadTexture(type.getTexturePath()));
+            }
         }
+    }
 
-        Map<BlockType, List<Block>> blocksByType = blocks.stream()
-                .filter(block -> {
-                    Vector3f pos = block.getPosition();
-                    return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
-                })
-                .collect(Collectors.groupingBy(Block::getType));
-
-        ambientLightLocation = GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight");
-        GL20.glUniform1f(ambientLightLocation, ambientLight);
-
+    private void renderBlockBatches(Map<BlockType, List<Block>> blocksByType) {
         blocksByType.forEach((type, typeBlocks) -> {
             BatchedMesh mesh = blockMeshes.computeIfAbsent(type, k -> new BatchedMesh());
             mesh.clear();
@@ -220,44 +240,46 @@ public class MasterRenderer implements WorldRenderer {
             textureManager.bindTexture(blockTextureIds.get(type), 0);
             mesh.render();
         });
+    }
 
-        blockShader.stop();
-
-        // Highlight rendering
+    private void renderHighlights(List<Block> blocks, Matrix4f viewMatrix) {
         highlightMesh.clear();
         blocks.stream()
-                .filter(Block::isHighlighted)
-                .forEach(block -> {
-                    highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel());
-                });
+            .filter(Block::isHighlighted)
+            .forEach(block -> highlightMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel()
+            ));
 
         if (blocks.stream().anyMatch(Block::isHighlighted)) {
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glDepthMask(false);
-            GL11.glLineWidth(3.0f);
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-
-            highlightShader.start();
-            highlightShader.loadMatrix("viewMatrix", viewMatrix);
-            highlightShader.loadMatrix("projectionMatrix", projectionMatrix);
-            highlightShader.loadMatrix("modelMatrix", modelMatrix);
-
+            setupHighlightRendering(viewMatrix);
             highlightMesh.updateGLBuffers();
             highlightMesh.render();
-            highlightShader.stop();
-
-            GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
-            GL11.glDepthMask(true);
-            GL11.glDisable(GL11.GL_BLEND);
+            restoreHighlightRendering();
         }
+    }
 
-        // Render HUD
+    private void setupHighlightRendering(Matrix4f viewMatrix) {
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glDepthMask(false);
+        GL11.glLineWidth(3.0f);
+        GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+
+        highlightShader.start();
+        highlightShader.loadMatrix("viewMatrix", viewMatrix);
+        highlightShader.loadMatrix("projectionMatrix", projectionMatrix);
+        highlightShader.loadMatrix("modelMatrix", modelMatrix);
+    }
+
+    private void restoreHighlightRendering() {
+        highlightShader.stop();
+        GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
+        GL11.glDepthMask(true);
+        GL11.glDisable(GL11.GL_BLEND);
+    }
+
+    private void renderHUD() {
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         hudRenderer.render();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-        //PerformanceMetrics.updateFrameMetrics();
-        //System.out.println(PerformanceMetrics.getMetricsString());
     }
 }

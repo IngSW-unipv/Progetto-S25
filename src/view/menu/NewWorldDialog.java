@@ -10,78 +10,80 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
 
+/**
+ * Dialog for creating new game worlds with custom names and seeds.
+ * Provides name and seed input fields with validation.
+ */
 public class NewWorldDialog extends JDialog {
+    /** World generation seed */
+    private long seed;
 
-    private long seed;                                                              // Seed for the new world
-    private final JTextField seedField;                                                   // Text field to display and edit the seed
-    private final Color BACKGROUND_COLOR = new Color(24, 20, 37);           // Background color of the dialog
-    private final Color BUTTON_COLOR = new Color(65, 65, 65);               // Color of the buttons
-    private final Color TEXT_COLOR = new Color(255, 255, 255);              // Color of the text on buttons and labels
-    private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16); // Font used for the main text and labels
+    /** Seed input field */
+    private final JTextField seedField;
+
+    /** World name input field */
     private final JTextField nameField;
 
+    /** UI styling constants */
+    private final Color BACKGROUND_COLOR = new Color(24, 20, 37);
+    private final Color BUTTON_COLOR = new Color(65, 65, 65);
+    private final Color TEXT_COLOR = new Color(255, 255, 255);
+    private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16);
+
+
     /**
-     * Constructs a NewWorldDialog instance, setting up the dialog's UI and behavior.
+     * Creates dialog with input fields and buttons
      *
-     * @param parent The parent frame for the dialog.
+     * @param parent Parent window for modal dialog
      */
     public NewWorldDialog(Frame parent) {
+        // Initialize dialog
         super(parent, "New World", true);
         setBackground(BACKGROUND_COLOR);
 
-        JPanel mainPanel = new JPanel(new GridBagLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(BACKGROUND_COLOR);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        // Create main panel with background
+        JPanel mainPanel = getjPanel();
 
+        // Set layout constraints
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
 
-        // Title
-        JLabel titleLabel = new JLabel("Create New World", SwingConstants.CENTER);
-        // Font used for the title
+        // Add title section
         Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24);
+        JLabel titleLabel = new JLabel("Create New World", SwingConstants.CENTER);
         titleLabel.setFont(TITLE_FONT);
         titleLabel.setForeground(TEXT_COLOR);
         mainPanel.add(titleLabel, gbc);
 
+        // Add world name input section
         JPanel namePanel = new JPanel(new GridBagLayout());
         namePanel.setOpaque(false);
 
+        // Create name label
         JLabel nameLabel = new JLabel("World Name:");
         nameLabel.setFont(MAIN_FONT);
         nameLabel.setForeground(TEXT_COLOR);
 
-        nameField = new JTextField("New World", 20) { // Imposta il testo predefinito
+        // Create name field with custom background
+        nameField = new JTextField("New World", 20) {
             @Override
             protected void paintComponent(Graphics g) {
+                // Draw rounded background
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(BUTTON_COLOR);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 5, 5);
                 super.paintComponent(g);
             }
         };
-        nameField.setFont(MAIN_FONT);
-        nameField.setForeground(TEXT_COLOR);
-        nameField.setCaretColor(TEXT_COLOR);
-        nameField.setBackground(new Color(0, 0, 0, 0));
-        nameField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.BLACK),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
+        configureTextField(nameField);
 
-        // Aggiungi un FocusListener per selezionare tutto il testo quando il campo riceve il focus
+        // Add name field listeners
         nameField.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                nameField.selectAll(); // Seleziona tutto il testo
+                // Select all text on focus
+                nameField.selectAll();
             }
         });
 
@@ -94,6 +96,7 @@ public class NewWorldDialog extends JDialog {
             }
         });
 
+        // Add name components to panel
         GridBagConstraints nameGbc = new GridBagConstraints();
         nameGbc.insets = new Insets(5, 5, 5, 5);
         namePanel.add(nameLabel, nameGbc);
@@ -104,10 +107,10 @@ public class NewWorldDialog extends JDialog {
 
         mainPanel.add(namePanel, gbc);
 
-        // Random seed by default
-        seed = new Random().nextLong(); // Generate a random seed by default
+        // Generate initial random seed
+        seed = new Random().nextLong();
 
-        // Seed panel
+        // Add seed input section
         JPanel seedPanel = new JPanel(new GridBagLayout());
         seedPanel.setOpaque(false);
 
@@ -115,23 +118,20 @@ public class NewWorldDialog extends JDialog {
         seedLabel.setFont(MAIN_FONT);
         seedLabel.setForeground(TEXT_COLOR);
 
+        // Create seed field with custom background
         seedField = new JTextField(String.valueOf(seed), 20) {
             @Override
             protected void paintComponent(Graphics g) {
+                // Draw rounded background
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setColor(BUTTON_COLOR);
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 5, 5);
                 super.paintComponent(g);
             }
         };
-        seedField.setFont(MAIN_FONT);
-        seedField.setForeground(TEXT_COLOR);
-        seedField.setCaretColor(TEXT_COLOR);
-        seedField.setBackground(new Color(0, 0, 0, 0));
-        seedField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.BLACK),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
+        configureTextField(seedField);
+
+        // Add enter key handler
         seedField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -141,12 +141,15 @@ public class NewWorldDialog extends JDialog {
             }
         });
 
+        // Add random seed button
         JButton randomButton = createStyledButton("Random");
         randomButton.addActionListener(e -> {
-            seed = new Random().nextLong(); // Generate a new random seed when pressed
+            // Generate and display new random seed
+            seed = new Random().nextLong();
             seedField.setText(String.valueOf(seed));
         });
 
+        // Add seed components to panel
         GridBagConstraints seedGbc = new GridBagConstraints();
         seedGbc.insets = new Insets(5, 5, 5, 5);
         seedPanel.add(seedLabel, seedGbc);
@@ -161,7 +164,7 @@ public class NewWorldDialog extends JDialog {
 
         mainPanel.add(seedPanel, gbc);
 
-        // Buttons panel
+        // Add action buttons section
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 0));
         buttonPanel.setOpaque(false);
 
@@ -169,33 +172,61 @@ public class NewWorldDialog extends JDialog {
         JButton cancelButton = createStyledButton("Cancel");
 
         confirmButton.addActionListener(e -> attemptWorldCreation());
-
-        cancelButton.addActionListener(e -> dispose()); // Close the dialog without confirming
+        cancelButton.addActionListener(e -> dispose());
 
         buttonPanel.add(confirmButton);
         buttonPanel.add(cancelButton);
         mainPanel.add(buttonPanel, gbc);
 
+        // Configure dialog
         setContentPane(mainPanel);
         pack();
         setLocationRelativeTo(parent);
         setResizable(false);
     }
 
+    private JPanel getjPanel() {
+        JPanel mainPanel = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                // Fill panel background
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(BACKGROUND_COLOR);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        return mainPanel;
+    }
+
     /**
-     * Creates a styled button with custom appearance and hover/press effects.
-     *
-     * @param text The text displayed on the button.
-     * @return A styled JButton.
+     * Helper to configure text field appearance
+     */
+    private void configureTextField(JTextField field) {
+        field.setFont(MAIN_FONT);
+        field.setForeground(TEXT_COLOR);
+        field.setCaretColor(TEXT_COLOR);
+        field.setBackground(new Color(0, 0, 0, 0));
+        field.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.BLACK),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+    }
+
+    /**
+     * Creates custom styled button with hover effects
      */
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text) {
             @Override
             protected void paintComponent(Graphics g) {
+                // Configure rendering
                 Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
 
-                // Set button color based on its state (pressed, hovered, or default)
+                // Draw background based on state
                 if (getModel().isPressed()) {
                     g2d.setColor(BUTTON_COLOR.darker());
                 } else if (getModel().isRollover()) {
@@ -204,10 +235,12 @@ public class NewWorldDialog extends JDialog {
                     g2d.setColor(BUTTON_COLOR);
                 }
 
+                // Draw button shape
                 g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2d.setColor(Color.BLACK);
                 g2d.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
 
+                // Draw centered text
                 FontMetrics metrics = g2d.getFontMetrics(getFont());
                 int x = (getWidth() - metrics.stringWidth(getText())) / 2;
                 int y = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
@@ -219,6 +252,7 @@ public class NewWorldDialog extends JDialog {
             }
         };
 
+        // Configure button properties
         button.setFont(MAIN_FONT);
         button.setForeground(TEXT_COLOR);
         button.setPreferredSize(new Dimension(120, 35));
@@ -230,43 +264,48 @@ public class NewWorldDialog extends JDialog {
         return button;
     }
 
+    /**
+     * Validates input and creates new world
+     * Shows error if validation fails
+     */
     private void attemptWorldCreation() {
         try {
+            // Get and validate input values
             String worldName = nameField.getText().trim();
             String seedText = seedField.getText().trim();
 
             if (worldName.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                        "Please enter a world name.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                    "Please enter a world name.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
             if (seedText.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
-                        "Please enter a world seed.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                    "Please enter a world seed.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
+            // Parse seed and start game
             seed = Long.parseLong(seedText);
             EventBus.getInstance().post(MenuEvent.startGame(worldName, seed));
             dispose();
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this,
-                    "Invalid seed. Please enter a valid number.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                "Invalid seed. Please enter a valid number.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
     /**
-     * Returns the seed value entered or generated in the dialog.
-     *
-     * @return The seed value.
+     * Gets current world generation seed
+     * @return Seed value
      */
     public long getSeed() {
         return seed;

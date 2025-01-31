@@ -7,17 +7,17 @@ import model.world.World;
 import java.util.List;
 
 /**
- * Interface for rendering the world in a 3D environment.
- * It defines the method for rendering a list of blocks from the world
- * based on the current camera view.
+ * Defines interface for 3D world rendering.
+ * Implementations handle block rendering from camera perspective.
  */
 public interface WorldRenderer {
 
     /**
-     * Renders the world by drawing the provided list of blocks from the perspective of the given camera.
+     * Renders visible world blocks from camera view.
      *
-     * @param blocks The list of blocks that make up the world to be rendered.
-     * @param camera The camera used to determine the viewpoint for rendering.
+     * @param blocks Blocks to render
+     * @param camera View camera
+     * @param world Game world reference
      */
     void render(List<Block> blocks, Camera camera, World world);
 }

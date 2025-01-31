@@ -107,7 +107,7 @@ public class InputController {
      * Processes and posts movement input events.
      */
     private void handleMovementInput() {
-        // Always process fullscreen toggle
+        // Process fullscreen toggle
         eventBus.post(new InputEvent(InputAction.TOGGLE_FULLSCREEN, getKeyState(GLFW.GLFW_KEY_F11)));
 
         // Post movement input events
@@ -152,6 +152,10 @@ public class InputController {
 
             if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx));
             if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy));
+
+            // Post mouse button events for block interaction
+            eventBus.post(new InputEvent(InputAction.DESTROY_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
+            eventBus.post(new InputEvent(InputAction.PLACE_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
         }
     }
 

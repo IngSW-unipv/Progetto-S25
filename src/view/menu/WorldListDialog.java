@@ -10,15 +10,31 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Dialog for loading and managing saved game worlds.
+ * Provides interface for viewing, loading and deleting world saves.
+ */
 public class WorldListDialog extends JDialog {
+    /** Colors for UI elements */
     private final Color BUTTON_COLOR = new Color(65, 65, 65);
     private final Color TEXT_COLOR = new Color(255, 255, 255);
+
+    /** Fonts used in UI */
     private final Font TITLE_FONT = new Font("Minecraft", Font.BOLD, 24);
     private final Font MAIN_FONT = new Font("Minecraft", Font.PLAIN, 16);
 
+    /** List of available world saves */
     private final List<WorldData> worlds = new ArrayList<>();
+
+    /** Currently selected world save */
     private WorldData selectedWorld = null;
 
+
+    /**
+     * Creates dialog for selecting and managing worlds
+     *
+     * @param parent Parent frame for modal dialog
+     */
     public WorldListDialog(Frame parent) {
         super(parent, "Load World", true);
         Color BACKGROUND_COLOR = new Color(24, 20, 37);
@@ -30,21 +46,14 @@ public class WorldListDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    /**
+     * Initializes and configures the dialog UI components
+     */
     private void setupUI() {
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10)) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g;
-                GradientPaint gradient = new GradientPaint(
-                        0, 0, new Color(24, 20, 37),
-                        0, getHeight(), new Color(65, 41, 90));
-                g2d.setPaint(gradient);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        // Main panel with gradient background
+        JPanel mainPanel = getjPanel();
 
-        // Title Panel
+        // Title section
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setOpaque(false);
         JLabel titleLabel = new JLabel("Load World", SwingConstants.CENTER);
@@ -54,7 +63,7 @@ public class WorldListDialog extends JDialog {
         titlePanel.add(titleLabel, BorderLayout.CENTER);
         mainPanel.add(titlePanel, BorderLayout.NORTH);
 
-        // World List
+        // World list section
         DefaultListModel<WorldData> listModel = new DefaultListModel<>();
         worlds.forEach(listModel::addElement);
 
@@ -71,7 +80,7 @@ public class WorldListDialog extends JDialog {
         scrollPane.getViewport().setBackground(BUTTON_COLOR);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Button Panel
+        // Button section
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setOpaque(false);
         buttonPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
@@ -80,6 +89,7 @@ public class WorldListDialog extends JDialog {
         JButton deleteButton = createStyledButton("Delete");
         JButton cancelButton = createStyledButton("Cancel");
 
+        // Configure button actions
         loadButton.addActionListener(e -> {
             selectedWorld = worldList.getSelectedValue();
             if (selectedWorld != null) {
@@ -87,9 +97,9 @@ public class WorldListDialog extends JDialog {
                 EventBus.getInstance().post(MenuEvent.startGame(selectedWorld.name(), selectedWorld.seed()));
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "Please select a world to load.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                    "Please select a world to load.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -97,17 +107,15 @@ public class WorldListDialog extends JDialog {
             WorldData selectedWorld = worldList.getSelectedValue();
             if (selectedWorld != null) {
                 int result = JOptionPane.showConfirmDialog(this,
-                        "Are you sure you want to delete world '" + selectedWorld.name() + "'?",
-                        "Confirm Delete",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE);
+                    "Are you sure you want to delete world '" + selectedWorld.name() + "'?",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
 
                 if (result == JOptionPane.YES_OPTION) {
-                    // Elimina il mondo
                     WorldManager.deleteWorld(selectedWorld.name());
                     listModel.removeElement(selectedWorld);
 
-                    // Controlla se la lista è vuota dopo l'eliminazione
                     if (listModel.isEmpty()) {
                         dispose();
                         EventBus.getInstance().post(MenuEvent.action(MenuAction.SHOW_WORLD_SELECT));
@@ -115,9 +123,9 @@ public class WorldListDialog extends JDialog {
                 }
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "Please select a world to delete.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                    "Please select a world to delete.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -131,6 +139,28 @@ public class WorldListDialog extends JDialog {
         setContentPane(mainPanel);
     }
 
+    private static JPanel getjPanel() {
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(24, 20, 37),
+                    0, getHeight(), new Color(65, 41, 90));
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        return mainPanel;
+    }
+
+    /**
+     * Creates button with custom styling and hover effects
+     *
+     * @param text Button label text
+     * @return Styled button component
+     */
     private JButton createStyledButton(String text) {
         JButton button = new JButton(text) {
             @Override
@@ -138,6 +168,7 @@ public class WorldListDialog extends JDialog {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+                // Set button color based on state
                 if (getModel().isPressed()) {
                     g2d.setColor(BUTTON_COLOR.darker());
                 } else if (getModel().isRollover()) {
@@ -150,6 +181,7 @@ public class WorldListDialog extends JDialog {
                 g2d.setColor(Color.BLACK);
                 g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
 
+                // Draw centered text
                 FontMetrics metrics = g2d.getFontMetrics(getFont());
                 int x = (getWidth() - metrics.stringWidth(getText())) / 2;
                 int y = ((getHeight() - metrics.getHeight()) / 2) + metrics.getAscent();
@@ -172,11 +204,23 @@ public class WorldListDialog extends JDialog {
         return button;
     }
 
+    /**
+     * Custom renderer for world list items
+     */
     private class WorldListRenderer extends JPanel implements ListCellRenderer<WorldData> {
+        /** Name display label */
         private final JLabel nameLabel;
+
+        /** Seed display label */
         private final JLabel seedLabel;
+
+        /** Container for labels */
         private final JPanel contentPanel;
 
+
+        /**
+         * Creates renderer with styled world information layout
+         */
         public WorldListRenderer() {
             setLayout(new BorderLayout());
             setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
@@ -203,6 +247,9 @@ public class WorldListDialog extends JDialog {
             add(contentPanel, BorderLayout.CENTER);
         }
 
+        /**
+         * Renders a world item in the list
+         */
         @Override
         public Component getListCellRendererComponent(JList<? extends WorldData> list,
                                                       WorldData world, int index, boolean isSelected, boolean cellHasFocus) {

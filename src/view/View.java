@@ -5,79 +5,92 @@ import view.renderer.MasterRenderer;
 import view.window.WindowManager;
 
 /**
- * The View class is responsible for managing the display and rendering of the game.
- * It handles the creation, update, and closure of the game window, as well as input events related to the view.
+ * Core view component managing window display and rendering.
+ * Handles window lifecycle and display-related events.
  */
 public class View {
-    private final WindowManager displayManager;  // Manages the window display
-    private MasterRenderer renderer;             // Handles the rendering of objects in the window
+    /** Manager for the GLFW window */
+    private final WindowManager displayManager;
 
-    private boolean f11Pressed = false;         // Tracks if the F11 key has been pressed for fullscreen toggle
+    /** Primary renderer for game graphics */
+    private MasterRenderer renderer;
+
+    /** Tracks F11 key state for fullscreen toggle */
+    private boolean f11Pressed = false;
+
 
     /**
-     * Constructs a new View instance, initializing the display manager and subscribing to input events.
+     * Initializes window manager and input subscriptions.
      */
     public View() {
-        this.displayManager = new WindowManager(); // Initializes the window manager
+        // Initialize window manager
+        this.displayManager = new WindowManager();
 
-        // Subscribe to input events for handling fullscreen toggle
+        // Subscribe to fullscreen toggle events
         EventBus.getInstance().subscribe(EventType.INPUT, this::onEvent);
     }
 
     /**
-     * Creates the display by initializing the window and the renderer.
+     * Creates display window and initializes renderer.
      */
     public void createDisplay() {
-        displayManager.createDisplay();           // Creates the display window
-        this.renderer = new MasterRenderer(displayManager);  // Initializes the renderer
+        // Create window and initialize renderer
+        displayManager.createDisplay();
+        this.renderer = new MasterRenderer(displayManager);
     }
 
     /**
-     * Gets the display manager for the window.
+     * Gets window manager instance.
      *
-     * @return the WindowManager instance responsible for managing the display.
+     * @return Active window manager
      */
     public WindowManager getDisplayManager() {
         return displayManager;
     }
 
     /**
-     * Updates the display, typically called every frame to refresh the window.
+     * Updates display each frame.
      */
     public void updateDisplay() {
-        displayManager.updateDisplay();  // Updates the window content
+        displayManager.updateDisplay();
     }
 
     /**
-     * Closes the display and cleans up the resources used by the renderer.
+     * Cleans up resources and closes window.
      */
     public void closeDisplay() {
-        renderer.cleanUp();              // Cleans up the renderer resources
-        displayManager.closeDisplay();   // Closes the display window
+        // Clean up renderer and window
+        renderer.cleanUp();
+        displayManager.closeDisplay();
     }
 
     /**
-     * Handles the input events. Specifically listens for the fullscreen toggle event.
+     * Handles input events for fullscreen toggle.
      *
-     * @param event the event that triggered the method.
+     * @param event Input event to process
      */
     public void onEvent(GameEvent event) {
-        if (event instanceof InputEvent inputEvent && inputEvent.action() == InputAction.TOGGLE_FULLSCREEN) {
+        // Check for fullscreen toggle input
+        if (event instanceof InputEvent inputEvent &&
+                inputEvent.action() == InputAction.TOGGLE_FULLSCREEN) {
             handleFullscreenToggle(inputEvent.value());
         }
     }
 
     /**
-     * Toggles the fullscreen mode based on the input value.
+     * Processes fullscreen toggle input.
      *
-     * @param value the input value, where a positive value triggers fullscreen mode.
+     * @param value Input value (positive triggers toggle)
      */
     private void handleFullscreenToggle(float value) {
+        // Toggle fullscreen on key press
         if (value > 0 && !f11Pressed) {
-            displayManager.toggleFullscreen();  // Toggles fullscreen mode
-            f11Pressed = true;  // Prevents multiple toggles while key is held down
-        } else if (value == 0) {
-            f11Pressed = false;  // Resets the flag when the key is released
+            displayManager.toggleFullscreen();
+            f11Pressed = true;
+        }
+        // Reset flag on key release
+        else if (value == 0) {
+            f11Pressed = false;
         }
     }
 }

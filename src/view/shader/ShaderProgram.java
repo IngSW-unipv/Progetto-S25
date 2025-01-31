@@ -8,109 +8,96 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.FloatBuffer;
 
 /**
- * A class representing an OpenGL shader program.
- * It is responsible for loading, compiling, linking, and managing shaders.
+ * Manages OpenGL shader programs including compilation, linking and uniforms.
+ * Handles both vertex and fragment shaders.
  */
 public class ShaderProgram {
+    /** OpenGL program ID */
+    private final int programID;
 
-    private int programID;
 
     /**
-     * Creates a new shader program by loading, compiling, and linking vertex and fragment shaders.
-     *
-     * @param vertexShaderPath   The path to the vertex shader file.
-     * @param fragmentShaderPath The path to the fragment shader file.
+     * Creates and links shader program from source files
      */
-    public ShaderProgram(String vertexShaderPath, String fragmentShaderPath) {
-        // Load shader source code
-        String vertexShaderSource = ShaderUtils.loadShaderFile(vertexShaderPath);
-        String fragmentShaderSource = ShaderUtils.loadShaderFile(fragmentShaderPath);
+    public ShaderProgram(String vertexPath, String fragmentPath) {
+        String vertexSource = ShaderUtils.loadShaderFile(vertexPath);
+        String fragmentSource = ShaderUtils.loadShaderFile(fragmentPath);
 
-        // Create and compile the shaders
-        int vertexShaderID = loadShader(vertexShaderSource, GL20.GL_VERTEX_SHADER);
-        int fragmentShaderID = loadShader(fragmentShaderSource, GL20.GL_FRAGMENT_SHADER);
+        // Compile shaders
+        int vertexID = loadShader(vertexSource, GL20.GL_VERTEX_SHADER);
+        int fragmentID = loadShader(fragmentSource, GL20.GL_FRAGMENT_SHADER);
 
-        // Create the shader program and link the shaders
+        // Create program
         programID = GL20.glCreateProgram();
-        GL20.glAttachShader(programID, vertexShaderID);
-        GL20.glAttachShader(programID, fragmentShaderID);
+        GL20.glAttachShader(programID, vertexID);
+        GL20.glAttachShader(programID, fragmentID);
+
+        // Link and validate
         GL20.glLinkProgram(programID);
         GL20.glValidateProgram(programID);
 
-        // Check for errors during linking
         if (GL20.glGetProgrami(programID, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
-            System.out.println(GL20.glGetProgramInfoLog(programID, 500));
-            throw new RuntimeException("Could not link shader program.");
+            throw new RuntimeException("Shader linking failed: " +
+                GL20.glGetProgramInfoLog(programID, 500));
         }
 
-        // Clean up the compiled shaders (no longer needed after linking)
-        GL20.glDeleteShader(vertexShaderID);
-        GL20.glDeleteShader(fragmentShaderID);
+        // Cleanup
+        GL20.glDeleteShader(vertexID);
+        GL20.glDeleteShader(fragmentID);
     }
 
-    /**
-     * Loads and compiles a shader from source code.
-     *
-     * @param source The source code of the shader.
-     * @param type   The type of shader (vertex or fragment).
-     * @return The shader ID.
-     */
     private static int loadShader(String source, int type) {
         int shaderID = GL20.glCreateShader(type);
         GL20.glShaderSource(shaderID, source);
         GL20.glCompileShader(shaderID);
+
         if (GL20.glGetShaderi(shaderID, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
-            System.out.println(GL20.glGetShaderInfoLog(shaderID, 500));
-            throw new RuntimeException("Could not compile shader.");
+            throw new RuntimeException("Shader compilation failed: " +
+                GL20.glGetShaderInfoLog(shaderID, 500));
         }
+
         return shaderID;
     }
 
     /**
-     * Activates the shader program.
+     * Loads 4x4 matrix uniform
+     */
+    public void loadMatrix(String name, Matrix4f matrix) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer buffer = stack.mallocFloat(16);
+            matrix.get(buffer);
+
+            int location = GL20.glGetUniformLocation(programID, name);
+            if (location == -1) {
+                throw new RuntimeException("Unknown uniform: " + name);
+            }
+
+            GL20.glUniformMatrix4fv(location, false, buffer);
+        }
+    }
+
+    /**
+     * Activates shader program
      */
     public void start() {
         GL20.glUseProgram(programID);
     }
 
     /**
-     * Deactivates the shader program.
+     * Deactivates shader program
      */
     public void stop() {
         GL20.glUseProgram(0);
     }
 
     /**
-     * Loads a 4x4 matrix as a uniform variable into the shader program.
-     *
-     * @param uniformName The name of the uniform variable in the shader.
-     * @param matrix      The matrix to load into the shader.
-     */
-    public void loadMatrix(String uniformName, Matrix4f matrix) {
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            FloatBuffer buffer = stack.mallocFloat(16);
-            matrix.get(buffer);
-            int location = GL20.glGetUniformLocation(programID, uniformName);
-            if (location == -1) {
-                throw new RuntimeException("Could not find uniform: " + uniformName);
-            }
-            GL20.glUniformMatrix4fv(location, false, buffer);
-        }
-    }
-
-    /**
-     * Cleans up the OpenGL resources used by the shader program.
+     * Deletes shader program
      */
     public void cleanup() {
         stop();
         GL20.glDeleteProgram(programID);
     }
 
-    /**
-     * Gets the OpenGL program ID of the shader program.
-     *
-     * @return The program ID.
-     */
     public int getProgramID() {
         return programID;
     }

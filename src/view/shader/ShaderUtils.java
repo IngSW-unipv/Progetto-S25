@@ -6,32 +6,33 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Utility class for loading shader source code from files.
- * Provides a method to read the contents of a shader file into a string.
+ * Utility for loading GLSL shader source code.
+ * Handles file reading and error handling.
  */
 public class ShaderUtils {
 
     /**
-     * Loads the source code from a shader file.
+     * Reads shader source from file.
      *
-     * @param filePath The path to the shader file.
-     * @return The source code of the shader as a string.
-     * @throws RuntimeException if there is an error reading the shader file.
+     * @param filePath Path to shader file
+     * @return Shader source as string
+     * @throws RuntimeException if file read fails
      */
     public static String loadShaderFile(String filePath) {
-        // Print the current working directory for debugging purposes
-        //System.out.println(System.getProperty("user.dir"));
-
         StringBuilder shaderSource = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
+
+        // Read shader file line by line
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader(filePath, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                shaderSource.append(line).append("\n");  // Append each line of the shader file
+                shaderSource.append(line).append("\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Error reading shader file: " + filePath);  // Throw exception if file reading fails
+            throw new RuntimeException("Error reading shader: " + filePath);
         }
-        return shaderSource.toString();  // Return the complete shader source code
+
+        return shaderSource.toString();
     }
 }
