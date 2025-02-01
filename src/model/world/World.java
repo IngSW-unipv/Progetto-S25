@@ -86,10 +86,10 @@ public class World implements EventListener {
                     // Skip culled chunks but track statistics
                     culledChunkCount++;
                     PerformanceMetrics.logBlocks(
-                            chunkBlocks.size(),  // Total blocks in chunk
-                            0,                   // No blocks rendered
-                            0,                   // None occluded (all culled)
-                            chunkBlocks.size()   // All blocks culled with chunk
+                        chunkBlocks.size(),  // Total blocks in chunk
+                        0,                   // No blocks rendered
+                        0,                   // None occluded (all culled)
+                        chunkBlocks.size()   // All blocks culled with chunk
                     );
                     continue;
                 }
@@ -103,16 +103,16 @@ public class World implements EventListener {
 
                 // Log statistics for visible chunks
                 PerformanceMetrics.logBlocks(
-                        totalInChunk,     // Total blocks
-                        visibleInChunk,   // Blocks to render
-                        occludedInChunk,  // Hidden by other blocks
-                        0                 // None culled (chunk visible)
+                    totalInChunk,     // Total blocks
+                    visibleInChunk,   // Blocks to render
+                    occludedInChunk,  // Hidden by other blocks
+                    0                 // None culled (chunk visible)
                 );
 
                 // Add visible blocks to render list
                 chunkBlocks.stream()
-                        .filter(Block::isVisible)
-                        .forEach(visibleBlocks::add);
+                    .filter(Block::isVisible)
+                    .forEach(visibleBlocks::add);
             }
 
             // Update chunk culling metrics
@@ -127,10 +127,10 @@ public class World implements EventListener {
     public Block getBlock(Vector3f position) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         return chunks.stream()
-                .filter(c -> c.getPosition().equals(chunkPos))
-                .findFirst()
-                .map(c -> c.getBlock(position))
-                .orElse(null);
+            .filter(c -> c.getPosition().equals(chunkPos))
+            .findFirst()
+            .map(c -> c.getBlock(position))
+            .orElse(null);
     }
 
     /**
@@ -138,9 +138,9 @@ public class World implements EventListener {
      */
     private Vector3f calculateChunkCoordinates(Vector3f position) {
         return new Vector3f(
-                fastFloor(position.x() / CHUNK_SIZE),
-                fastFloor(position.y() / CHUNK_SIZE),
-                fastFloor(position.z() / CHUNK_SIZE)
+            fastFloor(position.x() / CHUNK_SIZE),
+            fastFloor(position.y() / CHUNK_SIZE),
+            fastFloor(position.z() / CHUNK_SIZE)
         );
     }
 
@@ -154,9 +154,9 @@ public class World implements EventListener {
             for (int y = -GameConfig.RENDER_DISTANCE; y <= GameConfig.RENDER_DISTANCE; y++) {
                 for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                     Vector3f newPos = new Vector3f(
-                            playerChunkPos.x() + x,
-                            playerChunkPos.y() + y,
-                            playerChunkPos.z() + z
+                        playerChunkPos.x() + x,
+                        playerChunkPos.y() + y,
+                        playerChunkPos.z() + z
                     );
                     chunkLoader.queueChunkLoad(newPos);
                 }
@@ -206,9 +206,9 @@ public class World implements EventListener {
             for (int y = -GameConfig.RENDER_DISTANCE; y <= GameConfig.RENDER_DISTANCE; y++) {
                 for (int z = -GameConfig.RENDER_DISTANCE; z <= GameConfig.RENDER_DISTANCE; z++) {
                     Vector3f newPos = new Vector3f(
-                            playerChunkPos.x() + x,
-                            playerChunkPos.y() + y,
-                            playerChunkPos.z() + z
+                        playerChunkPos.x() + x,
+                        playerChunkPos.y() + y,
+                        playerChunkPos.z() + z
                     );
                     if (chunks.stream().noneMatch(c -> c.getPosition().equals(newPos))) {
                         newChunks.add(newPos);
@@ -231,9 +231,9 @@ public class World implements EventListener {
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dz = -1; dz <= 1; dz++) {
                         chunksToUpdate.add(new Vector3f(
-                                pos.x() + dx,
-                                pos.y() + dy,
-                                pos.z() + dz
+                            pos.x() + dx,
+                            pos.y() + dy,
+                            pos.z() + dz
                         ));
                     }
                 }
@@ -242,9 +242,9 @@ public class World implements EventListener {
 
         // Update block faces
         chunksToUpdate.forEach(pos ->
-                chunks.stream()
-                        .filter(c -> c.getPosition().equals(pos))
-                        .forEach(this::updateChunkBlockFaces)
+            chunks.stream()
+                .filter(c -> c.getPosition().equals(pos))
+                .forEach(this::updateChunkBlockFaces)
         );
     }
 
@@ -257,17 +257,14 @@ public class World implements EventListener {
                 return;
             }
 
-            int blockCount = 0;
             Chunk chunk = new Chunk(pos);
             for (int bx = 0; bx < CHUNK_SIZE; bx++) {
                 for (int by = 0; by < CHUNK_SIZE; by++) {
                     for (int bz = 0; bz < CHUNK_SIZE; bz++) {
                         generateBlockAt(chunk, pos, bx, by, bz);
-                        blockCount++;
                     }
                 }
             }
-            System.out.println("Generated chunk with " + blockCount + " blocks");
             chunks.add(chunk);
             updateChunkBlockFaces(chunk);
         }
@@ -346,9 +343,9 @@ public class World implements EventListener {
     private void updateNeighborChunk(int x, int y, int z) {
         Vector3f neighborPos = new Vector3f(x, y, z);
         chunks.stream()
-                .filter(c -> c.getPosition().equals(neighborPos))
-                .findFirst()
-                .ifPresent(this::updateChunkBlockFaces);
+            .filter(c -> c.getPosition().equals(neighborPos))
+            .findFirst()
+            .ifPresent(this::updateChunkBlockFaces);
     }
 
     /**
@@ -356,17 +353,16 @@ public class World implements EventListener {
      */
     private void updateAdjacentBlockFaces(Vector3f position) {
         Vector3f[] adjacentPositions = {
-                new Vector3f(position.x() + 1, position.y(), position.z()),
-                new Vector3f(position.x() - 1, position.y(), position.z()),
-                new Vector3f(position.x(), position.y() + 1, position.z()),
-                new Vector3f(position.x(), position.y() - 1, position.z()),
-                new Vector3f(position.x(), position.y(), position.z() + 1),
-                new Vector3f(position.x(), position.y(), position.z() - 1)
+            new Vector3f(position.x() + 1, position.y(), position.z()),
+            new Vector3f(position.x() - 1, position.y(), position.z()),
+            new Vector3f(position.x(), position.y() + 1, position.z()),
+            new Vector3f(position.x(), position.y() - 1, position.z()),
+            new Vector3f(position.x(), position.y(), position.z() + 1),
+            new Vector3f(position.x(), position.y(), position.z() - 1)
         };
 
         for (Vector3f adjacentPos : adjacentPositions) {
-            Optional.ofNullable(getBlock(adjacentPos))
-                    .ifPresent(block -> block.updateVisibleFaces(this));
+            Optional.ofNullable(getBlock(adjacentPos)).ifPresent(block -> block.updateVisibleFaces(this));
         }
     }
 
@@ -376,15 +372,15 @@ public class World implements EventListener {
     public void placeBlock(Vector3f position, BlockType type) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         chunks.stream()
-                .filter(c -> c.getPosition().equals(chunkPos))
-                .findFirst()
-                .ifPresent(chunk -> {
-                    Block newBlock = new Block(type, position);
-                    chunk.setBlock(newBlock);
-                    updateChunkBlockFaces(chunk);
-                    updateNeighboringChunks(position, chunkPos);
-                    modifiedBlocks.put(position, type);
-                });
+            .filter(c -> c.getPosition().equals(chunkPos))
+            .findFirst()
+            .ifPresent(chunk -> {
+                Block newBlock = new Block(type, position);
+                chunk.setBlock(newBlock);
+                updateChunkBlockFaces(chunk);
+                updateNeighboringChunks(position, chunkPos);
+                modifiedBlocks.put(position, type);
+            });
         modifiedBlocks.put(new Vector3f(position), type);
     }
 
@@ -394,14 +390,14 @@ public class World implements EventListener {
     public void destroyBlock(Vector3f position) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         chunks.stream()
-                .filter(c -> c.getPosition().equals(chunkPos))
-                .findFirst()
-                .ifPresent(chunk -> {
-                    updateAdjacentBlockFaces(position);
-                    chunk.removeBlock(position);
-                    updateChunkBlockFaces(chunk);
-                    updateNeighboringChunks(position, chunkPos);
-                });
+            .filter(c -> c.getPosition().equals(chunkPos))
+            .findFirst()
+            .ifPresent(chunk -> {
+                updateAdjacentBlockFaces(position);
+                chunk.removeBlock(position);
+                updateChunkBlockFaces(chunk);
+                updateNeighboringChunks(position, chunkPos);
+            });
 
         // Mark block as removed in modifications
         modifiedBlocks.put(new Vector3f(position), null);
@@ -419,25 +415,6 @@ public class World implements EventListener {
      */
     public long getSeed() {
         return seed;
-    }
-
-    /**
-     * Finds suitable initial spawn height
-     * Scans upward until finding first air block above solid ground
-     */
-    public int findSpawnHeight() {
-        int currentHeight = 0;
-
-        while(true) {
-            Vector3f pos = new Vector3f(0, currentHeight, 0);
-            Block block = getBlock(pos);
-            Vector3f abovePos = new Vector3f(0, currentHeight + 1, 0);
-
-            if (block != null && getBlock(abovePos) == null) {
-                return currentHeight + 1;
-            }
-            currentHeight++;
-        }
     }
 
     /**

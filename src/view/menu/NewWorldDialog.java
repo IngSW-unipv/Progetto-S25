@@ -183,10 +183,13 @@ public class NewWorldDialog extends JDialog {
         field.setFont(MAIN_FONT);
         field.setForeground(TEXT_COLOR);
         field.setCaretColor(TEXT_COLOR);
-        field.setBackground(new Color(0, 0, 0, 0));
+        field.setBackground(new Color(40, 40, 40));
+        field.setSelectedTextColor(TEXT_COLOR);
+        field.setSelectionColor(new Color(80, 80, 80));
+        field.setOpaque(true);
         field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.BLACK),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+            BorderFactory.createLineBorder(new Color(80, 80, 80), 2),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
     }
 
@@ -203,9 +206,9 @@ public class NewWorldDialog extends JDialog {
         nameField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    attemptWorldCreation();
-                }
+            if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                attemptWorldCreation();
+            }
             }
         });
     }

@@ -38,13 +38,16 @@ public class Model {
         this.gameState = new GameState();
         this.lastSaveTime = System.currentTimeMillis();
 
-        // Load or create world
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
         if (savedData == null) {
             WorldManager.saveWorldMetadata(new WorldData(worldName, seed));
         }
 
-        // Setup initial position
+        // First initialize world with temp position
+        Vector3f tempPosition = new Vector3f(0, -1, 0);
+        this.world = new World(tempPosition, seed);
+
+        // Now get proper position
         Vector3f initialPosition;
         float initialPitch = 0;
         float initialYaw = 0;
@@ -57,16 +60,13 @@ public class Model {
             initialPosition = new Vector3f(0, 50, 0);
         }
 
-        // Initialize world and physics
-        this.world = new World(initialPosition, seed);
+        // Update player position to proper height
         this.physicsSystem = new PhysicsSystem(world);
 
-        // Restore block modifications
         if (savedData != null && savedData.getModifications() != null) {
             restoreModifications(savedData);
         }
 
-        // Create player
         this.player = new Player(physicsSystem, initialPosition, initialPitch, initialYaw);
         new PlayerController(player, world);
     }
