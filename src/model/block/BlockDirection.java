@@ -1,27 +1,25 @@
 package model.block;
 
 /**
- * Represents the six possible directions relative to a block in a 3D grid.
- * Each direction is defined by a delta in the x, y, and z coordinates.
+ * Six cardinal directions in a 3D grid.
+ * Stores delta coordinates for each direction.
  */
 public enum BlockDirection {
-    FRONT(0, 0, 1),     // Positive Z direction
-    BACK(0, 0, -1),     // Negative Z direction
-    TOP(0, 1, 0),       // Positive Y direction
-    BOTTOM(0, -1, 0),   // Negative Y direction
-    RIGHT(1, 0, 0),     // Positive X direction
-    LEFT(-1, 0, 0);     // Negative X direction
+    FRONT(0, 0, 1),     // +Z
+    BACK(0, 0, -1),     // -Z
+    TOP(0, 1, 0),       // +Y
+    BOTTOM(0, -1, 0),   // -Y
+    RIGHT(1, 0, 0),     // +X
+    LEFT(-1, 0, 0);     // -X
 
-    private final int dx;           // Change in x-coordinate
-    private final int dy;           // Change in y-coordinate
-    private final int dz;           // Change in z-coordinate
+    /** Delta coordinates */
+    private final int dx;
+    private final int dy;
+    private final int dz;
+
 
     /**
-     * Constructs a BlockDirection with the specified deltas.
-     *
-     * @param dx The change in the x-coordinate.
-     * @param dy The change in the y-coordinate.
-     * @param dz The change in the z-coordinate.
+     * Creates direction with specified deltas
      */
     BlockDirection(int dx, int dy, int dz) {
         this.dx = dx;
@@ -29,29 +27,17 @@ public enum BlockDirection {
         this.dz = dz;
     }
 
-    /**
-     * Gets the change in the x-coordinate for this direction.
-     *
-     * @return The x-coordinate delta.
-     */
+    /** X-coordinate delta */
     public int getDx() {
         return dx;
     }
 
-    /**
-     * Gets the change in the y-coordinate for this direction.
-     *
-     * @return The y-coordinate delta.
-     */
+    /** Y-coordinate delta */
     public int getDy() {
         return dy;
     }
 
-    /**
-     * Gets the change in the z-coordinate for this direction.
-     *
-     * @return The z-coordinate delta.
-     */
+    /** Z-coordinate delta */
     public int getDz() {
         return dz;
     }

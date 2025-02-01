@@ -1,5 +1,3 @@
-//chunkloader
-
 package model.world;
 
 import controller.event.EventBus;
@@ -11,18 +9,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Async chunk loading system.
+ * Manages worker threads and load queue.
+ */
 public class ChunkLoader {
+    /** Thread components */
     private final ExecutorService executorService;
     private final LinkedBlockingQueue<ChunkLoadTask> chunkLoadQueue;
     private volatile boolean isRunning;
 
+
+    /** Initializes thread pool and queue */
     public ChunkLoader(int threadCount) {
-        this.executorService = Executors.newFixedThreadPool(threadCount);
-        this.chunkLoadQueue = new LinkedBlockingQueue<>();
-        this.isRunning = true;
+        executorService = Executors.newFixedThreadPool(threadCount);
+        chunkLoadQueue = new LinkedBlockingQueue<>();
+        isRunning = true;
         startProcessingQueue();
     }
 
+    /** Starts async queue processing */
     private void startProcessingQueue() {
         Thread queueProcessor = new Thread(() -> {
             while (isRunning || !chunkLoadQueue.isEmpty()) {
@@ -41,11 +47,13 @@ public class ChunkLoader {
         queueProcessor.start();
     }
 
+    /** Queues chunk for loading */
     public void queueChunkLoad(Vector3f position) {
         EventBus.getInstance().post(new WorldGenerationEvent(position));
         chunkLoadQueue.offer(new ChunkLoadTask(position));
     }
 
+    /** Shuts down executor and queue */
     public void shutdown() {
         isRunning = false;
         executorService.shutdown();

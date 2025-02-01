@@ -45,6 +45,9 @@ public class MainMenuPanel extends JPanel {
         addNavigationButtons(gbc);
     }
 
+    /**
+     * Adds title section with game name
+     */
     private void addTitle(GridBagConstraints gbc) {
         JLabel titleLabel = new JLabel("Voxel Game", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Minecraft", Font.BOLD, 48));
@@ -52,6 +55,9 @@ public class MainMenuPanel extends JPanel {
         add(titleLabel, gbc);
     }
 
+    /**
+     * Adds main navigation buttons with spacing
+     */
     private void addNavigationButtons(GridBagConstraints gbc) {
         JButton playButton = menuView.createStyledButton("Play",
                 MenuAction.SHOW_WORLD_SELECT);

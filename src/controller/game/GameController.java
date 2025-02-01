@@ -5,6 +5,7 @@ import controller.input.InputController;
 import controller.input.PlayerController;
 import model.game.Model;
 import org.lwjgl.glfw.GLFW;
+import util.PerformanceMetrics;
 import view.View;
 import view.renderer.PauseMenuRenderer;
 
@@ -136,6 +137,8 @@ public class GameController {
      * Saves game state and initiates game shutdown.
      */
     public void onQuitGame() {
+        // Cleanup world resources
+        model.getWorld().cleanup();
         // Save current state and exit
         model.saveGame();
         model.getGameState().setRunning(false);
@@ -153,6 +156,8 @@ public class GameController {
      * Called each frame to progress game.
      */
     public void update() {
+        PerformanceMetrics.startFrame();
+
         // Update timing and physics
         updateDeltaTime();
         playerController.update(deltaTime);
@@ -160,17 +165,18 @@ public class GameController {
 
         // Trigger rendering
         EventBus.getInstance().post(
-                new RenderEvent(
-                        model.getPlayer().getCamera(),
-                        model.getWorld().getVisibleBlocks(),
-                        model.getWorld()
-                )
+            new RenderEvent(
+                model.getPlayer().getCamera(),
+                model.getWorld().getVisibleBlocks(),
+                model.getWorld()
+            )
         );
 
         // Render pause menu if game is paused
         if (model.getGameState().isPaused()) {
             pauseMenu.render();
         }
+        PerformanceMetrics.updateFrameMetrics();
     }
 
     /**

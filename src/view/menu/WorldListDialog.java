@@ -139,6 +139,9 @@ public class WorldListDialog extends JDialog {
         setContentPane(mainPanel);
     }
 
+    /**
+     * Creates main panel with gradient background
+     */
     private static JPanel getjPanel() {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10)) {
             @Override

@@ -7,108 +7,82 @@ import model.block.BlockDirection;
 import org.joml.Vector3f;
 
 /**
- * Utility class for raycasting in a voxel world to detect targeted blocks and faces.
+ * Casts rays in voxel world.
+ * Detects block intersections and face hits.
  */
 public class RayCaster {
-    /** Maximum raycast distance in world units */
+    /** Maximum distance rays will travel */
     private static final float RAY_MAX_DISTANCE = GameConfig.RAY_MAX_DISTANCE;
 
-    /** Size of each ray step in world units */
+    /** Distance between ray samples */
     private static final float STEP = GameConfig.STEP;
 
+    /** Result of a ray intersection test */
+    private record RaycastResult(
+        Block block,
+        Vector3f checkPos,
+        Vector3f blockPos
+    ) {}
+
+
     /**
-     * Gets the first block intersected by a ray from the camera.
+     * Gets first block intersected by camera ray
      *
-     * @param cameraPosition Starting position
-     * @param yaw Horizontal angle (degrees)
-     * @param pitch Vertical angle (degrees)
-     * @param roll Z-axis rotation (unused)
-     * @param world World to check collisions in
-     * @return First intersected block, or null if none found
-     * @throws IllegalArgumentException if world is null
+     * @param cameraPosition Ray origin
+     * @param yaw Camera horizontal angle
+     * @param pitch Camera vertical angle
+     * @param roll Unused rotation
+     * @param world World to check
      */
     public static Block getTargetBlock(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
-        // Calculate normalized ray direction from angles
         Vector3f direction = calculateDirection(yaw, pitch);
 
-        // Step along ray checking for blocks
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
-            // Calculate current position along ray
-            Vector3f checkPos = new Vector3f(
-                cameraPosition.x + direction.x * distance,
-                cameraPosition.y + direction.y * distance,
-                cameraPosition.z + direction.z * distance
-            );
-
-            // Convert to block coordinates with center offset
-            Vector3f blockPos = new Vector3f(
-                (int) Math.floor(checkPos.x + 0.5f),
-                (int) Math.floor(checkPos.y + 0.5f),
-                (int) Math.floor(checkPos.z + 0.5f)
-            );
-
-            Block block = world.getBlock(blockPos);
-            if (block != null) {
-                return block;
+            RaycastResult result = getBlockAtRayPosition(cameraPosition, direction, distance, world);
+            if (result.block() != null) {
+                return result.block();
             }
         }
         return null;
     }
 
     /**
-     * Determines which face of an intersected block the ray hit.
+     * Gets face hit by camera ray on first intersected block
      *
-     * @param cameraPosition Starting position
-     * @param yaw Horizontal angle (degrees)
-     * @param pitch Vertical angle (degrees)
-     * @param roll Z-axis rotation (unused)
-     * @param world World to check collisions in
-     * @return Face that was hit, or null if no block found
-     * @throws IllegalArgumentException if world is null
+     * @param cameraPosition Ray origin
+     * @param yaw Camera horizontal angle
+     * @param pitch Camera vertical angle
+     * @param roll Unused rotation
+     * @param world World to check
      */
     public static BlockDirection getTargetFace(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
         if (world == null) {
             throw new IllegalArgumentException("World cannot be null");
         }
 
-        // Calculate normalized ray direction from angles
         Vector3f direction = calculateDirection(yaw, pitch);
 
-        // Step along ray checking for blocks
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
-            // Calculate current position along ray
-            Vector3f checkPos = new Vector3f(
-                    cameraPosition.x + direction.x * distance,
-                    cameraPosition.y + direction.y * distance,
-                    cameraPosition.z + direction.z * distance
-            );
-
-            // Convert to block coordinates with center offset
-            Vector3f blockPos = new Vector3f(
-                    (int) Math.floor(checkPos.x + 0.5f),
-                    (int) Math.floor(checkPos.y + 0.5f),
-                    (int) Math.floor(checkPos.z + 0.5f)
-            );
-
-            Block block = world.getBlock(blockPos);
-            if (block != null) {
-                // Calculate the position where the ray enters the block
+            RaycastResult result = getBlockAtRayPosition(cameraPosition, direction, distance, world);
+            if (result.block() != null) {
+                // Entry point is one step back from hit
                 Vector3f entryPoint = new Vector3f(
-                        checkPos.x - direction.x * STEP,
-                        checkPos.y - direction.y * STEP,
-                        checkPos.z - direction.z * STEP
+                    result.checkPos().x - direction.x * STEP,
+                    result.checkPos().y - direction.y * STEP,
+                    result.checkPos().z - direction.z * STEP
                 );
 
-                // Determine which face was hit based on the entry point
-                float dx = entryPoint.x - blockPos.x;
-                float dy = entryPoint.y - blockPos.y;
-                float dz = entryPoint.z - blockPos.z;
+                // Get offset from block center to entry
+                float dx = entryPoint.x - result.blockPos().x;
+                float dy = entryPoint.y - result.blockPos().y;
+                float dz = entryPoint.z - result.blockPos().z;
 
-                // Find the face with the largest absolute delta
+                // Find largest axis offset
                 float absDx = Math.abs(dx);
                 float absDy = Math.abs(dy);
                 float absDz = Math.abs(dz);
 
+                // Return face based on largest offset
                 if (absDx > absDy && absDx > absDz) {
                     return dx > 0 ? BlockDirection.RIGHT : BlockDirection.LEFT;
                 } else if (absDy > absDz) {
@@ -122,18 +96,36 @@ public class RayCaster {
     }
 
     /**
-     * Converts yaw and pitch angles into a normalized direction vector.
-     *
-     * @param yaw Horizontal angle (degrees)
-     * @param pitch Vertical angle (degrees)
-     * @return Unit vector pointing in the specified direction
+     * Gets block at position along ray
+     * Returns block and ray positions
+     */
+    private static RaycastResult getBlockAtRayPosition(Vector3f cameraPosition, Vector3f direction, float distance, World world) {
+        // Get position along ray
+        Vector3f checkPos = new Vector3f(
+            cameraPosition.x + direction.x * distance,
+            cameraPosition.y + direction.y * distance,
+            cameraPosition.z + direction.z * distance
+        );
+
+        // Convert to block coordinates
+        Vector3f blockPos = new Vector3f(
+            (int) Math.floor(checkPos.x + 0.5f),
+            (int) Math.floor(checkPos.y + 0.5f),
+            (int) Math.floor(checkPos.z + 0.5f)
+        );
+
+        Block block = world.getBlock(blockPos);
+        return new RaycastResult(block, checkPos, blockPos);
+    }
+
+    /**
+     * Converts camera angles to direction vector
+     * Uses spherical coordinates
      */
     private static Vector3f calculateDirection(float yaw, float pitch) {
-        // Convert angles to radians
         float yawRad = (float) Math.toRadians(yaw);
         float pitchRad = (float) Math.toRadians(pitch);
 
-        // Calculate direction components using spherical coordinates
         return new Vector3f(
             (float) Math.sin(yawRad) * (float) Math.cos(pitchRad),
             (float) -Math.sin(pitchRad),

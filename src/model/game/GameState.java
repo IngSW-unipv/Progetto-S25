@@ -1,43 +1,34 @@
-//gamestate
-
 package model.game;
 
 /**
- * Represents the state of the game, managing whether the game is running
- * and providing a method for updating game logic.
+ * Core game state tracking.
+ * Manages pause and running states.
  */
 public class GameState {
-    private boolean isRunning = true; // Indicates whether the game is currently running
+    /** Game state flags */
+    private boolean isRunning = true;
     private boolean isPaused = false;
 
-    /**
-     * Constructs a new GameState instance with the default state of running.
-     */
-    public GameState() {
-    }
 
+    /** Creates default running state */
+    public GameState() {}
+
+    /** Sets pause state */
     public void setPaused(boolean paused) {
         this.isPaused = paused;
     }
 
+    /** Gets pause state */
     public boolean isPaused() {
         return isPaused;
     }
 
-    /**
-     * Sets the running state of the game.
-     *
-     * @param running A boolean indicating whether the game should be running.
-     */
+    /** Sets running state */
     public void setRunning(boolean running) {
         this.isRunning = running;
     }
 
-    /**
-     * Retrieves the current running state of the game.
-     *
-     * @return {@code true} if the game is running, {@code false} otherwise.
-     */
+    /** Gets running state */
     public boolean isRunning() {
         return isRunning;
     }

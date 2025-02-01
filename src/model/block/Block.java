@@ -14,11 +14,11 @@ public class Block {
     private final BlockType type;           // The type of the block (e.g., material, texture).
     private final Vector3f position;        // The position of the block in the world.
     private final BoundingBox boundingBox;  // The bounding box used for collision detection.
-    private boolean[] visibleFaces;         // Tracks which faces of the block are visible.
+    private final boolean[] visibleFaces;         // Tracks which faces of the block are visible.
     private boolean isVisible = true;       // Indicates if the block is visible for rendering.
     private boolean isHighlighted = false;  // Indicates if the block is highlighted (e.g., selected).
     private float breakProgress = 0.0f;     // Tracks the progress of breaking the block.
-    private int lightLevel = 15;
+    private final int lightLevel = 15;
 
     // Indices for each face of the block
     private static final int FRONT = 0;  // Z+
@@ -101,9 +101,9 @@ public class Block {
      */
     private boolean shouldRenderFace(World world, int dx, int dy, int dz) {
         Vector3f adjacentPos = new Vector3f(
-                position.x() + dx,
-                position.y() + dy,
-                position.z() + dz
+            position.x() + dx,
+            position.y() + dy,
+            position.z() + dz
         );
 
         Block adjacentBlock = world.getBlock(adjacentPos);
@@ -118,11 +118,11 @@ public class Block {
      */
     private boolean isCompletelyHidden(World world) {
         return hasAdjacentBlock(world, 0, 1, 0) &&
-                hasAdjacentBlock(world, 0, -1, 0) &&
-                hasAdjacentBlock(world, 0, 0, 1) &&
-                hasAdjacentBlock(world, 0, 0, -1) &&
-                hasAdjacentBlock(world, 1, 0, 0) &&
-                hasAdjacentBlock(world, -1, 0, 0);
+            hasAdjacentBlock(world, 0, -1, 0) &&
+            hasAdjacentBlock(world, 0, 0, 1) &&
+            hasAdjacentBlock(world, 0, 0, -1) &&
+            hasAdjacentBlock(world, 1, 0, 0) &&
+            hasAdjacentBlock(world, -1, 0, 0);
     }
 
     /**
@@ -136,9 +136,9 @@ public class Block {
      */
     private boolean hasAdjacentBlock(World world, int dx, int dy, int dz) {
         Vector3f adjacentPos = new Vector3f(
-                position.x() + dx,
-                position.y() + dy,
-                position.z() + dz
+            position.x() + dx,
+            position.y() + dy,
+            position.z() + dz
         );
         Block block = world.getBlock(adjacentPos);
         return block != null;
@@ -160,60 +160,60 @@ public class Block {
         // Front face (Z+)
         if (visibleFaces[FRONT]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
+                x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
             );
         }
 
         // Back face (Z-)
         if (visibleFaces[BACK]) {
             addFaceVertices(visibleVertices,
-                    x + 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
-                    x - 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
-                    x - 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
-                    x + 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
+                x + 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
+                x - 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
+                x - 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
+                x + 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
             );
         }
 
         // Top face (Y+)
         if (visibleFaces[TOP]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 1.0f
+                x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z + 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y + 0.5f, z + 0.5f, 0.0f, 1.0f
             );
         }
 
         // Bottom face (Y-)
         if (visibleFaces[BOTTOM]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
+                x - 0.5f, y - 0.5f, z + 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z + 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
             );
         }
 
         // Right face (X+)
         if (visibleFaces[RIGHT]) {
             addFaceVertices(visibleVertices,
-                    x + 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
-                    x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
-                    x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
-                    x + 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
+                x + 0.5f, y + 0.5f, z + 0.5f, 0.0f, 0.0f,
+                x + 0.5f, y + 0.5f, z - 0.5f, 1.0f, 0.0f,
+                x + 0.5f, y - 0.5f, z - 0.5f, 1.0f, 1.0f,
+                x + 0.5f, y - 0.5f, z + 0.5f, 0.0f, 1.0f
             );
         }
 
         // Left face (X-)
         if (visibleFaces[LEFT]) {
             addFaceVertices(visibleVertices,
-                    x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
-                    x - 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
-                    x - 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
-                    x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
+                x - 0.5f, y + 0.5f, z - 0.5f, 0.0f, 0.0f,
+                x - 0.5f, y + 0.5f, z + 0.5f, 1.0f, 0.0f,
+                x - 0.5f, y - 0.5f, z + 0.5f, 1.0f, 1.0f,
+                x - 0.5f, y - 0.5f, z - 0.5f, 0.0f, 1.0f
             );
         }
 
@@ -282,65 +282,40 @@ public class Block {
         return indices;
     }
 
-    /**
-     * Sets the highlighted state of the block.
-     * This state can be used to visually indicate whether the block is highlighted.
-     *
-     * @param highlighted A boolean value indicating whether the block should be highlighted.
-     */
+    /** Sets highlight state */
     public void setHighlighted(boolean highlighted) {
         this.isHighlighted = highlighted;
     }
-
-    /**
-     * Retrieves the highlighted state of the block.
-     *
-     * @return true if the block is highlighted, false otherwise.
-     */
+    /** Gets highlight state */
     public boolean isHighlighted() {
         return isHighlighted;
     }
 
-    /**
-     * Retrieves the type of the block.
-     *
-     * @return the type of the block as a {@link BlockType} enum.
-     */
+    /** Gets block type */
     public BlockType getType() {
         return type;
     }
 
-    /**
-     * Retrieves the bounding box of the block.
-     * The bounding box defines the spatial limits of the block in 3D space.
-     *
-     * @return the bounding box of the block.
-     */
+    /** Gets collision bounds */
     public BoundingBox getBoundingBox() {
         return boundingBox;
     }
 
-    /**
-     * Retrieves the position of the block in 3D space.
-     *
-     * @return the position of the block as a {@link Vector3f} object.
-     */
+    /** Gets block position */
     public Vector3f getPosition() {
         return position;
     }
 
-    /**
-     * Retrieves the visibility state of the block.
-     *
-     * @return true if the block is visible, false otherwise.
-     */
+    /** Gets visibility state */
     public boolean isVisible() {
         return isVisible;
     }
+    /** Sets visibility */
     public void setVisible(boolean visible) {
         isVisible = visible;
     }
 
+    /** Gets light level */
     public int getLightLevel() {
         return lightLevel;
     }

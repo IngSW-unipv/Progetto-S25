@@ -45,6 +45,9 @@ public class WorldSelectPanel extends JPanel {
         addWorldButtons(gbc);
     }
 
+    /**
+     * Adds world management buttons
+     */
     private void addTitle(GridBagConstraints gbc) {
         JLabel titleLabel = new JLabel("Select World", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Minecraft", Font.BOLD, 48));
@@ -52,6 +55,9 @@ public class WorldSelectPanel extends JPanel {
         add(titleLabel, gbc);
     }
 
+    /**
+     * Adds world management buttons
+     */
     private void addWorldButtons(GridBagConstraints gbc) {
         JButton newWorldButton = menuView.createStyledButton("New World", MenuAction.SHOW_NEW_WORLD_DIALOG);
         JButton loadWorldButton = menuView.createStyledButton("Load World", MenuAction.SHOW_LOAD_WORLD_DIALOG);
