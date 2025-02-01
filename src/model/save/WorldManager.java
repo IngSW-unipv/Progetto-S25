@@ -7,16 +7,24 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Manages world save data and metadata.
+ * Handles saving/loading world states and properties.
+ */
 public class WorldManager {
+    /** Save directories and files */
     private static final String WORLDS_DIR = "worlds";
     private static final String SAVES_DIR = WORLDS_DIR + File.separator + "saves";
     private static final String METADATA_FILE = WORLDS_DIR + File.separator + "worlds.properties";
 
+
+    /** Creates required directories */
     public static void initialize() {
         new File(WORLDS_DIR).mkdirs();
         new File(SAVES_DIR).mkdirs();
     }
 
+    /** Saves world metadata to properties */
     public static void saveWorldMetadata(WorldData world) {
         try {
             Properties props = loadProperties();
@@ -29,6 +37,7 @@ public class WorldManager {
         }
     }
 
+    /** Saves world data to binary file */
     public static void saveWorldData(String worldName, WorldSaveData saveData) {
         // Create or update world directory
         File worldDir = new File(SAVES_DIR + File.separator + worldName);
@@ -43,6 +52,7 @@ public class WorldManager {
         }
     }
 
+    /** Loads world data from file */
     public static WorldSaveData loadWorldData(String worldName) {
         File saveFile = new File(SAVES_DIR + File.separator + worldName + File.separator + "data.dat");
         if (!saveFile.exists()) return null;
@@ -55,6 +65,7 @@ public class WorldManager {
         }
     }
 
+    /** Gets list of available worlds */
     public static List<WorldData> getWorlds() {
         List<WorldData> worlds = new ArrayList<>();
         Properties props = loadProperties();
@@ -70,6 +81,7 @@ public class WorldManager {
         return worlds;
     }
 
+    /** Loads world properties file */
     private static Properties loadProperties() {
         Properties props = new Properties();
         File metadataFile = new File(METADATA_FILE);
@@ -85,6 +97,7 @@ public class WorldManager {
         return props;
     }
 
+    /** Removes world data and metadata */
     public static void deleteWorld(String worldName) {
         // Remove metadata
         Properties props = loadProperties();

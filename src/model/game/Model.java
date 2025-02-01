@@ -1,6 +1,5 @@
 package model.game;
 
-import controller.input.PlayerController;
 import model.block.BlockModification;
 import model.block.BlockType;
 import model.physics.PhysicsSystem;
@@ -29,7 +28,6 @@ public class Model {
     private final long lastSaveTime;
     private static final long SAVE_INTERVAL = 5 * 60 * 1000; // 5 min
 
-
     /**
      * Creates game model with world and save data
      */
@@ -38,11 +36,13 @@ public class Model {
         this.gameState = new GameState();
         this.lastSaveTime = System.currentTimeMillis();
 
+        // Load or create world
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
         if (savedData == null) {
             WorldManager.saveWorldMetadata(new WorldData(worldName, seed));
         }
 
+        // Setup initial position
         Vector3f initialPosition;
         float initialPitch = 0;
         float initialYaw = 0;
@@ -55,23 +55,31 @@ public class Model {
             initialPosition = new Vector3f(0, 50, 0);
         }
 
+        // Initialize world and physics
         this.world = new World(initialPosition, seed);
         this.physicsSystem = new PhysicsSystem(world);
 
-        // Restore block modifications after world initialization
+        // Restore block modifications
         if (savedData != null) {
             restoreModifications(savedData);
         }
 
+        // Create player
         this.player = new Player(physicsSystem, initialPosition, initialPitch, initialYaw);
     }
 
-    /**
-     * Updates game state including physics and day/night cycle.
-     * Handles automatic saving at configured intervals.
-     *
-     * @param deltaTime Time elapsed since last update in seconds
-     */
+    /** Restore saved block modifications */
+    private void restoreModifications(WorldSaveData savedData) {
+        for (BlockModification mod : savedData.getModifications()) {
+            if (mod.getType() != null) {
+                world.placeBlock(mod.getPosition(), mod.getType());
+            } else {
+                world.destroyBlock(mod.getPosition());
+            }
+        }
+    }
+
+    /** Update game state */
     public void update(float deltaTime) {
         world.updateDayNightCycle(deltaTime);
         physicsSystem.updatePlayerPhysics(player, deltaTime);
@@ -84,7 +92,6 @@ public class Model {
 
     /** Save current game state */
     public void saveGame() {
-        // Get current block modifications and create save data
         Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks();
         WorldSaveData saveData = new WorldSaveData(
                 modifiedBlocks,
@@ -92,23 +99,7 @@ public class Model {
                 player.getPitch(),
                 player.getYaw()
         );
-
-        // Save to file
         WorldManager.saveWorldData(worldName, saveData);
-    }
-
-    /** Restore saved block modifications */
-    private void restoreModifications(WorldSaveData savedData) {
-        // Process each modification in order
-        for (BlockModification mod : savedData.getModifications()) {
-            if (mod.getType() != null) {
-                // Place block
-                world.placeBlock(mod.getPosition(), mod.getType());
-            } else {
-                // Remove block
-                world.destroyBlock(mod.getPosition());
-            }
-        }
     }
 
     /** Timer validation */
