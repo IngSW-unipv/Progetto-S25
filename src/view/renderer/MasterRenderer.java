@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 /**
  * Core rendering system managing all graphics pipelines
  * Coordinates shaders, meshes, textures and render passes
+ *
+ * @see view.View
  */
 public class MasterRenderer implements WorldRenderer {
     /** OpenGL shading programs */
@@ -116,7 +118,6 @@ public class MasterRenderer implements WorldRenderer {
     @Override
     public void render(List<Block> blocks, Camera camera, World world) {
         updateProjectionMatrix();
-        PerformanceMetrics.startFrame();
         prepareFrame();
 
         Matrix4f viewMatrix = camera.getViewMatrix();
@@ -216,7 +217,7 @@ public class MasterRenderer implements WorldRenderer {
                 .collect(Collectors.groupingBy(Block::getType));
 
         renderBlockBatches(blocksByType);
-        PerformanceMetrics.updateFrameMetrics();
+        System.out.println(PerformanceMetrics.getMetricsString());
 
         blockShader.stop();
     }
@@ -236,12 +237,12 @@ public class MasterRenderer implements WorldRenderer {
 
     /**
      * Checks if block is within view frustum
+     * @param block Block to check visibility
+     * @return true if block is in view frustum
      */
     private boolean isBlockInView(Block block) {
         Vector3f pos = block.getPosition();
-        boolean inView = frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
-        PerformanceMetrics.logChunk(!inView);
-        return inView;
+        return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
     }
 
     /**
@@ -276,7 +277,6 @@ public class MasterRenderer implements WorldRenderer {
 
             mesh.updateGLBuffers();
             textureManager.bindTexture(blockTextureIds.get(type), 0);
-            PerformanceMetrics.logBlocks(typeBlocks.size(), typeBlocks.size(), 0);
             mesh.render();
         });
     }

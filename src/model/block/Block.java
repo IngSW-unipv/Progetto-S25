@@ -8,16 +8,49 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Represents a block in a 3D world, including its type, position, visibility, and rendering details.
+ * Represents a block in the 3D world.
+ * Manages block type, position, visibility, and rendering data.
+ * Handles block face culling and breaking animations.
+ *
+ * @see BlockType
+ * @see World
  */
 public class Block {
-    private final BlockType type;           // The type of the block (e.g., material, texture).
-    private final Vector3f position;        // The position of the block in the world.
-    private final BoundingBox boundingBox;  // The bounding box used for collision detection.
-    private final boolean[] visibleFaces;         // Tracks which faces of the block are visible.
-    private boolean isVisible = true;       // Indicates if the block is visible for rendering.
-    private boolean isHighlighted = false;  // Indicates if the block is highlighted (e.g., selected).
-    private float breakProgress = 0.0f;     // Tracks the progress of breaking the block.
+    /**
+     * The type of block determining its properties and texture.
+     */
+    private final BlockType type;
+
+    /**
+     * Position of the block in world coordinates.
+     */
+    private final Vector3f position;
+
+    /**
+     * Collision detection bounds for the block.
+     */
+    private final BoundingBox boundingBox;
+
+    /**
+     * Array tracking which faces of the block are visible.
+     * Index corresponds to: [FRONT, BACK, TOP, BOTTOM, RIGHT, LEFT]
+     */
+    private final boolean[] visibleFaces;
+    /**
+     * Indicates if the block is visible for rendering.
+     */
+    private boolean isVisible = true;
+    /**
+     * Indicates if the block is highlighted (e.g., selected).
+     */
+    private boolean isHighlighted = false;
+    /**
+     * Tracks the progress of breaking the block.
+     */
+    private float breakProgress = 0.0f;
+    /**
+     * Indicates how much the block is illuminated.
+     */
     private final int lightLevel = 15;
 
     // Indices for each face of the block

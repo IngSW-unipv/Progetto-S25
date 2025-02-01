@@ -10,6 +10,8 @@ import java.nio.FloatBuffer;
 /**
  * Manages OpenGL shader programs including compilation, linking and uniforms.
  * Handles both vertex and fragment shaders.
+ *
+ * @see ShaderUtils
  */
 public class ShaderProgram {
     /** OpenGL program ID */
@@ -17,7 +19,11 @@ public class ShaderProgram {
 
 
     /**
-     * Creates and links shader program from source files
+     * Creates and links shader program from source files.
+     *
+     * @param vertexPath Path to vertex shader source file
+     * @param fragmentPath Path to fragment shader source file
+     * @throws RuntimeException if shader compilation or linking fails
      */
     public ShaderProgram(String vertexPath, String fragmentPath) {
         String vertexSource = ShaderUtils.loadShaderFile(vertexPath);

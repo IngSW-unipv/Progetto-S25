@@ -5,8 +5,13 @@ import view.renderer.MasterRenderer;
 import view.window.WindowManager;
 
 /**
- * Core view component managing window display and rendering.
- * Handles window lifecycle and display-related events.
+ * Core view component responsible for managing the game's graphical interface.
+ * Handles window creation, rendering initialization, and display updates.
+ * Provides interface between OpenGL rendering and game logic through the WindowManager.
+ * Manages user interface elements and responds to fullscreen toggle events.
+ *
+ * @see WindowManager
+ * @see MasterRenderer
  */
 public class View {
     /** Manager for the GLFW window */

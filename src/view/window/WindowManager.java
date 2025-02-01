@@ -12,6 +12,9 @@ import java.util.Objects;
 /**
  * Manages GLFW window creation, updates and OpenGL context.
  * Handles window events, resizing and fullscreen toggling.
+ * Provides centralized window management for the game engine.
+ *
+ * @see view.View
  */
 public class WindowManager {
     /** GLFW window handle */
@@ -28,7 +31,11 @@ public class WindowManager {
 
 
     /**
-     * Initializes GLFW and creates the game window
+     * Creates a new window and initializes OpenGL context.
+     * Sets up window hints, creates GLFW window, centers on screen,
+     * and configures OpenGL viewport.
+     *
+     * @throws RuntimeException if window creation fails
      */
     public void createDisplay() {
         // Initialize GLFW with error callback

@@ -14,12 +14,22 @@ import java.util.List;
 /**
  * Manages batched mesh data for efficient rendering in OpenGL.
  * Combines multiple block meshes into a single VAO/VBO for optimized draw calls.
+ *
+ * @see model.block.Block
+ * @see WorldRenderer
+ * @see MasterRenderer
  */
 public class BatchedMesh {
-    /** OpenGL VAO identifier */
+    /**
+     * OpenGL vertex array object identifier.
+     * Used for storing vertex attributes.
+     */
     private int vaoID;
 
-    /** Vertex buffer object for mesh data */
+    /**
+     * Vertex buffer object for mesh vertex data.
+     * Stores positions, texture coordinates and lighting data.
+     */
     private int vertexVBO;
 
     /** Index buffer object for mesh indices */

@@ -69,9 +69,10 @@ public class PlayerController {
     }
 
     /**
-     * Process input events and update player state.
+     * Processes input events and updates player state accordingly.
+     * Handles movement, camera rotation, block interactions.
      *
-     * @param event Input event to handle
+     * @param event Input event to process
      */
     public void handleInput(InputEvent event) {
         // Update movement flags based on input

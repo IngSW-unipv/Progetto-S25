@@ -71,7 +71,12 @@ public class Model {
         new PlayerController(player, world);
     }
 
-    /** Update game state */
+    /**
+     * Updates game state including physics and day/night cycle.
+     * Handles automatic saving at configured intervals.
+     *
+     * @param deltaTime Time elapsed since last update in seconds
+     */
     public void update(float deltaTime) {
         world.updateDayNightCycle(deltaTime);
         physicsSystem.updatePlayerPhysics(player, deltaTime);

@@ -16,6 +16,7 @@ public class PerformanceMetrics {
     private static int totalBlocks = 0;
     private static int renderedBlocks = 0;
     private static int occludedBlocks = 0;
+    private static int culledBlocks = 0;
     private static int frameCount = 0;
     private static long lastSecond = System.currentTimeMillis();
     private static int fps = 0;
@@ -67,9 +68,9 @@ public class PerformanceMetrics {
      * Records chunk culling metrics
      * @param culled Whether chunk was culled this frame
      */
-    public static void logChunk(boolean culled) {
-        totalChunks++;
-        if(culled) culledChunks++;
+    public static void logChunk(int total, int culled) {
+        totalChunks = total;
+        culledChunks = culled;
     }
 
     /**
@@ -78,10 +79,11 @@ public class PerformanceMetrics {
      * @param rendered Blocks actually rendered
      * @param occluded Blocks hidden by occlusion
      */
-    public static void logBlocks(int total, int rendered, int occluded) {
-        totalBlocks = total;
-        renderedBlocks = rendered;
-        occludedBlocks = occluded;
+    public static void logBlocks(int total, int rendered, int occluded, int culled) {
+        totalBlocks += total;
+        renderedBlocks += rendered;
+        occludedBlocks += occluded;
+        culledBlocks += culled;
     }
 
     /**

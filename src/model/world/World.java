@@ -64,31 +64,59 @@ public class World implements EventListener {
     }
 
     /**
-     * Returns all blocks that should be rendered this frame
-     * Applies frustum culling and occlusion optimizations
+     * Returns all blocks that should be rendered this frame.
+     * Applies frustum culling and occlusion optimizations.
+     * Maintains performance statistics for analysis.
+     *
+     * @return List of blocks to render based on visibility and culling
      */
     public List<Block> getVisibleBlocks() {
         List<Block> visibleBlocks = new ArrayList<>();
+        int totalChunkCount = 0;
+        int culledChunkCount = 0;
+
         synchronized(chunksLock) {
-            int occludedCount = 0;
-
-            // Process each chunk
+            // Process each chunk with frustum culling
             for (Chunk chunk : chunks) {
-                PerformanceMetrics.logChunk(!frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE));
+                totalChunkCount++;
+                boolean isChunkVisible = frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE);
 
-                // Check visibility of each block
-                for (Block block : chunk.getBlocks()) {
-                    if (!block.isVisible()) {
-                        occludedCount++;
-                    } else if (frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE)) {
-                        visibleBlocks.add(block);
-                    }
+                Collection<Block> chunkBlocks = chunk.getBlocks();
+                if (!isChunkVisible) {
+                    // Skip culled chunks but track statistics
+                    culledChunkCount++;
+                    PerformanceMetrics.logBlocks(
+                            chunkBlocks.size(),  // Total blocks in chunk
+                            0,                   // No blocks rendered
+                            0,                   // None occluded (all culled)
+                            chunkBlocks.size()   // All blocks culled with chunk
+                    );
+                    continue;
                 }
+
+                // Count visible and occluded blocks in visible chunks
+                int totalInChunk = chunkBlocks.size();
+                int visibleInChunk = (int) chunkBlocks.stream()
+                        .filter(Block::isVisible)
+                        .count();
+                int occludedInChunk = totalInChunk - visibleInChunk;
+
+                // Log statistics for visible chunks
+                PerformanceMetrics.logBlocks(
+                        totalInChunk,     // Total blocks
+                        visibleInChunk,   // Blocks to render
+                        occludedInChunk,  // Hidden by other blocks
+                        0                 // None culled (chunk visible)
+                );
+
+                // Add visible blocks to render list
+                chunkBlocks.stream()
+                        .filter(Block::isVisible)
+                        .forEach(visibleBlocks::add);
             }
 
-            // Update metrics
-            int totalBlocks = chunks.stream().mapToInt(c -> c.getBlocks().size()).sum();
-            PerformanceMetrics.logBlocks(totalBlocks, visibleBlocks.size(), occludedCount);
+            // Update chunk culling metrics
+            PerformanceMetrics.logChunk(totalChunkCount, culledChunkCount);
         }
         return visibleBlocks;
     }
@@ -137,7 +165,10 @@ public class World implements EventListener {
     }
 
     /**
-     * Updates loaded chunks as player moves
+     * Updates loaded chunks based on player position.
+     * Removes chunks outside render distance and generates new chunks as needed.
+     *
+     * @param playerPos Current player position in world coordinates
      */
     private void updateLoadedChunks(Vector3f playerPos) {
         lastKnownPlayerPos = playerPos;
@@ -226,14 +257,17 @@ public class World implements EventListener {
                 return;
             }
 
+            int blockCount = 0;
             Chunk chunk = new Chunk(pos);
             for (int bx = 0; bx < CHUNK_SIZE; bx++) {
                 for (int by = 0; by < CHUNK_SIZE; by++) {
                     for (int bz = 0; bz < CHUNK_SIZE; bz++) {
                         generateBlockAt(chunk, pos, bx, by, bz);
+                        blockCount++;
                     }
                 }
             }
+            System.out.println("Generated chunk with " + blockCount + " blocks");
             chunks.add(chunk);
             updateChunkBlockFaces(chunk);
         }

@@ -18,6 +18,10 @@ import java.util.List;
 /**
  * Renders the pause menu interface using OpenGL.
  * Manages menu buttons, input handling, and visual effects.
+ * Provides a modal overlay when game is paused.
+ *
+ * @see controller.menu.MenuController
+ * @see ShaderProgram
  */
 public class PauseMenuRenderer {
     /** Shader and buffer objects */
