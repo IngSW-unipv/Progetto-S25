@@ -3,7 +3,6 @@ package controller.input;
 import controller.event.*;
 import model.game.Model;
 import org.lwjgl.glfw.GLFW;
-import view.window.WindowManager;
 
 /**
  * Handles raw input processing using GLFW.
@@ -26,9 +25,6 @@ public class InputController {
 
     /** First mouse movement flag */
     private boolean firstMouse = true;
-
-    /** Escape key state tracking */
-    private boolean escWasPressed = false;
 
     /** Reference to game model */
     private final Model model;
@@ -87,20 +83,14 @@ public class InputController {
      * Processes keyboard input and posts events.
      */
     private void handleKeyboardInput() {
-        // Check escape key for pause toggle
-        float escValue = getKeyState(GLFW.GLFW_KEY_ESCAPE);
-
-        if (escValue > 0 && !escWasPressed) {
-            EventBus.getInstance().post(MenuEvent.action(MenuAction.RESUME_GAME));
-            escWasPressed = true;
-        } else if (escValue == 0 && escWasPressed) {
-            escWasPressed = false;
+        // Check escape key for close game
+        if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS) {
+            model.saveGame();
+            model.getGameState().setRunning(false);
         }
 
-        // Process movement only when unpaused
-        if (!model.getGameState().isPaused()) {
-            handleMovementInput();
-        }
+        // Process movement
+        handleMovementInput();
     }
 
     /**
@@ -129,66 +119,26 @@ public class InputController {
         double[] yPos = new double[1];
         GLFW.glfwGetCursorPos(window, xPos, yPos);
 
-        if (model.getGameState().isPaused()) {
-            // Handle menu clicks when paused
-            if (GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS) {
-                handlePauseMenuClick((float) xPos[0], (float) yPos[0]);
-            }
-        } else {
-            // Handle mouse look when unpaused
-            if (firstMouse) {
-                lastX = xPos[0];
-                lastY = yPos[0];
-                firstMouse = false;
-                return;
-            }
-
-            // Calculate and post mouse movement
-            float dx = (float) (xPos[0] - lastX);
-            float dy = (float) (yPos[0] - lastY);
-
+        // Handle mouse look when unpaused
+        if (firstMouse) {
             lastX = xPos[0];
             lastY = yPos[0];
-
-            if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx));
-            if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy));
-
-            // Post mouse button events for block interaction
-            eventBus.post(new InputEvent(InputAction.DESTROY_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
-            eventBus.post(new InputEvent(InputAction.PLACE_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
+            firstMouse = false;
+            return;
         }
-    }
 
-    /**
-     * Handles mouse clicks in pause menu.
-     *
-     * @param mouseX Mouse X coordinate
-     * @param mouseY Mouse Y coordinate
-     */
-    private void handlePauseMenuClick(float mouseX, float mouseY) {
-        // Check each button and post corresponding event
-        if (isMouseOverButton(mouseX, mouseY, (float) WindowManager.WIDTH / 2 - 50, (float) WindowManager.HEIGHT / 2, 100, 40)) {
-            EventBus.getInstance().post(MenuEvent.action(MenuAction.RESUME_GAME));
-        } else if (isMouseOverButton(mouseX, mouseY, (float) WindowManager.WIDTH / 2 - 50, (float) WindowManager.HEIGHT / 2 - 50, 100, 40)) {
-            EventBus.getInstance().post(MenuEvent.action(MenuAction.SHOW_SETTINGS));
-        } else if (isMouseOverButton(mouseX, mouseY, (float) WindowManager.WIDTH / 2 - 50, (float) WindowManager.HEIGHT / 2 - 100, 100, 40)) {
-            EventBus.getInstance().post(MenuEvent.action(MenuAction.QUIT_GAME));
-        }
-    }
+        // Calculate and post mouse movement
+        float dx = (float) (xPos[0] - lastX);
+        float dy = (float) (yPos[0] - lastY);
 
-    /**
-     * Checks if mouse is within button bounds.
-     *
-     * @param mouseX Mouse X coordinate
-     * @param mouseY Mouse Y coordinate
-     * @param buttonX Button left edge
-     * @param buttonY Button top edge
-     * @param buttonWidth Button width
-     * @param buttonHeight Button height
-     * @return True if mouse is over button
-     */
-    private boolean isMouseOverButton(float mouseX, float mouseY, float buttonX, float buttonY, float buttonWidth, float buttonHeight) {
-        return mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
-                mouseY >= buttonY && mouseY <= buttonY + buttonHeight;
+        lastX = xPos[0];
+        lastY = yPos[0];
+
+        if (dx != 0) eventBus.post(new InputEvent(InputAction.LOOK_X, dx));
+        if (dy != 0) eventBus.post(new InputEvent(InputAction.LOOK_Y, dy));
+
+        // Post mouse button events for block interaction
+        eventBus.post(new InputEvent(InputAction.DESTROY_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
+        eventBus.post(new InputEvent(InputAction.PLACE_BLOCK, GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS ? 1.0f : 0.0f));
     }
 }

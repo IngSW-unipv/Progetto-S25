@@ -43,11 +43,6 @@ public class Model {
             WorldManager.saveWorldMetadata(new WorldData(worldName, seed));
         }
 
-        // First initialize world with temp position
-        Vector3f tempPosition = new Vector3f(0, -1, 0);
-        this.world = new World(tempPosition, seed);
-
-        // Now get proper position
         Vector3f initialPosition;
         float initialPitch = 0;
         float initialYaw = 0;
@@ -60,15 +55,15 @@ public class Model {
             initialPosition = new Vector3f(0, 50, 0);
         }
 
-        // Update player position to proper height
+        this.world = new World(initialPosition, seed);
         this.physicsSystem = new PhysicsSystem(world);
 
-        if (savedData != null && savedData.getModifications() != null) {
+        // Restore block modifications after world initialization
+        if (savedData != null) {
             restoreModifications(savedData);
         }
 
         this.player = new Player(physicsSystem, initialPosition, initialPitch, initialYaw);
-        new PlayerController(player, world);
     }
 
     /**
@@ -89,22 +84,28 @@ public class Model {
 
     /** Save current game state */
     public void saveGame() {
+        // Get current block modifications and create save data
         Map<Vector3f, BlockType> modifiedBlocks = world.getModifiedBlocks();
         WorldSaveData saveData = new WorldSaveData(
-            modifiedBlocks,
-            player.getPosition(),
-            player.getPitch(),
-            player.getYaw()
+                modifiedBlocks,
+                player.getPosition(),
+                player.getPitch(),
+                player.getYaw()
         );
+
+        // Save to file
         WorldManager.saveWorldData(worldName, saveData);
     }
 
     /** Restore saved block modifications */
     private void restoreModifications(WorldSaveData savedData) {
+        // Process each modification in order
         for (BlockModification mod : savedData.getModifications()) {
             if (mod.getType() != null) {
+                // Place block
                 world.placeBlock(mod.getPosition(), mod.getType());
             } else {
+                // Remove block
                 world.destroyBlock(mod.getPosition());
             }
         }

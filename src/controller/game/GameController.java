@@ -7,7 +7,6 @@ import model.game.Model;
 import org.lwjgl.glfw.GLFW;
 import util.PerformanceMetrics;
 import view.View;
-import view.renderer.PauseMenuRenderer;
 
 /**
  * Core controller managing game loop, input handling and state updates.
@@ -35,9 +34,6 @@ public class GameController {
     /** GLFW window handle */
     private final long window;
 
-    /** Renderer for pause menu interface */
-    private final PauseMenuRenderer pauseMenu;
-
 
     /**
      * Initializes game controller and core components.
@@ -58,43 +54,8 @@ public class GameController {
 
         // Initialize timing and menu
         this.lastFrameTime = System.nanoTime();
-        this.pauseMenu = new PauseMenuRenderer(window);
 
-        setupPauseMenu();
         startGameLoop();
-    }
-
-    /**
-     * Sets up pause menu event subscription.
-     */
-    private void setupPauseMenu() {
-        // Subscribe to menu events and route to action handler
-        EventBus.getInstance().subscribe(EventType.MENU, event -> {
-            if (event instanceof MenuEvent menuEvent && menuEvent.action() != null) {
-                handlePauseMenuAction(menuEvent.action());
-            }
-        });
-    }
-
-    /**
-     * Routes pause menu actions to appropriate handlers.
-     *
-     * @param action Menu action to process
-     */
-    private void handlePauseMenuAction(MenuAction action) {
-        // Route each menu action to its handler
-        switch (action) {
-            case TOGGLE_PAUSE -> {
-                if (model.getGameState().isPaused()) {
-                    resumeGame();
-                } else {
-                    pauseGame();
-                }
-            }
-            case RESUME_GAME -> resumeGame();
-            case QUIT_GAME -> onQuitGame();
-            case SHOW_SETTINGS -> onSettingsPressed();
-        }
     }
 
     /**
@@ -111,44 +72,6 @@ public class GameController {
 
         // Clean up resources on exit
         view.closeDisplay();
-    }
-
-    /**
-     * Enables pause state and shows pause menu.
-     */
-    private void pauseGame() {
-        // Enable pause state and show cursor
-        model.getGameState().setPaused(true);
-        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
-        pauseMenu.setVisible(true);
-    }
-
-    /**
-     * Disables pause state and hides pause menu.
-     */
-    private void resumeGame() {
-        // Disable pause state and hide cursor
-        model.getGameState().setPaused(false);
-        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
-        pauseMenu.setVisible(false);
-    }
-
-    /**
-     * Saves game state and initiates game shutdown.
-     */
-    public void onQuitGame() {
-        // Cleanup world resources
-        model.getWorld().cleanup();
-        // Save current state and exit
-        model.saveGame();
-        model.getGameState().setRunning(false);
-    }
-
-    /**
-     * Shows settings interface (currently unimplemented).
-     */
-    public void onSettingsPressed() {
-        // TODO: Implement settings menu
     }
 
     /**
@@ -172,10 +95,6 @@ public class GameController {
             )
         );
 
-        // Render pause menu if game is paused
-        if (model.getGameState().isPaused()) {
-            pauseMenu.render();
-        }
         PerformanceMetrics.updateFrameMetrics();
     }
 
