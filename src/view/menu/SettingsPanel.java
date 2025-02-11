@@ -20,7 +20,6 @@ public class SettingsPanel extends JPanel {
     /** Maps setting names to their input fields */
     private final Map<String, JTextField> settingsFields = new HashMap<>();
 
-
     /**
      * Creates settings panel with fields for modifying game configuration
      */
@@ -57,8 +56,6 @@ public class SettingsPanel extends JPanel {
         addSettingField(settingsContainer, "Render Distance", "RENDER_DISTANCE", gbc);
         addSettingField(settingsContainer, "Mouse Sensitivity", "CAMERA_MOUSE_SENSITIVITY", gbc);
         addSettingField(settingsContainer, "Movement Speed", "CAMERA_MOVE_SPEED", gbc);
-        addSettingField(settingsContainer, "Jump Force", "JUMP_FORCE", gbc);
-        addSettingField(settingsContainer, "Gravity", "GRAVITY", gbc);
 
         // Scrollable container
         JScrollPane scrollPane = new JScrollPane(settingsContainer);
@@ -130,8 +127,6 @@ public class SettingsPanel extends JPanel {
         settingsFields.get("RENDER_DISTANCE").setText(String.valueOf(GameConfig.RENDER_DISTANCE));
         settingsFields.get("CAMERA_MOUSE_SENSITIVITY").setText(String.valueOf(GameConfig.CAMERA_MOUSE_SENSITIVITY));
         settingsFields.get("CAMERA_MOVE_SPEED").setText(String.valueOf(GameConfig.CAMERA_MOVE_SPEED));
-        settingsFields.get("JUMP_FORCE").setText(String.valueOf(GameConfig.JUMP_FORCE));
-        settingsFields.get("GRAVITY").setText(String.valueOf(GameConfig.GRAVITY));
     }
 
     /**
@@ -143,16 +138,14 @@ public class SettingsPanel extends JPanel {
             GameConfig.RENDER_DISTANCE = Integer.parseInt(settingsFields.get("RENDER_DISTANCE").getText());
             GameConfig.CAMERA_MOUSE_SENSITIVITY = Float.parseFloat(settingsFields.get("CAMERA_MOUSE_SENSITIVITY").getText());
             GameConfig.CAMERA_MOVE_SPEED = Float.parseFloat(settingsFields.get("CAMERA_MOVE_SPEED").getText());
-            GameConfig.JUMP_FORCE = Float.parseFloat(settingsFields.get("JUMP_FORCE").getText());
-            GameConfig.GRAVITY = Float.parseFloat(settingsFields.get("GRAVITY").getText());
 
             ConfigManager.saveConfig();
             JOptionPane.showMessageDialog(this, "Settings saved successfully!");
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this,
-                "Invalid input values. Please check your settings.",
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
+                    "Invalid input values. Please check your settings.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -165,8 +158,8 @@ public class SettingsPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
 
         GradientPaint gradient = new GradientPaint(
-            0, 0, new Color(24, 20, 37),
-            0, getHeight(), new Color(65, 41, 90)
+                0, 0, new Color(24, 20, 37),
+                0, getHeight(), new Color(65, 41, 90)
         );
 
         g2d.setPaint(gradient);

@@ -47,4 +47,13 @@ public class BoundingBox {
                 (min.y <= other.max.y && max.y >= other.min.y) &&
                 (min.z <= other.max.z && max.z >= other.min.z);
     }
+
+    /** Getters */
+    public Vector3f getMin() {
+        return min;
+    }
+
+    public Vector3f getMax() {
+        return max;
+    }
 }

@@ -108,7 +108,6 @@ java -jar target/voxel-engine-1.0.jar
 ```
 SandboxProject/
 ├── docs/                          # Documentation
-│   ├── api-doc.md                 # API documentation
 │   ├── design-patterns.md         # Design patterns
 │   ├── glossary.md               # Technical glossary
 │   ├── readme.md                 # This file
@@ -117,7 +116,7 @@ SandboxProject/
 │   └── vision-doc.md            # Vision document
 │
 ├── resources/                    # Resource files
-│   ├── shaders/                 # GLSL shader files
+│   ├── shaders/                 # GLSL shader files~~~~
 │   │   ├── block_breaking_fragment.glsl
 │   │   ├── block_breaking_vertex.glsl
 │   │   ├── block_fragment.glsl
@@ -129,6 +128,8 @@ SandboxProject/
 │   └── textures/                # Game textures
 │
 └── src/                         # Source code
+    │   Main                     # main class
+    │
     └── config/                  # Configuration
     │   ├── ConfigManager        # Settings manager
     │   ├── GameConfig          # Game constants
@@ -207,7 +208,7 @@ SandboxProject/
         │
         ├── renderer/         # Rendering
         │   ├── BatchedMesh
-        │   ├── HUDRenderer~~~~
+        │   ├── HUDRenderer
         │   ├── MasterRenderer
         │   ├── TextureManager
         │   └── WorldRenderer
@@ -220,6 +221,7 @@ SandboxProject/
         │   └── WindowManager
         │
         └── View             # Main view class
+        
 ```
 
 ## Documentation
