@@ -154,6 +154,6 @@ The project encompasses the development of a complete voxel engine with terrain 
 ## 9. Timeline
 - Phase 1: Core Engine (2 weeks)
 - Phase 2: World Generation (1 week)
-- Phase 3: Physics Implementation (1 week)
+- Phase 3: Physics Implementation (2 week)
 - Phase 4: UI Development (1 weeks)
-- Phase 5: Testing & Documentation (1 weeks)
+- Phase 5: Testing & Documentation (1 week)

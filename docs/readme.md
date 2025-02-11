@@ -52,20 +52,9 @@ A high-performance voxel engine implemented in Java, featuring strict Model-View
 
 ## Getting Started
 
-### Building from Source
+### Clone repository
 ```bash
-# Clone repository
 git clone https://github.com/IngSW-unipv/Progetto-S25.git
-cd Progetto-S25
-
-# Build project
-mvn clean install
-```
-
-### Running the Application
-```bash
-# Run with default settings
-java -jar target/voxel-engine-1.0.jar
 ```
 
 ## Controls
@@ -229,6 +218,6 @@ SandboxProject/
 ### Design Documents
 - [Vision Document](vision-doc.md): Project overview and goals
 - [Requirements](requirements.md): Functional/non-functional requirements
-- [Use Cases](use-cases.md): User interaction flows~~~~
+- [Use Cases](use-cases.md): User interaction flows
 - [Design Patterns](design-patterns.md): Architectural patterns
 - [Technical Glossary](glossary.md): Term definitions
