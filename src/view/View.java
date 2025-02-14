@@ -1,8 +1,11 @@
 package view;
 
 import controller.event.*;
+import view.menu.StatisticsDialog;
 import view.renderer.MasterRenderer;
 import view.window.WindowManager;
+
+import javax.swing.*;
 
 /**
  * Core view component responsible for managing the game's graphical interface.
@@ -33,6 +36,7 @@ public class View {
 
         // Subscribe to fullscreen toggle events
         EventBus.getInstance().subscribe(EventType.INPUT, this::onEvent);
+        EventBus.getInstance().subscribe(EventType.MENU, this::onMenuEvent);
     }
 
     /**
@@ -79,6 +83,18 @@ public class View {
         if (event instanceof InputEvent inputEvent &&
                 inputEvent.action() == InputAction.TOGGLE_FULLSCREEN) {
             handleFullscreenToggle(inputEvent.value());
+        }
+    }
+
+    public void onMenuEvent(GameEvent event) {
+        if (event instanceof MenuEvent menuEvent &&
+            menuEvent.action() == MenuAction.SHOW_STATISTICS &&
+            menuEvent.statistics() != null) {
+            SwingUtilities.invokeLater(() -> {
+                JFrame frame = new JFrame();
+                frame.setUndecorated(true);
+                new StatisticsDialog(frame, menuEvent.statistics()).setVisible(true);
+            });
         }
     }
 

@@ -14,5 +14,8 @@ public enum EventType {
     RENDER,
 
     /** Menu interaction events */
-    MENU
+    MENU,
+
+    /** Block modification events - needed for the leaderboard */
+    BLOCK_MODIFICATION
 }

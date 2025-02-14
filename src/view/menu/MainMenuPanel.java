@@ -59,17 +59,17 @@ public class MainMenuPanel extends JPanel {
      * Adds main navigation buttons with spacing
      */
     private void addNavigationButtons(GridBagConstraints gbc) {
-        JButton playButton = menuView.createStyledButton("Play",
-                MenuAction.SHOW_WORLD_SELECT);
-        JButton settingsButton = menuView.createStyledButton("Settings",
-                MenuAction.SHOW_SETTINGS);
-        JButton quitButton = menuView.createStyledButton("Quit",
-                MenuAction.QUIT_GAME);
+        JButton playButton = menuView.createStyledButton("Play", MenuAction.SHOW_WORLD_SELECT);
+        JButton settingsButton = menuView.createStyledButton("Settings", MenuAction.SHOW_SETTINGS);
+        JButton quitButton = menuView.createStyledButton("Quit", MenuAction.QUIT_GAME);
 
         add(playButton, gbc);
-        add(Box.createVerticalStrut(10), gbc);
+        add(Box.createVerticalStrut(15), gbc);
         add(settingsButton, gbc);
-        add(Box.createVerticalStrut(10), gbc);
+        add(Box.createVerticalStrut(15), gbc);
+        JButton statsButton = menuView.createStyledButton("Statistics", MenuAction.SHOW_STATISTICS);
+        add(statsButton, gbc);
+        add(Box.createVerticalStrut(15), gbc);
         add(quitButton, gbc);
     }
 

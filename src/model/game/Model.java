@@ -1,15 +1,23 @@
 package model.game;
 
+import controller.event.BlockEvent;
+import controller.event.EventBus;
+import controller.event.EventType;
+import controller.event.GameEvent;
 import model.block.BlockModification;
 import model.block.BlockType;
 import model.physics.PhysicsSystem;
 import model.player.Player;
 import model.save.WorldManager;
 import model.save.WorldSaveData;
+import model.statistics.DatabaseManager;
+import model.statistics.GameStatistics;
 import model.world.World;
 import model.world.WorldData;
 import org.joml.Vector3f;
+import view.menu.StatisticsDialog;
 
+import java.awt.*;
 import java.util.Map;
 
 /**
@@ -22,6 +30,7 @@ public class Model {
     private final Player player;
     private final PhysicsSystem physicsSystem;
     private final World world;
+    private final GameStatistics statistics;
 
     /** Save data fields */
     private final String worldName;
@@ -35,10 +44,12 @@ public class Model {
         this.worldName = worldName;
         this.gameState = new GameState();
         this.lastSaveTime = System.currentTimeMillis();
+        this.statistics = new DatabaseManager();
 
-        // Load or create world
+        // Check and save metadata FIRST
         WorldSaveData savedData = WorldManager.loadWorldData(worldName);
         if (savedData == null) {
+            // Attempt to save metadata before world creation
             WorldManager.saveWorldMetadata(new WorldData(worldName, seed));
         }
 
@@ -49,6 +60,7 @@ public class Model {
 
         if (savedData != null) {
             initialPosition = savedData.getPlayerPosition();
+            initialPosition.y += 2;
             initialPitch = savedData.getPlayerPitch();
             initialYaw = savedData.getPlayerYaw();
         } else {
@@ -66,6 +78,19 @@ public class Model {
 
         // Create player
         this.player = new Player(physicsSystem, initialPosition, initialPitch, initialYaw);
+
+        EventBus.getInstance().subscribe(EventType.BLOCK_MODIFICATION, this::onBlockEvent);
+    }
+
+    /** Save block modifications for database records */
+    private void onBlockEvent(GameEvent event) {
+        if (event instanceof BlockEvent blockEvent) {
+            if (blockEvent.isPlacement()) {
+                statistics.recordBlockPlaced(blockEvent.type().toString());
+            } else {
+                statistics.recordBlockDestroyed(blockEvent.type().toString());
+            }
+        }
     }
 
     /** Restore saved block modifications */
@@ -84,6 +109,7 @@ public class Model {
         world.updateDayNightCycle(deltaTime);
         physicsSystem.updatePlayerPhysics(player, deltaTime);
         player.update(deltaTime);
+        statistics.updatePlayTime(deltaTime);
 
         if (shouldAutoSave()) {
             saveGame();
@@ -100,6 +126,7 @@ public class Model {
                 player.getYaw()
         );
         WorldManager.saveWorldData(worldName, saveData);
+        statistics.saveToDatabase(worldName);
     }
 
     /** Timer validation */
@@ -111,6 +138,7 @@ public class Model {
     public GameState getGameState() { return gameState; }
     public World getWorld() { return world; }
     public Player getPlayer() { return player; }
+    public GameStatistics getStatistics() { return statistics; }
 
     /** Player state accessors */
     public Vector3f getPlayerPosition() { return player.getPosition(); }

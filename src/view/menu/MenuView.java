@@ -4,6 +4,7 @@ import controller.event.EventBus;
 import controller.event.MenuAction;
 import config.ConfigManager;
 import controller.event.MenuEvent;
+import model.statistics.DatabaseManager;
 import model.world.WorldData;
 import model.save.WorldManager;
 
@@ -41,7 +42,7 @@ public class MenuView extends JFrame {
         // Set window properties
         setTitle("Voxel Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(854, 480);
+        setSize(1100, 600);
         setLocationRelativeTo(null);  // Center on screen
         setResizable(false);
 
@@ -58,6 +59,8 @@ public class MenuView extends JFrame {
         mainPanel.add(mainMenuPanel, "MAIN");
         mainPanel.add(worldSelectPanel, "WORLD_SELECT");
         mainPanel.add(settingsPanel, "SETTINGS");
+        StatisticsPanel statisticsPanel = new StatisticsPanel(this);
+        mainPanel.add(statisticsPanel, "STATISTICS");
 
         setContentPane(mainPanel);
 
@@ -84,6 +87,15 @@ public class MenuView extends JFrame {
      */
     public void showWorldSelect() {
         cardLayout.show(mainPanel, "WORLD_SELECT");
+    }
+
+    /**
+     * Shows statistic panel
+     * Switches card layout to display the statistic panel containing the leaderboard
+     */
+    public void showStatistics() {
+        cardLayout.show(mainPanel, "STATISTICS");
+        ((StatisticsPanel)mainPanel.getComponent(3)).updateStatistics();
     }
 
     /**
@@ -180,7 +192,7 @@ public class MenuView extends JFrame {
         };
 
         // Configure button properties
-        button.setPreferredSize(new Dimension(200, 40));
+        button.setPreferredSize(new Dimension(250, 45));
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);

@@ -3,7 +3,12 @@ package controller.menu;
 import controller.event.*;
 import controller.game.GameController;
 import model.save.WorldManager;
+import model.statistics.DatabaseManager;
 import view.menu.MenuView;
+import view.menu.StatisticsDialog;
+
+import javax.swing.*;
+import java.util.List;
 
 /**
  * Controls menu system flow and manages menu state transitions.
@@ -40,13 +45,11 @@ public class MenuController {
      */
     private void handleMenuAction(GameEvent event) {
         if (event instanceof MenuEvent e) {
-            // Handle world creation/loading
             if (e.worldName() != null) {
                 startGame(e.worldName(), e.seed());
-            }
-            // Handle menu navigation
-            else if (e.action() != null) {
+            } else if (e.action() != null) {
                 switch (e.action()) {
+                    case SHOW_STATISTICS -> view.showStatistics();
                     case SHOW_MAIN_MENU, BACK_TO_MAIN -> view.showMainMenu();
                     case SHOW_WORLD_SELECT -> view.showWorldSelect();
                     case SHOW_SETTINGS -> view.showSettings();

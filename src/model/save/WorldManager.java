@@ -24,7 +24,10 @@ public class WorldManager {
         new File(SAVES_DIR).mkdirs();
     }
 
-    /** Saves world metadata to properties */
+    /**
+     * Saves world metadata, checking for duplicates first.
+     * @throws IllegalArgumentException if world with same name exists
+     */
     public static void saveWorldMetadata(WorldData world) {
         try {
             Properties props = loadProperties();
@@ -86,12 +89,16 @@ public class WorldManager {
         Properties props = new Properties();
         File metadataFile = new File(METADATA_FILE);
 
-        if (metadataFile.exists()) {
-            try (FileInputStream in = new FileInputStream(metadataFile)) {
-                props.load(in);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (!metadataFile.exists()) {
+            // Create directories if they don't exist
+            new File(WORLDS_DIR).mkdirs();
+            return props;
+        }
+
+        try (FileInputStream in = new FileInputStream(metadataFile)) {
+            props.load(in);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return props;
@@ -117,5 +124,16 @@ public class WorldManager {
             }
             worldDir.delete();
         }
+    }
+
+    /**
+     * Gets seed for specified world name
+     * @param worldName Name of world to get seed for
+     * @return World seed or 0 if not found
+     */
+    public static long getWorldSeed(String worldName) {
+        Properties props = loadProperties();
+        String seedStr = props.getProperty(worldName + ".seed");
+        return seedStr != null ? Long.parseLong(seedStr) : 0;
     }
 }

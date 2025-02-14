@@ -129,7 +129,6 @@ public class WindowManager {
     public void closeDisplay() {
         GLFW.glfwDestroyWindow(window);
         GLFW.glfwTerminate();
-        System.exit(0);
     }
 
     /**

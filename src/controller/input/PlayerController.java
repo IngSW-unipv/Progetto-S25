@@ -1,9 +1,6 @@
 package controller.input;
 
-import controller.event.EventBus;
-import controller.event.EventType;
-import controller.event.GameEvent;
-import controller.event.InputEvent;
+import controller.event.*;
 import model.block.Block;
 import model.block.BlockDirection;
 import model.block.BlockType;
@@ -266,7 +263,9 @@ public class PlayerController {
 
         // Destroy block if breaking complete
         if (breakingProgress >= targetedBlock.getType().getBreakTime()) {
+            BlockType type = targetedBlock.getType();
             world.destroyBlock(targetedBlock.getPosition());
+            EventBus.getInstance().post(new BlockEvent(type, false));
             breakingProgress = 0.0f;
             isBreaking = false;
         }
@@ -320,6 +319,7 @@ public class PlayerController {
             // Place block if position is valid
             if (world.getBlock(newPos) == null) {
                 world.placeBlock(newPos, BlockType.DIRT);
+                EventBus.getInstance().post(new BlockEvent(BlockType.DIRT, true));
                 lastPlaceTime = currentTime;
             }
         }

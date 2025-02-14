@@ -2,6 +2,9 @@ package view.menu;
 
 import controller.event.EventBus;
 import controller.event.MenuEvent;
+import model.save.WorldManager;
+import model.world.WorldData;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -300,6 +303,13 @@ public class NewWorldDialog extends JDialog {
 
             if (seedText.isEmpty()) {
                 showError("Please enter a world seed.");
+                return;
+            }
+
+            // Check if world exists
+            java.util.List<WorldData> existingWorlds = WorldManager.getWorlds();
+            if (existingWorlds.stream().anyMatch(w -> w.name().equals(worldName))) {
+                showError("A world with name '" + worldName + "' already exists");
                 return;
             }
 

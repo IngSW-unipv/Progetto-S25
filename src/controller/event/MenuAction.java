@@ -10,6 +10,7 @@ public enum MenuAction {
     SHOW_SETTINGS,
     SHOW_NEW_WORLD_DIALOG,
     SHOW_LOAD_WORLD_DIALOG,
+    SHOW_STATISTICS,
     BACK_TO_MAIN,
 
     /** Game state actions */

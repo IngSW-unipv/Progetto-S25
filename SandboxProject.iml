@@ -10,5 +10,14 @@
     <orderEntry type="library" name="lwjgl-release-3.3" level="project" />
     <orderEntry type="library" name="JOML-1.10" level="project" />
     <orderEntry type="library" name="joml-1.9.21" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libraries/sqlite-jdbc-3.49.0.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

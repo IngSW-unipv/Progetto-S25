@@ -2,7 +2,11 @@ package controller.input;
 
 import controller.event.*;
 import model.game.Model;
+import model.statistics.DatabaseManager;
 import org.lwjgl.glfw.GLFW;
+
+import javax.swing.*;
+import java.util.List;
 
 /**
  * Handles raw input processing using GLFW.
@@ -80,12 +84,24 @@ public class InputController {
     }
 
     /**
-     * Processes keyboard input and posts events.
+     * Processes keyboard input and posts corresponding events.
+     * Handles game exit, menu transitions, and movement controls.
+     * Called each frame by the input polling system.
+     * When ESC is pressed:
+     * - Saves current game state
+     * - Shows statistics view
+     * - Enables cursor for menu interaction
+     * - Sets game state to not running
      */
     private void handleKeyboardInput() {
-        // Check escape key for close game
         if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_ESCAPE) == GLFW.GLFW_PRESS) {
+            // Save game state and get statistics
             model.saveGame();
+            List<DatabaseManager.WorldStats> stats = ((DatabaseManager)model.getStatistics()).getLeaderboard();
+
+            // Switch to windowed mode and show stats
+            GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL);
+            eventBus.post(MenuEvent.showStatistics(stats));
             model.getGameState().setRunning(false);
         }
 
