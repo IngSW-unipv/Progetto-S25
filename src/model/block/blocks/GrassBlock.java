@@ -5,10 +5,18 @@ import model.block.TerrainBlock;
 import model.world.World;
 import org.joml.Vector3f;
 
+/**
+ * Grass-covered dirt block.
+ * Can transform back to dirt when covered.
+ *
+ * @see TerrainBlock
+ * @see DirtBlock
+ */
 public class GrassBlock extends TerrainBlock {
     private static final float BREAK_TIME = 1.0f;
     private static final boolean IS_OPAQUE = true;
     private static final String TEXTURE_PATH = "resources/textures/grass.png";
+
 
     public GrassBlock(Vector3f position) {
         super(position, BREAK_TIME, IS_OPAQUE);
@@ -41,6 +49,6 @@ public class GrassBlock extends TerrainBlock {
 
     @Override
     protected void onUpdate(World world) {
-        // Check if can transform to grass
+        // Check if must transform to dirt
     }
 }

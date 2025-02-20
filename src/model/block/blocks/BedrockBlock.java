@@ -5,6 +5,12 @@ import model.block.TerrainBlock;
 import model.world.World;
 import org.joml.Vector3f;
 
+/**
+ * Indestructible bedrock block.
+ * Forms bottom layer of world.
+ *
+ * @see TerrainBlock
+ */
 public class BedrockBlock extends TerrainBlock {
     private static final float BREAK_TIME = Float.POSITIVE_INFINITY;
     private static final boolean IS_OPAQUE = true;
@@ -41,6 +47,6 @@ public class BedrockBlock extends TerrainBlock {
 
     @Override
     protected void onUpdate(World world) {
-        // Check if can transform to grass
+        // Specific update behavior
     }
 }

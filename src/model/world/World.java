@@ -371,15 +371,15 @@ public class World implements EventListener {
     public void placeBlock(Vector3f position, BlockType type) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         chunks.stream()
-                .filter(c -> c.getPosition().equals(chunkPos))
-                .findFirst()
-                .ifPresent(chunk -> {
-                    AbstractBlock newBlock = BlockFactory.createBlock(type, position);
-                    chunk.setBlock(newBlock);
-                    updateChunkBlockFaces(chunk);
-                    updateNeighboringChunks(position, chunkPos);
-                    modifiedBlocks.put(position, type);
-                });
+            .filter(c -> c.getPosition().equals(chunkPos))
+            .findFirst()
+            .ifPresent(chunk -> {
+                AbstractBlock newBlock = BlockFactory.createBlock(type, position);
+                chunk.setBlock(newBlock);
+                updateChunkBlockFaces(chunk);
+                updateNeighboringChunks(position, chunkPos);
+                modifiedBlocks.put(position, type);
+            });
         modifiedBlocks.put(new Vector3f(position), type);
     }
 

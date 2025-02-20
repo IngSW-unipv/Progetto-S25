@@ -5,6 +5,12 @@ import model.block.TerrainBlock;
 import model.world.World;
 import org.joml.Vector3f;
 
+/**
+ * Basic stone block.
+ * Medium break time.
+ *
+ * @see TerrainBlock
+ */
 public class StoneBlock extends TerrainBlock {
     private static final float BREAK_TIME = 7.0f;
     private static final boolean IS_OPAQUE = true;
@@ -41,6 +47,6 @@ public class StoneBlock extends TerrainBlock {
 
     @Override
     protected void onUpdate(World world) {
-        // Check if can transform to grass
+        // Specific update behavior
     }
 }

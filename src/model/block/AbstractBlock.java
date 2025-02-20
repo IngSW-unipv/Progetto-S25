@@ -4,17 +4,40 @@ import model.physics.BoundingBox;
 import model.world.World;
 import org.joml.Vector3f;
 
+import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Base class for all block types in the voxel world.
+ * Handles block state, visibility, and face culling.
+ *
+ * @see TerrainBlock
+ * @see BlockFactory
+ * @see World
+ */
 public abstract class AbstractBlock {
+    /** Block position in world space */
     protected final Vector3f position;
+
+    /** Collision boundaries */
     protected final BoundingBox boundingBox;
+
+    /** Per-face visibility flags */
     protected final boolean[] visibleFaces;
+
+    /** Block visibility state */
     protected boolean isVisible;
+
+    /** Selection highlight state */
     protected boolean isHighlighted;
+
+    /** Breaking animation progress */
     protected float breakProgress;
+
+    /** Block illumination level */
     protected final int lightLevel;
 
+    /** Face direction indices */
     protected static final int FRONT = 0;   // Z+
     protected static final int BACK = 1;    // Z-
     protected static final int TOP = 2;     // Y+
@@ -22,6 +45,11 @@ public abstract class AbstractBlock {
     protected static final int RIGHT = 4;   // X+
     protected static final int LEFT = 5;    // X-
 
+    /**
+     * Creates block at specified position.
+     *
+     * @param position Block world coordinates
+     */
     protected AbstractBlock(Vector3f position) {
         this.position = position;
         this.boundingBox = new BoundingBox(1.0f, 1.0f, 1.0f);
@@ -33,38 +61,71 @@ public abstract class AbstractBlock {
         this.boundingBox.update(position);
     }
 
-    // Metodi astratti che devono essere implementati dalle sottoclassi
-    /**
-     * Gets the type identifier for this block
-     */
+    /** Gets block type identifier */
     public abstract BlockType getType();
+
+    /** Whether block cannot be broken */
     public abstract boolean isUnbreakable();
+
+    /** Gets block texture file path */
     public abstract String getTexturePath();
+
+    /** Gets time required to break block */
     public abstract float getBreakTime();
+
+    /** Whether block is visually solid */
     public abstract boolean isOpaque();
+
+    /** Gets block geometry vertex data */
     public abstract float[] getVertices();
+
+    /** Gets block geometry index data */
     public abstract int[] getIndices();
+
+    /** Called when block is broken */
     public abstract void onBreak(World world);
+
+    /** Called when block is placed */
     public abstract void onPlace(World world);
+
+    /** Called to update block state */
     protected abstract void onUpdate(World world);
 
-    // Getters comuni
+    /** Gets block position */
     public Vector3f getPosition() { return position; }
+
+    /** Gets collision bounds */
     public BoundingBox getBoundingBox() { return boundingBox; }
+
+    /** Gets visibility state */
     public boolean isVisible() { return isVisible; }
+
+    /** Sets visibility state */
     public void setVisible(boolean visible) { isVisible = visible; }
+
+    /** Gets highlight state */
     public boolean isHighlighted() { return isHighlighted; }
+
+    /** Sets highlight state */
     public void setHighlighted(boolean highlighted) { isHighlighted = highlighted; }
+
+    /** Gets break progress */
     public float getBreakProgress() { return breakProgress; }
+
+    /** Sets break progress */
     public void setBreakProgress(float progress) { this.breakProgress = progress; }
+
+    /** Gets light level */
     public int getLightLevel() { return lightLevel; }
 
-    // Gestione visibilità facce
+    /**
+     * Updates which faces should be rendered based on neighbors.
+     *
+     * @param world World containing this block
+     */
     public void updateVisibleFaces(World world) {
         if (isCompletelyHidden(world)) {
-            for (int i = 0; i < visibleFaces.length; i++) {
-                visibleFaces[i] = false;
-            }
+            Arrays.fill(visibleFaces, false);
             isVisible = false;
             return;
         }
@@ -73,6 +134,9 @@ public abstract class AbstractBlock {
         updateOverallVisibility();
     }
 
+    /**
+     * Updates face visibility based on adjacent blocks.
+     */
     protected void updateFaceVisibility(World world) {
         visibleFaces[TOP] = shouldRenderFace(world, 0, 1, 0);
         visibleFaces[BOTTOM] = shouldRenderFace(world, 0, -1, 0);
@@ -82,6 +146,9 @@ public abstract class AbstractBlock {
         visibleFaces[LEFT] = shouldRenderFace(world, -1, 0, 0);
     }
 
+    /**
+     * Updates overall visibility based on face states.
+     */
     private void updateOverallVisibility() {
         isVisible = false;
         for (boolean face : visibleFaces) {
@@ -92,6 +159,9 @@ public abstract class AbstractBlock {
         }
     }
 
+    /**
+     * Checks if face at offset should be rendered.
+     */
     protected boolean shouldRenderFace(World world, int dx, int dy, int dz) {
         Vector3f adjacentPos = new Vector3f(
                 position.x() + dx,
@@ -102,6 +172,9 @@ public abstract class AbstractBlock {
         return adjacent == null || !adjacent.isOpaque();
     }
 
+    /**
+     * Checks if block is fully surrounded by opaque blocks.
+     */
     private boolean isCompletelyHidden(World world) {
         return !shouldRenderFace(world, 0, 1, 0) &&
                 !shouldRenderFace(world, 0, -1, 0) &&
@@ -111,7 +184,14 @@ public abstract class AbstractBlock {
                 !shouldRenderFace(world, -1, 0, 0);
     }
 
-    // Utility per le sottoclassi
+    /**
+     * Adds vertices for a block face to vertex list.
+     * @param vertices List to add vertices to
+     * @param x1,y1,z1,u1,v1 First vertex position and texture coordinates
+     * @param x2,y2,z2,u2,v2 Second vertex position and texture coordinates
+     * @param x3,y3,z3,u3,v3 Third vertex position and texture coordinates
+     * @param x4,y4,z4,u4,v4 Fourth vertex position and texture coordinates
+     */
     protected void addFaceVertices(List<Float> vertices,
                                    float x1, float y1, float z1, float u1, float v1,
                                    float x2, float y2, float z2, float u2, float v2,

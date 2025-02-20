@@ -5,10 +5,18 @@ import model.block.TerrainBlock;
 import org.joml.Vector3f;
 import model.world.World;
 
+/**
+ * Basic dirt block implementation.
+ * Can transform into grass when exposed to air.
+ *
+ * @see TerrainBlock
+ * @see GrassBlock
+ */
 public class DirtBlock extends TerrainBlock {
     private static final float BREAK_TIME = 1.0f;
     private static final boolean IS_OPAQUE = true;
     private static final String TEXTURE_PATH = "resources/textures/dirt.png";
+
 
     public DirtBlock(Vector3f position) {
         super(position, BREAK_TIME, IS_OPAQUE);

@@ -75,18 +75,18 @@ public class MasterRenderer implements WorldRenderer {
      */
     private void initializeShaders() {
         blockShader = new ShaderProgram(
-                "resources/shaders/block_vertex.glsl",
-                "resources/shaders/block_fragment.glsl"
+            "resources/shaders/block_vertex.glsl",
+            "resources/shaders/block_fragment.glsl"
         );
 
         highlightShader = new ShaderProgram(
-                "resources/shaders/block_highlight_vertex.glsl",
-                "resources/shaders/block_highlight_fragment.glsl"
+            "resources/shaders/block_highlight_vertex.glsl",
+            "resources/shaders/block_highlight_fragment.glsl"
         );
 
         breakingShader = new ShaderProgram(
-                "resources/shaders/block_breaking_vertex.glsl",
-                "resources/shaders/block_breaking_fragment.glsl"
+            "resources/shaders/block_breaking_vertex.glsl",
+            "resources/shaders/block_breaking_fragment.glsl"
         );
     }
 
@@ -95,10 +95,10 @@ public class MasterRenderer implements WorldRenderer {
      */
     private void updateProjectionMatrix() {
         projectionMatrix = new Matrix4f().perspective(
-                (float) Math.toRadians(60.0f),
-                windowManager.getAspectRatio(),
-                0.3f,
-                100.0f
+            (float) Math.toRadians(60.0f),
+            windowManager.getAspectRatio(),
+            0.3f,
+            100.0f
         );
     }
 
@@ -169,10 +169,7 @@ public class MasterRenderer implements WorldRenderer {
         breakingShader.loadMatrix("viewMatrix", viewMatrix);
         breakingShader.loadMatrix("projectionMatrix", projectionMatrix);
         breakingShader.loadMatrix("modelMatrix", modelMatrix);
-        GL20.glUniform1f(
-                GL20.glGetUniformLocation(breakingShader.getProgramID(), "ambientLight"),
-                ambientLight
-        );
+        GL20.glUniform1f(GL20.glGetUniformLocation(breakingShader.getProgramID(), "ambientLight"), ambientLight);
     }
 
     /**
@@ -195,10 +192,7 @@ public class MasterRenderer implements WorldRenderer {
         breakMesh.updateGLBuffers();
 
         textureManager.bindTexture(blockTextureIds.get(abstractBlock.getType()), 0);
-        GL20.glUniform1f(
-                GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress"),
-                abstractBlock.getBreakProgress()
-        );
+        GL20.glUniform1f(GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress"), abstractBlock.getBreakProgress());
 
         breakMesh.render();
         breakMesh.cleanup();
@@ -213,8 +207,8 @@ public class MasterRenderer implements WorldRenderer {
         ensureBlockTextures();
 
         Map<BlockType, List<AbstractBlock>> blocksByType = abstractBlocks.stream()
-                .filter(this::isBlockInView)
-                .collect(Collectors.groupingBy(AbstractBlock::getType));
+            .filter(this::isBlockInView)
+            .collect(Collectors.groupingBy(AbstractBlock::getType));
 
         renderBlockBatches(blocksByType);
         System.out.println(PerformanceMetrics.getMetricsString());
@@ -229,10 +223,7 @@ public class MasterRenderer implements WorldRenderer {
         blockShader.loadMatrix("viewMatrix", viewMatrix);
         blockShader.loadMatrix("projectionMatrix", projectionMatrix);
         blockShader.loadMatrix("modelMatrix", modelMatrix);
-        GL20.glUniform1f(
-                GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight"),
-                ambientLight
-        );
+        GL20.glUniform1f(GL20.glGetUniformLocation(blockShader.getProgramID(), "ambientLight"), ambientLight);
     }
 
     /**
@@ -291,10 +282,10 @@ public class MasterRenderer implements WorldRenderer {
         abstractBlocks.stream()
                 .filter(AbstractBlock::isHighlighted)
                 .forEach(block -> highlightMesh.addBlockMesh(
-                        block.getVertices(),
-                        block.getIndices(),
-                        0,
-                        block.getLightLevel()
+                    block.getVertices(),
+                    block.getIndices(),
+                    0,
+                    block.getLightLevel()
                 ));
 
         if (abstractBlocks.stream().anyMatch(AbstractBlock::isHighlighted)) {
