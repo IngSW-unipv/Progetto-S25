@@ -3,8 +3,7 @@ package model.world;
 import config.GameConfig;
 import controller.event.*;
 import controller.event.EventListener;
-import model.block.Block;
-import model.block.BlockType;
+import model.block.*;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import util.PerformanceMetrics;
@@ -70,8 +69,8 @@ public class World implements EventListener {
      *
      * @return List of blocks to render based on visibility and culling
      */
-    public List<Block> getVisibleBlocks() {
-        List<Block> visibleBlocks = new ArrayList<>();
+    public List<AbstractBlock> getVisibleBlocks() {
+        List<AbstractBlock> visibleAbstractBlocks = new ArrayList<>();
         int totalChunkCount = 0;
         int culledChunkCount = 0;
 
@@ -81,23 +80,23 @@ public class World implements EventListener {
                 totalChunkCount++;
                 boolean isChunkVisible = frustum.isChunkInFrustum(chunk.getPosition(), CHUNK_SIZE);
 
-                Collection<Block> chunkBlocks = chunk.getBlocks();
+                Collection<AbstractBlock> chunkAbstractBlocks = chunk.getBlocks();
                 if (!isChunkVisible) {
                     // Skip culled chunks but track statistics
                     culledChunkCount++;
                     PerformanceMetrics.logBlocks(
-                        chunkBlocks.size(),  // Total blocks in chunk
+                        chunkAbstractBlocks.size(),  // Total blocks in chunk
                         0,                   // No blocks rendered
                         0,                   // None occluded (all culled)
-                        chunkBlocks.size()   // All blocks culled with chunk
+                        chunkAbstractBlocks.size()   // All blocks culled with chunk
                     );
                     continue;
                 }
 
                 // Count visible and occluded blocks in visible chunks
-                int totalInChunk = chunkBlocks.size();
-                int visibleInChunk = (int) chunkBlocks.stream()
-                        .filter(Block::isVisible)
+                int totalInChunk = chunkAbstractBlocks.size();
+                int visibleInChunk = (int) chunkAbstractBlocks.stream()
+                        .filter(AbstractBlock::isVisible)
                         .count();
                 int occludedInChunk = totalInChunk - visibleInChunk;
 
@@ -110,21 +109,21 @@ public class World implements EventListener {
                 );
 
                 // Add visible blocks to render list
-                chunkBlocks.stream()
-                    .filter(Block::isVisible)
-                    .forEach(visibleBlocks::add);
+                chunkAbstractBlocks.stream()
+                    .filter(AbstractBlock::isVisible)
+                    .forEach(visibleAbstractBlocks::add);
             }
 
             // Update chunk culling metrics
             PerformanceMetrics.logChunk(totalChunkCount, culledChunkCount);
         }
-        return visibleBlocks;
+        return visibleAbstractBlocks;
     }
 
     /**
      * Gets block at specified world position
      */
-    public Block getBlock(Vector3f position) {
+    public AbstractBlock getBlock(Vector3f position) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         return chunks.stream()
             .filter(c -> c.getPosition().equals(chunkPos))
@@ -291,7 +290,7 @@ public class World implements EventListener {
 
             BlockType type = determineBlockType((int)worldY, height);
             Vector3f blockPos = new Vector3f(worldX, worldY, worldZ);
-            chunk.setBlock(new Block(type, blockPos));
+            chunk.setBlock(BlockFactory.createBlock(type, blockPos));
         }
     }
 
@@ -372,15 +371,15 @@ public class World implements EventListener {
     public void placeBlock(Vector3f position, BlockType type) {
         Vector3f chunkPos = calculateChunkCoordinates(position);
         chunks.stream()
-            .filter(c -> c.getPosition().equals(chunkPos))
-            .findFirst()
-            .ifPresent(chunk -> {
-                Block newBlock = new Block(type, position);
-                chunk.setBlock(newBlock);
-                updateChunkBlockFaces(chunk);
-                updateNeighboringChunks(position, chunkPos);
-                modifiedBlocks.put(position, type);
-            });
+                .filter(c -> c.getPosition().equals(chunkPos))
+                .findFirst()
+                .ifPresent(chunk -> {
+                    AbstractBlock newBlock = BlockFactory.createBlock(type, position);
+                    chunk.setBlock(newBlock);
+                    updateChunkBlockFaces(chunk);
+                    updateNeighboringChunks(position, chunkPos);
+                    modifiedBlocks.put(position, type);
+                });
         modifiedBlocks.put(new Vector3f(position), type);
     }
 

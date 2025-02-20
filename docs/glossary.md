@@ -24,10 +24,10 @@ The fundamental cubic unit of the game world, characterized by:
 - State (visible, highlighted, breaking)
 
 ### Chunk
-A discrete section of the world (typically 16x16x16 blocks) that:
+A discrete section of the world (typically 16x16x16 abstractBlocks) that:
 - Forms the basic unit of world loading/unloading
-- Contains multiple blocks
-- Manages block visibility and updates
+- Contains multiple abstractBlocks
+- Manages abstractBlock visibility and updates
 - Optimizes rendering and memory usage
 
 ### Voxel
@@ -90,8 +90,8 @@ A GPU memory buffer that:
 ### Ray Casting
 A geometric technique that:
 - Projects rays from camera
-- Detects block intersections
-- Enables block selection
+- Detects abstractBlock intersections
+- Enables abstractBlock selection
 - Supports interaction
 
 ### Perlin Noise

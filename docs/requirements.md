@@ -20,7 +20,7 @@ See Glossary document for technical term definitions.
 | WMS-2 | System shall save world state to persistent storage | High | None |
 | WMS-3 | System shall load world data from storage | High | WMS-2 |
 | WMS-4 | System shall manage chunk loading/unloading | High | None |
-| WMS-5 | System shall track block modifications | Medium | None |
+| WMS-5 | System shall track abstractBlock modifications | Medium | None |
 | WMS-6 | System shall implement day/night cycle | Low | None |
 
 ### 2.2 Player Interaction System [PIS]
@@ -28,19 +28,19 @@ See Glossary document for technical term definitions.
 |----|-------------|----------|--------------|
 | PIS-1 | System shall process keyboard input | High | None |
 | PIS-2 | System shall process mouse input | High | None |
-| PIS-3 | System shall enable block placement | High | WMS-5 |
-| PIS-4 | System shall enable block destruction | High | WMS-5 |
+| PIS-3 | System shall enable abstractBlock placement | High | WMS-5 |
+| PIS-4 | System shall enable abstractBlock destruction | High | WMS-5 |
 | PIS-5 | System shall support player movement | High | None |
 | PIS-6 | System shall implement camera controls | High | None |
 
 ### 2.3 Rendering System [RES]
 | ID | Requirement | Priority | Dependencies |
 |----|-------------|----------|--------------|
-| RES-1 | System shall render visible blocks | High | None |
-| RES-2 | System shall apply textures to blocks | High | None |
+| RES-1 | System shall render visible abstractBlocks | High | None |
+| RES-2 | System shall apply textures to abstractBlocks | High | None |
 | RES-3 | System shall implement dynamic lighting | Medium | WMS-6 |
 | RES-4 | System shall display breaking animation | Medium | PIS-4 |
-| RES-5 | System shall highlight selected blocks | Medium | PIS-2 |
+| RES-5 | System shall highlight selected abstractBlocks | Medium | PIS-2 |
 | RES-6 | System shall implement frustum culling | High | None |
 
 ### 2.4 User Interface System [UIS]

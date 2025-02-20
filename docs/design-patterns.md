@@ -4,12 +4,12 @@
 
 ### Model Components
 **Core World Model:**
-- `World`: Manages world state and block data
-- `Block`: Represents individual blocks
-- `BlockType`: Defines block properties
-- `BlockDirection`: Represents block faces
-- `BlockModification`: Tracks block changes
-- `Chunk`: Manages block collections
+- `World`: Manages world state and abstractBlock data
+- `Block`: Represents individual abstractBlocks
+- `BlockType`: Defines abstractBlock properties
+- `BlockDirection`: Represents abstractBlock faces
+- `BlockModification`: Tracks abstractBlock changes
+- `Chunk`: Manages abstractBlock collections
 - `DayNightCycle`: Handles world time
 
 **Physics Model:**
@@ -186,7 +186,7 @@
 **World Structure:**
 - Component: `Block`
 - Composite: `Chunk`
-- Leaf: Individual blocks
+- Leaf: Individual abstractBlocks
 - Operations:
   - Rendering
   - Updates

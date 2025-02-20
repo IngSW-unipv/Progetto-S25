@@ -1,5 +1,6 @@
 package view.renderer;
 
+import model.block.AbstractBlock;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -15,7 +16,7 @@ import java.util.List;
  * Manages batched mesh data for efficient rendering in OpenGL.
  * Combines multiple block meshes into a single VAO/VBO for optimized draw calls.
  *
- * @see model.block.Block
+ * @see AbstractBlock
  * @see WorldRenderer
  * @see MasterRenderer
  */

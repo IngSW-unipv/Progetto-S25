@@ -157,7 +157,7 @@ public class DatabaseManager implements GameStatistics {
 
     /**
      * Retrieves leaderboard data for all worlds.
-     * Orders worlds by total blocks placed.
+     * Orders worlds by total abstractBlocks placed.
      * Combines world name and seed for display.
      *
      * @return List of WorldStats records containing statistics

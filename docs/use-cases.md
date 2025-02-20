@@ -68,7 +68,7 @@ A2. Out of bounds (Step 6)
 
 ## UC3: Block Interaction
 **Actor:** Player
-**Description:** Place and destroy blocks in the world
+**Description:** Place and destroy abstractBlocks in the world
 **Priority:** High
 
 **Preconditions:**
@@ -77,10 +77,10 @@ A2. Out of bounds (Step 6)
 
 **Main Flow:**
 1. Player aims at target location
-2. System highlights selected block/position
+2. System highlights selected abstractBlock/position
 3. Player initiates action:
-   - Left click: Begin breaking block
-   - Right click: Place block
+   - Left click: Begin breaking abstractBlock
+   - Right click: Place abstractBlock
 4. System validates action
 5. System updates world state
 6. System updates visual feedback
@@ -322,7 +322,7 @@ A2. Generation failure
 1. System updates world time
 2. System calculates sun position
 3. System updates ambient light
-4. System adjusts block lighting
+4. System adjusts abstractBlock lighting
 5. System applies visual effects
 6. System updates skybox
 7. System notifies affected systems

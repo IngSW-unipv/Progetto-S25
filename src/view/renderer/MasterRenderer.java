@@ -107,7 +107,7 @@ public class MasterRenderer implements WorldRenderer {
      */
     public void onEvent(GameEvent event) {
         if (event instanceof RenderEvent renderEvent) {
-            render(renderEvent.blocks(), renderEvent.camera(), renderEvent.world());
+            render(renderEvent.abstractBlocks(), renderEvent.camera(), renderEvent.world());
             renderEvent.world().update(renderEvent.camera().getPosition(), projectionViewMatrix);
         }
     }
@@ -116,7 +116,7 @@ public class MasterRenderer implements WorldRenderer {
      * Renders complete frame including world, effects and HUD
      */
     @Override
-    public void render(List<Block> blocks, Camera camera, World world) {
+    public void render(List<AbstractBlock> abstractBlocks, Camera camera, World world) {
         updateProjectionMatrix();
         prepareFrame();
 
@@ -124,9 +124,9 @@ public class MasterRenderer implements WorldRenderer {
         updateProjectionView(viewMatrix);
         float ambientLight = world.getDayNightCycle().getAmbientLight();
 
-        renderBreakingEffects(blocks, viewMatrix, ambientLight);
-        renderBlocks(blocks, viewMatrix, ambientLight);
-        renderHighlights(blocks, viewMatrix);
+        renderBreakingEffects(abstractBlocks, viewMatrix, ambientLight);
+        renderBlocks(abstractBlocks, viewMatrix, ambientLight);
+        renderHighlights(abstractBlocks, viewMatrix);
         renderHUD();
     }
 
@@ -149,14 +149,14 @@ public class MasterRenderer implements WorldRenderer {
     /**
      * Renders blocks with breaking animation
      */
-    private void renderBreakingEffects(List<Block> blocks, Matrix4f viewMatrix, float ambientLight) {
+    private void renderBreakingEffects(List<AbstractBlock> abstractBlocks, Matrix4f viewMatrix, float ambientLight) {
         breakingShader.start();
         setupBreakingShader(viewMatrix, ambientLight);
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        renderBreakingBlocks(blocks);
+        renderBreakingBlocks(abstractBlocks);
 
         breakingShader.stop();
         GL11.glDisable(GL11.GL_BLEND);
@@ -178,10 +178,10 @@ public class MasterRenderer implements WorldRenderer {
     /**
      * Renders blocks with active break progress
      */
-    private void renderBreakingBlocks(List<Block> blocks) {
-        for (Block block : blocks) {
-            if (block.getBreakProgress() > 0) {
-                renderBreakingBlock(block);
+    private void renderBreakingBlocks(List<AbstractBlock> abstractBlocks) {
+        for (AbstractBlock abstractBlock : abstractBlocks) {
+            if (abstractBlock.getBreakProgress() > 0) {
+                renderBreakingBlock(abstractBlock);
             }
         }
     }
@@ -189,15 +189,15 @@ public class MasterRenderer implements WorldRenderer {
     /**
      * Renders single breaking block effect
      */
-    private void renderBreakingBlock(Block block) {
+    private void renderBreakingBlock(AbstractBlock abstractBlock) {
         BatchedMesh breakMesh = new BatchedMesh();
-        breakMesh.addBlockMesh(block.getVertices(), block.getIndices(), 0, block.getLightLevel());
+        breakMesh.addBlockMesh(abstractBlock.getVertices(), abstractBlock.getIndices(), 0, abstractBlock.getLightLevel());
         breakMesh.updateGLBuffers();
 
-        textureManager.bindTexture(blockTextureIds.get(block.getType()), 0);
+        textureManager.bindTexture(blockTextureIds.get(abstractBlock.getType()), 0);
         GL20.glUniform1f(
                 GL20.glGetUniformLocation(breakingShader.getProgramID(), "breakProgress"),
-                block.getBreakProgress()
+                abstractBlock.getBreakProgress()
         );
 
         breakMesh.render();
@@ -207,14 +207,14 @@ public class MasterRenderer implements WorldRenderer {
     /**
      * Renders world blocks with batching
      */
-    private void renderBlocks(List<Block> blocks, Matrix4f viewMatrix, float ambientLight) {
+    private void renderBlocks(List<AbstractBlock> abstractBlocks, Matrix4f viewMatrix, float ambientLight) {
         blockShader.start();
         setupBlockShader(viewMatrix, ambientLight);
         ensureBlockTextures();
 
-        Map<BlockType, List<Block>> blocksByType = blocks.stream()
+        Map<BlockType, List<AbstractBlock>> blocksByType = abstractBlocks.stream()
                 .filter(this::isBlockInView)
-                .collect(Collectors.groupingBy(Block::getType));
+                .collect(Collectors.groupingBy(AbstractBlock::getType));
 
         renderBlockBatches(blocksByType);
         System.out.println(PerformanceMetrics.getMetricsString());
@@ -237,11 +237,11 @@ public class MasterRenderer implements WorldRenderer {
 
     /**
      * Checks if block is within view frustum
-     * @param block Block to check visibility
+     * @param abstractBlock Block to check visibility
      * @return true if block is in view frustum
      */
-    private boolean isBlockInView(Block block) {
-        Vector3f pos = block.getPosition();
+    private boolean isBlockInView(AbstractBlock abstractBlock) {
+        Vector3f pos = abstractBlock.getPosition();
         return frustum.isBoxInFrustum(pos.x(), pos.y(), pos.z(), 1.0f);
     }
 
@@ -250,29 +250,31 @@ public class MasterRenderer implements WorldRenderer {
      */
     private void ensureBlockTextures() {
         for (BlockType type : BlockType.values()) {
-            blockTextureIds.computeIfAbsent(type,
-                    t -> textureManager.loadTexture(t.getTexturePath())
-            );
+            if (!blockTextureIds.containsKey(type)) {
+                Vector3f tempPos = new Vector3f(0, 0, 0);
+                AbstractBlock block = BlockFactory.createBlock(type, tempPos);
+                blockTextureIds.put(type, textureManager.loadTexture(block.getTexturePath()));
+            }
         }
     }
 
     /**
      * Renders batched blocks by type
      */
-    private void renderBlockBatches(Map<BlockType, List<Block>> blocksByType) {
+    private void renderBlockBatches(Map<BlockType, List<AbstractBlock>> blocksByType) {
         blocksByType.forEach((type, typeBlocks) -> {
             BatchedMesh mesh = blockMeshes.computeIfAbsent(type, k -> new BatchedMesh());
             mesh.clear();
 
             int vertexOffset = 0;
-            for (Block block : typeBlocks) {
+            for (AbstractBlock abstractBlock : typeBlocks) {
                 mesh.addBlockMesh(
-                        block.getVertices(),
-                        block.getIndices(),
-                        vertexOffset,
-                        block.getLightLevel()
+                    abstractBlock.getVertices(),
+                    abstractBlock.getIndices(),
+                    vertexOffset,
+                    abstractBlock.getLightLevel()
                 );
-                vertexOffset += block.getVertices().length / 5;
+                vertexOffset += abstractBlock.getVertices().length / 5;
             }
 
             mesh.updateGLBuffers();
@@ -284,10 +286,10 @@ public class MasterRenderer implements WorldRenderer {
     /**
      * Renders block highlights
      */
-    private void renderHighlights(List<Block> blocks, Matrix4f viewMatrix) {
+    private void renderHighlights(List<AbstractBlock> abstractBlocks, Matrix4f viewMatrix) {
         highlightMesh.clear();
-        blocks.stream()
-                .filter(Block::isHighlighted)
+        abstractBlocks.stream()
+                .filter(AbstractBlock::isHighlighted)
                 .forEach(block -> highlightMesh.addBlockMesh(
                         block.getVertices(),
                         block.getIndices(),
@@ -295,7 +297,7 @@ public class MasterRenderer implements WorldRenderer {
                         block.getLightLevel()
                 ));
 
-        if (blocks.stream().anyMatch(Block::isHighlighted)) {
+        if (abstractBlocks.stream().anyMatch(AbstractBlock::isHighlighted)) {
             setupHighlightRendering(viewMatrix);
             highlightMesh.updateGLBuffers();
             highlightMesh.render();

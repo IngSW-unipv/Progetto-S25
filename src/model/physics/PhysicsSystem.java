@@ -3,7 +3,7 @@ package model.physics;
 import config.GameConfig;
 import model.player.Player;
 import model.world.World;
-import model.block.Block;
+import model.block.AbstractBlock;
 import org.joml.Vector3f;
 
 /**
@@ -57,8 +57,8 @@ public class PhysicsSystem {
     /** Checks for block below player */
     private boolean isBlockBelow(Player player) {
         Vector3f pos = player.getPosition();
-        Block block = world.getBlock(new Vector3f(pos.x, pos.y - 0.5f, pos.z));
-        return block != null && block.getType() != null;
+        AbstractBlock abstractBlock = world.getBlock(new Vector3f(pos.x, pos.y - 0.5f, pos.z));
+        return abstractBlock != null && abstractBlock.getType() != null;
     }
 
     /** Updates position with collision detection */

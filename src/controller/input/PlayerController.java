@@ -1,7 +1,7 @@
 package controller.input;
 
 import controller.event.*;
-import model.block.Block;
+import model.block.AbstractBlock;
 import model.block.BlockDirection;
 import model.block.BlockType;
 import model.physics.BoundingBox;
@@ -31,8 +31,8 @@ public class PlayerController {
     /** Block breaking state */
     public float breakingProgress = 0.0f;
     public boolean isBreaking = false;
-    private Block targetedBlock;
-    private Block lastTargetBlock;
+    private AbstractBlock targetedAbstractBlock;
+    private AbstractBlock lastTargetAbstractBlock;
 
     /** Time between block placements in seconds */
     private static final float PLACE_COOLDOWN = 0.2f;
@@ -199,7 +199,7 @@ public class PlayerController {
      */
     private void updateTargetedBlock() {
         // Get new target from raycast
-        Block newTarget = RayCaster.getTargetBlock(
+        AbstractBlock newTarget = RayCaster.getTargetBlock(
                 player.getCameraPosition(),
                 player.getYaw(),
                 player.getPitch(),
@@ -208,15 +208,15 @@ public class PlayerController {
         );
 
         // Update highlight state and breaking progress
-        if (targetedBlock != null) {
-            targetedBlock.setHighlighted(false);
-            if (newTarget != targetedBlock) {
-                targetedBlock.setBreakProgress(0.0f);
+        if (targetedAbstractBlock != null) {
+            targetedAbstractBlock.setHighlighted(false);
+            if (newTarget != targetedAbstractBlock) {
+                targetedAbstractBlock.setBreakProgress(0.0f);
                 stopBreaking();
             }
         }
 
-        targetedBlock = newTarget;
+        targetedAbstractBlock = newTarget;
         if (newTarget != null) {
             newTarget.setHighlighted(true);
         }
@@ -226,7 +226,7 @@ public class PlayerController {
      * Starts block breaking if target is valid.
      */
     public void startBreaking() {
-        if (targetedBlock != null && !targetedBlock.getType().isUnbreakable()) {
+        if (targetedAbstractBlock != null && !targetedAbstractBlock.isUnbreakable()) {
             isBreaking = true;
         }
     }
@@ -237,8 +237,8 @@ public class PlayerController {
     public void stopBreaking() {
         isBreaking = false;
         breakingProgress = 0.0f;
-        if (targetedBlock != null) {
-            targetedBlock.setBreakProgress(0.0f);
+        if (targetedAbstractBlock != null) {
+            targetedAbstractBlock.setBreakProgress(0.0f);
         }
     }
 
@@ -249,35 +249,36 @@ public class PlayerController {
      */
     public void updateBreaking(float deltaTime) {
         // Check if breaking should continue
-        if (!isBreaking || targetedBlock == null || targetedBlock.getType().isUnbreakable()) {
-            if (targetedBlock != lastTargetBlock) {
+        if (!isBreaking || targetedAbstractBlock == null || targetedAbstractBlock.isUnbreakable()) {
+            if (targetedAbstractBlock != lastTargetAbstractBlock) {
                 stopBreaking();
             }
-            lastTargetBlock = targetedBlock;
+            lastTargetAbstractBlock = targetedAbstractBlock;
             return;
         }
 
         // Update progress and visual state
         breakingProgress += deltaTime;
-        targetedBlock.setBreakProgress(breakingProgress / targetedBlock.getType().getBreakTime());
+        float breakTime = targetedAbstractBlock.getBreakTime();
+        targetedAbstractBlock.setBreakProgress(breakingProgress / breakTime);
 
         // Destroy block if breaking complete
-        if (breakingProgress >= targetedBlock.getType().getBreakTime()) {
-            BlockType type = targetedBlock.getType();
-            world.destroyBlock(targetedBlock.getPosition());
+        if (breakingProgress >= breakTime) {
+            BlockType type = targetedAbstractBlock.getType();
+            world.destroyBlock(targetedAbstractBlock.getPosition());
             EventBus.getInstance().post(new BlockEvent(type, false));
             breakingProgress = 0.0f;
             isBreaking = false;
         }
 
-        lastTargetBlock = targetedBlock;
+        lastTargetAbstractBlock = targetedAbstractBlock;
     }
 
     /**
      * Places a block adjacent to targeted block if possible.
      */
     public void placeBlock() {
-        if (targetedBlock == null) return;
+        if (targetedAbstractBlock == null) return;
 
         // Check placement cooldown
         long currentTime = System.currentTimeMillis();
@@ -286,7 +287,7 @@ public class PlayerController {
         }
 
         // Get placement position from raycast
-        Vector3f pos = targetedBlock.getPosition();
+        Vector3f pos = targetedAbstractBlock.getPosition();
         BlockDirection facing = RayCaster.getTargetFace(
                 player.getCameraPosition(),
                 player.getYaw(),

@@ -1,6 +1,6 @@
 package view.renderer;
 
-import model.block.Block;
+import model.block.AbstractBlock;
 import model.player.Camera;
 import model.world.World;
 
@@ -15,9 +15,9 @@ public interface WorldRenderer {
     /**
      * Renders visible world blocks from camera view.
      *
-     * @param blocks Blocks to render
+     * @param abstractBlocks Blocks to render
      * @param camera View camera
      * @param world Game world reference
      */
-    void render(List<Block> blocks, Camera camera, World world);
+    void render(List<AbstractBlock> abstractBlocks, Camera camera, World world);
 }

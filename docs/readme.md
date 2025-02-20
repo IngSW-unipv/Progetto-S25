@@ -26,7 +26,7 @@ A high-performance voxel engine implemented in Java, featuring strict Model-View
 - Real-time collision detection
 - Rigid body physics simulation
 - Block manipulation (placement/destruction)
-- Ray casting for block selection
+- Ray casting for abstractBlock selection
 - Player movement with jumping and gravity
 
 ### Performance
@@ -66,8 +66,8 @@ git clone https://github.com/IngSW-unipv/Progetto-S25.git
 - `Mouse`: Look around
 
 ### Block Interaction
-- `Right Click`: Break block
-- `Left Click`: Place block
+- `Right Click`: Break abstractBlock
+- `Left Click`: Place abstractBlock
 
 ### System Controls
 - `F11`: Toggle fullscreen
@@ -148,7 +148,7 @@ SandboxProject/
     │       └── MenuController
     │
     ├── model/                 # Game model
-    │   ├── block/            # Block system
+    │   ├── abstractBlock/            # Block system
     │   │   ├── Block
     │   │   ├── BlockDirection
     │   │   ├── BlockModification

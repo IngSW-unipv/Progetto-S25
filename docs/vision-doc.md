@@ -22,7 +22,7 @@ For developers, the engine must prove that clean architecture doesn't necessitat
 
 ## Technical Vision
 
-The heart of our technical vision lies in the careful implementation of core systems that work together seamlessly while remaining distinct and maintainable. The world generation system demonstrates this approach through its handling of terrain creation. Rather than generating terrain through monolithic functions, the system separates concerns clearly: noise generation remains independent from block placement, which in turn remains separate from mesh generation.
+The heart of our technical vision lies in the careful implementation of core systems that work together seamlessly while remaining distinct and maintainable. The world generation system demonstrates this approach through its handling of terrain creation. Rather than generating terrain through monolithic functions, the system separates concerns clearly: noise generation remains independent from abstractBlock placement, which in turn remains separate from mesh generation.
 
 Our rendering system exemplifies how performance optimization can coexist with clean architecture. While the system implements advanced techniques like frustum culling and batch rendering, it does so through well-defined components with clear responsibilities. The renderer itself knows nothing of game logic or physics - it receives only the necessary information through carefully designed interfaces.
 

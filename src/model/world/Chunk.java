@@ -1,6 +1,6 @@
 package model.world;
 
-import model.block.Block;
+import model.block.AbstractBlock;
 import org.joml.Vector3f;
 
 import java.util.Collection;
@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class Chunk {
     private final Vector3f position;                           // Position of the chunk in the world
-    private final Map<Vector3f, Block> blocks = new HashMap<>();    // Map of blocks within the chunk
+    private final Map<Vector3f, AbstractBlock> blocks = new HashMap<>();    // Map of blocks within the chunk
 
     /**
      * Constructs a new chunk at the specified position.
@@ -26,10 +26,10 @@ public class Chunk {
     /**
      * Adds or updates a block in the chunk.
      *
-     * @param block The block to be added or updated.
+     * @param abstractBlock The block to be added or updated.
      */
-    public void setBlock(Block block) {
-        blocks.put(block.getPosition(), block);
+    public void setBlock(AbstractBlock abstractBlock) {
+        blocks.put(abstractBlock.getPosition(), abstractBlock);
     }
 
     /**
@@ -38,7 +38,7 @@ public class Chunk {
      * @param position The position of the block to retrieve.
      * @return The block at the specified position, or {@code null} if no block exists.
      */
-    public Block getBlock(Vector3f position) {
+    public AbstractBlock getBlock(Vector3f position) {
         return blocks.get(position);
     }
 
@@ -56,7 +56,7 @@ public class Chunk {
      *
      * @return A collection of all blocks contained in the chunk.
      */
-    public Collection<Block> getBlocks() {
+    public Collection<AbstractBlock> getBlocks() {
         return blocks.values();
     }
 

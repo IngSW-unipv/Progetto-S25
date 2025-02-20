@@ -1,6 +1,6 @@
 package model.physics;
 
-import model.block.Block;
+import model.block.AbstractBlock;
 import model.world.World;
 import org.joml.Vector3f;
 import java.util.List;
@@ -22,10 +22,10 @@ public class CollisionSystem {
      */
     public boolean checkCollision(BoundingBox box) {
         // Get nearby blocks for collision check
-        List<Block> nearbyBlocks = getNearbyBlocks(box);
+        List<AbstractBlock> nearbyAbstractBlocks = getNearbyBlocks(box);
 
-        for (Block block : nearbyBlocks) {
-            if (box.intersects(block.getBoundingBox())) {
+        for (AbstractBlock abstractBlock : nearbyAbstractBlocks) {
+            if (box.intersects(abstractBlock.getBoundingBox())) {
                 return true;
             }
         }
@@ -35,7 +35,7 @@ public class CollisionSystem {
     /**
      * Gets blocks that could be hit during movement
      */
-    private List<Block> getNearbyBlocks(BoundingBox box) {
+    private List<AbstractBlock> getNearbyBlocks(BoundingBox box) {
         return world.getVisibleBlocks().stream()
             .filter(block -> {
                 Vector3f pos = block.getPosition();

@@ -1,8 +1,8 @@
 package model.player;
 
 import config.GameConfig;
+import model.block.AbstractBlock;
 import model.world.World;
-import model.block.Block;
 import model.block.BlockDirection;
 import org.joml.Vector3f;
 
@@ -19,7 +19,7 @@ public class RayCaster {
 
     /** Result of a ray intersection test */
     private record RaycastResult(
-        Block block,
+        AbstractBlock abstractBlock,
         Vector3f checkPos,
         Vector3f blockPos
     ) {}
@@ -34,13 +34,13 @@ public class RayCaster {
      * @param roll Unused rotation
      * @param world World to check
      */
-    public static Block getTargetBlock(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
+    public static AbstractBlock getTargetBlock(Vector3f cameraPosition, float yaw, float pitch, float roll, World world) {
         Vector3f direction = calculateDirection(yaw, pitch);
 
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
             RaycastResult result = getBlockAtRayPosition(cameraPosition, direction, distance, world);
-            if (result.block() != null) {
-                return result.block();
+            if (result.abstractBlock() != null) {
+                return result.abstractBlock();
             }
         }
         return null;
@@ -64,7 +64,7 @@ public class RayCaster {
 
         for (float distance = 0; distance <= RAY_MAX_DISTANCE; distance += STEP) {
             RaycastResult result = getBlockAtRayPosition(cameraPosition, direction, distance, world);
-            if (result.block() != null) {
+            if (result.abstractBlock() != null) {
                 // Entry point is one step back from hit
                 Vector3f entryPoint = new Vector3f(
                     result.checkPos().x - direction.x * STEP,
@@ -114,8 +114,8 @@ public class RayCaster {
             (int) Math.floor(checkPos.z + 0.5f)
         );
 
-        Block block = world.getBlock(blockPos);
-        return new RaycastResult(block, checkPos, blockPos);
+        AbstractBlock abstractBlock = world.getBlock(blockPos);
+        return new RaycastResult(abstractBlock, checkPos, blockPos);
     }
 
     /**

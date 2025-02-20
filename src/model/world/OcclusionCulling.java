@@ -1,6 +1,6 @@
 package model.world;
 
-import model.block.Block;
+import model.block.AbstractBlock;
 import org.joml.Vector3f;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,8 +50,8 @@ public class OcclusionCulling {
      * Tests if a block at given coordinates is opaque
      */
     private boolean isOpaqueBlock(float x, float y, float z, World world) {
-        Block block = world.getBlock(new Vector3f(x, y, z));
-        return block != null && block.getType().isOpaque();
+        AbstractBlock abstractBlock = world.getBlock(new Vector3f(x, y, z));
+        return abstractBlock != null && abstractBlock.isOpaque();
     }
 
     /**
