@@ -32,12 +32,6 @@ public abstract class TerrainBlock extends AbstractBlock {
         this.opaque = opaque;
     }
 
-    /**
-     * Gets path to block texture.
-     * @return Texture file path
-     */
-    public abstract String getTexturePath();
-
     @Override
     public float getBreakTime() {
         return breakTime;

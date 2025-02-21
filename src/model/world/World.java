@@ -23,6 +23,8 @@ public class World implements EventListener {
     private final Set<Chunk> chunks = new HashSet<>();
     private final Map<Vector3f, BlockType> modifiedBlocks = new HashMap<>();
     private final Object chunksLock = new Object();
+    private static final int UPDATE_INTERVAL_TICKS = 20; // Update blocks every 20 ticks
+    private int updateCounter = 0;
 
     /** World systems */
     private final ChunkLoader chunkLoader;
@@ -376,6 +378,7 @@ public class World implements EventListener {
             .ifPresent(chunk -> {
                 AbstractBlock newBlock = BlockFactory.createBlock(type, position);
                 chunk.setBlock(newBlock);
+                newBlock.onPlace(this); // Add this
                 updateChunkBlockFaces(chunk);
                 updateNeighboringChunks(position, chunkPos);
                 modifiedBlocks.put(position, type);
@@ -392,6 +395,10 @@ public class World implements EventListener {
             .filter(c -> c.getPosition().equals(chunkPos))
             .findFirst()
             .ifPresent(chunk -> {
+                AbstractBlock block = chunk.getBlock(position);
+                if (block != null) {
+                    block.onBreak(this); // Add this
+                }
                 updateAdjacentBlockFaces(position);
                 chunk.removeBlock(position);
                 updateChunkBlockFaces(chunk);
@@ -438,12 +445,73 @@ public class World implements EventListener {
     }
 
     /**
-     * Updates world state for current frame
-     * @param playerPos Current player location
-     * @param projectionViewMatrix View frustum matrix for culling
+     * Updates block state periodically based on player position.
+     * Uses staggered updates to maintain performance.
+     *
+     * @param playerPos Current player position
+     * @param projectionViewMatrix View matrix for frustum culling
      */
     public void update(Vector3f playerPos, Matrix4f projectionViewMatrix) {
         frustum.update(projectionViewMatrix);
         updateLoadedChunks(playerPos);
+        updateBlocks();
+
+        // Only run block updates periodically
+        updateCounter++;
+        if (updateCounter >= UPDATE_INTERVAL_TICKS) {
+            updateCounter = 0;
+            updateBlocksNearPlayer(playerPos);
+        }
+    }
+
+    /**
+     * Updates blocks in chunks near the player.
+     * Only processes a subset of blocks each cycle to distribute load.
+     *
+     * @param playerPos Current player position in world coordinates
+     */
+    private void updateBlocksNearPlayer(Vector3f playerPos) {
+        Vector3f playerChunkPos = calculateChunkCoordinates(playerPos);
+        int updateRadius = 2; // Only update blocks in nearby chunks
+
+        synchronized(chunksLock) {
+            for (Chunk chunk : chunks) {
+                // Skip chunks too far from player
+                if (isChunkTooFar(chunk.getPosition(), playerChunkPos, updateRadius)) {
+                    continue;
+                }
+
+                // Update only a subset of blocks each cycle
+                List<AbstractBlock> blocks = new ArrayList<>(chunk.getBlocks());
+                for (int i = 0; i < Math.min(blocks.size(), 10); i++) {
+                    int index = (updateCounter + i) % blocks.size();
+                    blocks.get(index).onUpdate(this);
+                }
+            }
+        }
+    }
+
+    /**
+     * Determines if a chunk is outside the update radius.
+     *
+     * @param chunkPos Position of chunk to check
+     * @param playerChunkPos Current player chunk position
+     * @param radius Maximum update radius in chunks
+     * @return true if chunk is too far for updates
+     */
+    private boolean isChunkTooFar(Vector3f chunkPos, Vector3f playerChunkPos, int radius) {
+        return Math.abs(chunkPos.x() - playerChunkPos.x()) > radius ||
+                Math.abs(chunkPos.y() - playerChunkPos.y()) > radius ||
+                Math.abs(chunkPos.z() - playerChunkPos.z()) > radius;
+    }
+
+    public void updateBlocks() {
+        synchronized(chunksLock) {
+            for (Chunk chunk : chunks) {
+                for (AbstractBlock block : chunk.getBlocks()) {
+                    block.onUpdate(this);
+                }
+            }
+        }
     }
 }

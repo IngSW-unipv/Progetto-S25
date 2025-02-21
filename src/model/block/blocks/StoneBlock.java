@@ -46,7 +46,7 @@ public class StoneBlock extends TerrainBlock {
     }
 
     @Override
-    protected void onUpdate(World world) {
+    public void onUpdate(World world) {
         // Specific update behavior
     }
 }

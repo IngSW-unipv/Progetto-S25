@@ -1,5 +1,6 @@
 package model.block.blocks;
 
+import model.block.AbstractBlock;
 import model.block.BlockType;
 import model.block.TerrainBlock;
 import model.world.World;
@@ -48,7 +49,17 @@ public class GrassBlock extends TerrainBlock {
     }
 
     @Override
-    protected void onUpdate(World world) {
-        // Check if must transform to dirt
+    public void onUpdate(World world) {
+        Vector3f abovePos = new Vector3f(position.x(), position.y() + 1, position.z());
+        AbstractBlock blockAbove = world.getBlock(abovePos);
+
+        if (blockAbove != null) {
+            BlockType aboveType = blockAbove.getType();
+
+            // Transform instantly if covered by dirt or grass block
+            if (aboveType == BlockType.DIRT || aboveType == BlockType.GRASS) {
+                world.placeBlock(position, BlockType.DIRT);
+            }
+        }
     }
 }

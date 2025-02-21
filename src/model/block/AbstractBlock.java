@@ -89,7 +89,7 @@ public abstract class AbstractBlock {
     public abstract void onPlace(World world);
 
     /** Called to update block state */
-    protected abstract void onUpdate(World world);
+    public abstract void onUpdate(World world);
 
     /** Gets block position */
     public Vector3f getPosition() { return position; }

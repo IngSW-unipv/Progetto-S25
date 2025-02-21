@@ -8,6 +8,7 @@ import controller.input.InputController;
 import controller.input.PlayerController;
 import model.game.Model;
 import org.lwjgl.glfw.GLFW;
+import util.GameClock;
 import util.PerformanceMetrics;
 import view.View;
 
@@ -85,6 +86,8 @@ public class GameController {
     private void update() {
         PerformanceMetrics.startFrame();
         updateDeltaTime();
+        GameClock.getInstance().update(deltaTime);
+
         playerController.update(deltaTime);
         model.update(deltaTime);
 

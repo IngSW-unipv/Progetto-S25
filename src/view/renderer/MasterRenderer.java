@@ -242,9 +242,11 @@ public class MasterRenderer implements WorldRenderer {
     private void ensureBlockTextures() {
         for (BlockType type : BlockType.values()) {
             if (!blockTextureIds.containsKey(type)) {
+                // Create a temporary block just once for each type to get its texture path
                 Vector3f tempPos = new Vector3f(0, 0, 0);
                 AbstractBlock block = BlockFactory.createBlock(type, tempPos);
-                blockTextureIds.put(type, textureManager.loadTexture(block.getTexturePath()));
+                String texturePath = block.getTexturePath();
+                blockTextureIds.put(type, textureManager.loadTexture(texturePath));
             }
         }
     }
@@ -280,13 +282,13 @@ public class MasterRenderer implements WorldRenderer {
     private void renderHighlights(List<AbstractBlock> abstractBlocks, Matrix4f viewMatrix) {
         highlightMesh.clear();
         abstractBlocks.stream()
-                .filter(AbstractBlock::isHighlighted)
-                .forEach(block -> highlightMesh.addBlockMesh(
-                    block.getVertices(),
-                    block.getIndices(),
-                    0,
-                    block.getLightLevel()
-                ));
+            .filter(AbstractBlock::isHighlighted)
+            .forEach(block -> highlightMesh.addBlockMesh(
+                block.getVertices(),
+                block.getIndices(),
+                0,
+                block.getLightLevel()
+            ));
 
         if (abstractBlocks.stream().anyMatch(AbstractBlock::isHighlighted)) {
             setupHighlightRendering(viewMatrix);
