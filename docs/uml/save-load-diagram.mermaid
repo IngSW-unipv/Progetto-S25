@@ -1,0 +1,79 @@
+stateDiagram-v2
+    [*] --> SaveTrigger: Start Save
+    [*] --> FindWorlds: Start Load
+    [*] --> AutoSaveCheck: Auto-Save Timer
+    
+    %% Save Flow
+    SaveTrigger --> CollectState
+    CollectState --> ValidateData
+    ValidateData --> CreateSaveData
+    CreateSaveData --> WriteFile
+    WriteFile --> SaveError
+    SaveError --> RetryWrite: Failed
+    SaveError --> UpdateStats: Success
+    RetryWrite --> WriteFile
+    UpdateStats --> SaveComplete
+    SaveComplete --> [*]
+    
+    %% Load Flow
+    FindWorlds --> WorldsCheck
+    WorldsCheck --> SelectWorld: Worlds Found
+    WorldsCheck --> CreateNew: No Worlds
+    SelectWorld --> ReadSaveFile
+    ReadSaveFile --> LoadError
+    LoadError --> AttemptRepair: Error
+    LoadError --> ValidateLoadData: Success
+    AttemptRepair --> BackupCheck
+    BackupCheck --> LoadBackup: Backup Available
+    BackupCheck --> CreateNew: No Backup
+    LoadBackup --> ValidateLoadData
+    ValidateLoadData --> InitializeWorld
+    InitializeWorld --> LoadModifications
+    InitializeWorld --> SetPlayerState
+    LoadModifications --> GenerateWorld
+    SetPlayerState --> GenerateWorld
+    GenerateWorld --> LoadComplete
+    LoadComplete --> [*]
+    
+    %% Create World Flow
+    CreateNew --> CreateWorldFlow
+    CreateWorldFlow --> EnterWorldName
+    EnterWorldName --> EnterWorldSeed
+    EnterWorldSeed --> SaveWorldMetadata
+    SaveWorldMetadata --> GenerateTerrain
+    GenerateTerrain --> LoadComplete
+    
+    %% Auto-Save Flow
+    AutoSaveCheck --> TimeCheck
+    TimeCheck --> SaveTrigger: Time >= 5 min
+    TimeCheck --> ManualCheck: Time < 5 min
+    ManualCheck --> SaveTrigger: Manual Save
+    ManualCheck --> ContinueGame: No Save
+    ContinueGame --> [*]
+    
+    %% State descriptions
+    state CollectState {
+        [*] --> GetBlocks
+        [*] --> GetPlayer
+        GetBlocks --> [*]
+        GetPlayer --> [*]
+    }
+    
+    state SaveError {
+        [*] --> CheckError
+        CheckError --> DiskFull: No Space
+        CheckError --> IOError: I/O Error
+        CheckError --> Success: No Error
+        DiskFull --> [*]
+        IOError --> [*]
+        Success --> [*]
+    }
+    
+    state ValidateData {
+        [*] --> CheckData
+        CheckData --> DataValid
+        CheckData --> DataInvalid
+        DataValid --> [*]
+        DataInvalid --> FixData
+        FixData --> [*]
+    }

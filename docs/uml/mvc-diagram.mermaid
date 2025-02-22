@@ -1,0 +1,296 @@
+classDiagram
+    %% MVC Core Components with clearer relationships
+    class Model {
+        <<component>>
+        -Core business logic
+        -State management
+        -Data validation
+        +notifyObservers() void
+        +registerObserver(Observer) void
+        +removeObserver(Observer) void
+    }
+    
+    class View {
+        <<component>>
+        -User interface
+        -Rendering
+        -Visual feedback
+        +update() void
+        +requestUserInput() void
+    }
+    
+    class Controller {
+        <<component>>
+        -Input handling
+        -Event processing
+        -State transitions
+        +handleInput() void
+        +updateModel() void
+        +selectView() void
+    }
+    
+    %% Observer Pattern Interface
+    class Observer {
+        <<interface>>
+        +update(Subject, Object data) void
+    }
+    
+    %% Key Model Classes
+    class GameModel {
+        -GameState gameState
+        -Player player
+        -PhysicsSystem physicsSystem
+        -World world
+        -GameStatistics statistics
+        -String worldName
+        -List~Observer~ observers
+        +Model(String, long)
+        +update(float)
+        +saveGame()
+        +getGameState() GameState
+        +getWorld() World
+        +getPlayer() Player
+        +getStatistics() GameStatistics
+        +notifyObservers() void
+    }
+    
+    class World {
+        -long seed
+        -Set~Chunk~ chunks
+        -Map~Vector3f, BlockType~ modifiedBlocks
+        -ChunkLoader chunkLoader
+        -PerlinNoiseGenerator terrainNoise
+        -OcclusionCulling occlusionCulling
+        -List~Observer~ observers
+        +getVisibleBlocks() List~AbstractBlock~
+        +getBlock(Vector3f) AbstractBlock
+        +placeBlock(Vector3f, BlockType) void
+        +destroyBlock(Vector3f) void
+        +generateChunkTerrain(Vector3f) void
+        +update(Vector3f, Matrix4f) void
+        +notifyObservers() void
+    }
+    
+    class Player {
+        -Vector3f position
+        -Vector3f velocity
+        -Vector3f acceleration
+        -Camera camera
+        -BoundingBox boundingBox
+        -List~Observer~ observers
+        +update(float) void
+        +setPosition(Vector3f) void
+        +getCamera() Camera
+        +notifyObservers() void
+    }
+    
+    class PhysicsSystem {
+        -World world
+        -CollisionSystem collisionSystem
+        +updatePlayerPhysics(Player, float) void
+        -updateVelocity(Player, float) void
+        -updatePosition(Player, float) void
+    }
+    
+    %% Key View Classes
+    class GameView {
+        -WindowManager displayManager
+        -MasterRenderer renderer
+        +createDisplay() void
+        +updateDisplay() void
+        +closeDisplay() void
+        +onEvent(GameEvent) void
+        +update(Subject, Object data) void
+    }
+    
+    class MasterRenderer {
+        -ShaderProgram blockShader
+        -TextureManager textureManager
+        -BatchedMesh blockMeshes
+        -HUDRenderer hudRenderer
+        +render(List~AbstractBlock~, Camera, World) void
+        -renderBlocks() void
+        -renderHighlights() void
+        -renderHUD() void
+        +update(Subject, Object data) void
+    }
+    
+    class MenuView {
+        -JPanel mainPanel
+        -CardLayout cardLayout
+        +showMainMenu() void
+        +showWorldSelect() void
+        +showSettings() void
+        +createStyledButton(String, MenuAction) JButton
+        +update(Subject, Object data) void
+    }
+    
+    %% Key Controller Classes
+    class GameController {
+        -Model model
+        -View view
+        -PlayerController playerController
+        -InputController inputController
+        +GameController(String, long)
+        -startGameLoop() void
+        -update() void
+        +handleInput(InputEvent) void
+    }
+    
+    class InputController {
+        -long window
+        -EventBus eventBus
+        -Model model
+        +pollInput() void
+        -handleKeyboardInput() void
+        -handleMouseInput() void
+        +dispatchEvent(InputEvent) void
+    }
+    
+    class PlayerController {
+        -Player player
+        -World world
+        +handleInput(InputEvent) void
+        -updateMovement() void
+        -handleBlockDestruction(boolean) void
+        -handleBlockPlacement(boolean) void
+        +update(float) void
+    }
+    
+    class MenuController {
+        -MenuView view
+        -EventBus eventBus
+        +MenuController()
+        -handleMenuAction(GameEvent) void
+        +startGame(String, long) void
+        +handleInput(MenuEvent) void
+    }
+    
+    %% Event System Classes
+    class EventBus {
+        <<singleton>>
+        -Map~EventType, List~EventListener~~ listeners
+        +getInstance() EventBus
+        +subscribe(EventType, EventListener) void
+        +unsubscribe(EventType, EventListener) void
+        +post(GameEvent) void
+    }
+    
+    class EventListener {
+        <<interface>>
+        +onEvent(GameEvent) void
+    }
+    
+    class GameEvent {
+        <<interface>>
+        +getType() EventType
+        +getData() Object
+    }
+    
+    %% Rendering Interface
+    class WorldRenderer {
+        <<interface>>
+        +render(List~AbstractBlock~, Camera, World) void
+    }
+    
+    %% Data Flow Components
+    class ModelUpdateFlow {
+        <<note>>
+        1. Controller receives input
+        2. Controller updates Model
+        3. Model notifies Observers (Views)
+        4. Views query Model for state
+        5. Views update display
+    }
+    
+    class EventFlow {
+        <<note>>
+        1. User action captured by View
+        2. View forwards to Controller
+        3. Controller processes event
+        4. Controller updates Model
+        5. Model notifies Views
+        6. Views refresh display
+    }
+    
+    %% MVC Pattern Relationships with improved specificity
+    Model <-- Controller : updates >
+    Controller <-- View : forwards input to >
+    View <.. Model : notifies < 
+    
+    %% Observer Pattern Implementation
+    View ..|> Observer : implements
+    Model --> Observer : notifies
+    
+    %% Model-specific relationships
+    GameModel --|> Model : implements
+    World --|> Model : implements
+    Player --|> Model : implements
+    PhysicsSystem --|> Model : implements
+    
+    GameModel --> World : contains
+    GameModel --> Player : contains
+    GameModel --> PhysicsSystem : uses
+    
+    %% View-specific relationships
+    GameView --|> View : implements
+    MasterRenderer --|> View : implements
+    MenuView --|> View : implements
+    
+    GameView --> MasterRenderer : uses
+    MasterRenderer ..|> WorldRenderer : implements
+    GameView ..|> Observer : implements
+    MasterRenderer ..|> Observer : implements
+    MenuView ..|> Observer : implements
+    
+    %% Controller-specific relationships
+    GameController --|> Controller : implements
+    InputController --|> Controller : implements
+    PlayerController --|> Controller : implements
+    MenuController --|> Controller : implements
+    
+    GameController --> InputController : uses
+    GameController --> PlayerController : uses
+    
+    %% Cross-cutting concerns
+    EventBus --> EventListener : notifies
+    GameView ..|> EventListener : implements
+    World ..|> EventListener : implements
+    PlayerController ..|> EventListener : implements
+    
+    %% Data flow
+    GameController --> GameModel : manages >
+    GameController --> GameView : updates >
+    PlayerController --> Player : controls >
+    PlayerController --> World : interacts with >
+    MenuController --> MenuView : controls >
+    
+    %% Flow descriptions
+    ModelUpdateFlow .. Model : describes flow
+    EventFlow .. EventBus : describes flow
+    
+    %% Strict MVC Enforcement
+    class MVCEnforcement {
+        <<note>>
+        Model:
+        - No knowledge of specific views
+        - No direct UI interaction
+        - Maintains consistent state
+        - Only knows about Observer interface
+        
+        View:
+        - No business logic
+        - Observes model changes via Observer pattern
+        - Forwards user input to controllers
+        - Queries model for state when updated
+        
+        Controller:
+        - Interprets user input
+        - Updates model based on input
+        - Selects appropriate view
+        - Never updates view directly
+    }
+    
+    Model .. MVCEnforcement : follows
+    View .. MVCEnforcement : follows
+    Controller .. MVCEnforcement : follows

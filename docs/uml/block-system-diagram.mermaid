@@ -1,0 +1,250 @@
+classDiagram
+    %% Abstract Block
+    class AbstractBlock {
+        <<abstract>>
+        #Vector3f position
+        #BoundingBox boundingBox
+        #boolean[] visibleFaces
+        #boolean isVisible
+        #boolean isHighlighted
+        #float breakProgress
+        #int lightLevel
+        #static final int FRONT, BACK, TOP, BOTTOM, RIGHT, LEFT
+        +AbstractBlock(Vector3f)
+        +getType() BlockType
+        +isUnbreakable() boolean
+        +getTexturePath() String
+        +getBreakTime() float
+        +isOpaque() boolean
+        +getVertices() float[]
+        +getIndices() int[]
+        +onBreak(World) void
+        +onPlace(World) void
+        #onUpdate(World) void
+        +getPosition() Vector3f
+        +getBoundingBox() BoundingBox
+        +isVisible() boolean
+        +setVisible(boolean) void
+        +isHighlighted() boolean
+        +setHighlighted(boolean) void
+        +getBreakProgress() float
+        +setBreakProgress(float) void
+        +getLightLevel() int
+        +updateVisibleFaces(World) void
+        #updateFaceVisibility(World) void
+        -updateOverallVisibility() void
+        #shouldRenderFace(World, int, int, int) boolean
+        -isCompletelyHidden(World) boolean
+        #addFaceVertices(List~Float~, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float, float) void
+    }
+    
+    %% Terrain Block
+    class TerrainBlock {
+        <<abstract>>
+        #float breakTime
+        #boolean opaque
+        #TerrainBlock(Vector3f, float, boolean)
+        +getTexturePath() String
+        +getBreakTime() float
+        +isOpaque() boolean
+        +getVertices() float[]
+        +getIndices() int[]
+    }
+    
+    %% Concrete Blocks
+    class DirtBlock {
+        -static final float BREAK_TIME
+        -static final boolean IS_OPAQUE
+        -static final String TEXTURE_PATH
+        +DirtBlock(Vector3f)
+        +getType() BlockType
+        +isUnbreakable() boolean
+        +getTexturePath() String
+        +onBreak(World) void
+        +onPlace(World) void
+        #onUpdate(World) void
+    }
+    
+    class GrassBlock {
+        -static final float BREAK_TIME
+        -static final boolean IS_OPAQUE
+        -static final String TEXTURE_PATH
+        +GrassBlock(Vector3f)
+        +getType() BlockType
+        +isUnbreakable() boolean
+        +getTexturePath() String
+        +onBreak(World) void
+        +onPlace(World) void
+        #onUpdate(World) void
+    }
+    
+    class StoneBlock {
+        -static final float BREAK_TIME
+        -static final boolean IS_OPAQUE
+        -static final String TEXTURE_PATH
+        +StoneBlock(Vector3f)
+        +getType() BlockType
+        +isUnbreakable() boolean
+        +getTexturePath() String
+        +onBreak(World) void
+        +onPlace(World) void
+        #onUpdate(World) void
+    }
+    
+    class BedrockBlock {
+        -static final float BREAK_TIME
+        -static final boolean IS_OPAQUE
+        -static final String TEXTURE_PATH
+        +BedrockBlock(Vector3f)
+        +getType() BlockType
+        +isUnbreakable() boolean
+        +getTexturePath() String
+        +onBreak(World) void
+        +onPlace(World) void
+        #onUpdate(World) void
+    }
+    
+    %% Block Factory
+    class BlockFactory {
+        <<static>>
+        -BlockFactory() void
+        +createBlock(BlockType, Vector3f) AbstractBlock
+    }
+    
+    %% Block Type Enum
+    class BlockType {
+        <<enumeration>>
+        DIRT
+        GRASS
+        STONE
+        BEDROCK
+    }
+    
+    %% Block Direction
+    class BlockDirection {
+        <<enumeration>>
+        FRONT
+        BACK
+        TOP
+        BOTTOM
+        RIGHT
+        LEFT
+        -int dx
+        -int dy
+        -int dz
+        +BlockDirection(int, int, int)
+        +getDx() int
+        +getDy() int
+        +getDz() int
+    }
+    
+    %% Block Modification
+    class BlockModification {
+        <<serializable>>
+        -float x
+        -float y
+        -float z
+        -BlockType type
+        -static final long serialVersionUID
+        +BlockModification(Vector3f, BlockType)
+        +getPosition() Vector3f
+        +getType() BlockType
+    }
+    
+    %% Physics
+    class BoundingBox {
+        -Vector3f min
+        -Vector3f max
+        -float width
+        -float height
+        -float depth
+        +BoundingBox(float, float, float)
+        +update(Vector3f) void
+        +intersects(BoundingBox) boolean
+        +getMin() Vector3f
+        +getMax() Vector3f
+    }
+    
+    %% World and Chunk
+    class World {
+        +getBlock(Vector3f) AbstractBlock
+        +placeBlock(Vector3f, BlockType) void
+        +destroyBlock(Vector3f) void
+        +getModifiedBlocks() Map~Vector3f, BlockType~
+    }
+    
+    class Chunk {
+        -Vector3f position
+        -Map~Vector3f, AbstractBlock~ blocks
+        +Chunk(Vector3f)
+        +setBlock(AbstractBlock) void
+        +getBlock(Vector3f) AbstractBlock
+        +removeBlock(Vector3f) void
+        +getBlocks() Collection~AbstractBlock~
+        +getPosition() Vector3f
+    }
+    
+    %% Rendering System Integration
+    class MasterRenderer {
+        -Map~BlockType, Integer~ blockTextureIds
+        -Map~BlockType, BatchedMesh~ blockMeshes
+        +render(List~AbstractBlock~, Camera, World) void
+    }
+    
+    class BatchedMesh {
+        +addBlockMesh(float[], int[], int, int) void
+        +updateGLBuffers() void
+        +render() void
+    }
+    
+    %% Player Interaction
+    class PlayerController {
+        -AbstractBlock targetedAbstractBlock
+        +updateTargetedBlock() void
+        +handleBlockDestruction(boolean) void
+        +handleBlockPlacement(boolean) void
+    }
+    
+    class RayCaster {
+        +getTargetBlock(Vector3f, float, float, float, World) AbstractBlock
+        +getTargetFace(Vector3f, float, float, float, World) BlockDirection
+    }
+    
+    %% Relationships
+    TerrainBlock --|> AbstractBlock : extends
+    DirtBlock --|> TerrainBlock : extends
+    GrassBlock --|> TerrainBlock : extends
+    StoneBlock --|> TerrainBlock : extends
+    BedrockBlock --|> TerrainBlock : extends
+    
+    BlockFactory --> AbstractBlock : creates
+    BlockFactory --> DirtBlock : creates
+    BlockFactory --> GrassBlock : creates
+    BlockFactory --> StoneBlock : creates
+    BlockFactory --> BedrockBlock : creates
+    BlockFactory --> BlockType : uses
+    
+    AbstractBlock --> BlockType : has
+    AbstractBlock --> BoundingBox : contains
+    AbstractBlock ..> BlockDirection : uses
+    
+    World --> AbstractBlock : contains
+    World --> BlockFactory : uses
+    World --> BlockModification : tracks
+    World --> BlockType : uses
+    
+    Chunk --> AbstractBlock : contains
+    
+    RayCaster --> AbstractBlock : detects
+    RayCaster --> BlockDirection : calculates
+    
+    PlayerController --> AbstractBlock : interacts with
+    PlayerController --> RayCaster : uses
+    
+    MasterRenderer --> AbstractBlock : renders
+    MasterRenderer --> BlockType : tracks textures for
+    MasterRenderer --> BatchedMesh : creates for blocks
+    BatchedMesh --> AbstractBlock : gets geometry from
+    
+    World --> Chunk : contains
+    BlockModification --> BlockType : references

@@ -1,0 +1,63 @@
+flowchart TB
+    %% Main packages
+    subgraph Model["Model"]
+        model_block["model.block"]
+        model_game["model.game"]
+        model_physics["model.physics"]
+        model_player["model.player"]
+        model_save["model.save"]
+        model_statistics["model.statistics"]
+        model_world["model.world"]
+    end
+    
+    subgraph View["View"]
+        view_menu["view.menu"]
+        view_renderer["view.renderer"]
+        view_shader["view.shader"]
+        view_window["view.window"]
+    end
+    
+    subgraph Controller["Controller"]
+        controller_event["controller.event"]
+        controller_game["controller.game"]
+        controller_input["controller.input"]
+        controller_menu["controller.menu"]
+    end
+    
+    %% Support packages
+    subgraph Config["Config"]
+        config_package["config"]
+    end
+    
+    subgraph Util["Util"]
+        util_package["util"]
+    end
+    
+    %% Core dependencies between MVC components
+    Controller -- "sends events to" --> Model
+    Controller -- "updates" --> View
+    View -- "renders" --> Model
+    Model -- "notifies" --> Controller
+    
+    %% Specific dependencies
+    controller_event -- "routes events to" --> model_game
+    controller_event -- "notifies" --> view_renderer
+    controller_input -- "controls" --> model_player
+    controller_menu -- "manages" --> view_menu
+    
+    model_game -- "manages" --> model_world
+    model_game -- "contains" --> model_player
+    model_game -- "uses" --> model_physics
+    model_world -- "contains" --> model_block
+    model_save -- "persists" --> model_world
+    model_player -- "interacts with" --> model_world
+    
+    view_renderer -- "displays" --> model_world
+    view_window -- "managed by" --> view_renderer
+    view_shader -- "used by" --> view_renderer
+    
+    %% Support dependencies
+    config_package -- "configures" --> model_game
+    config_package -- "configures" --> view_renderer
+    util_package -- "helps" --> model_world
+    util_package -- "monitors" --> view_renderer

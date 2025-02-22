@@ -1,0 +1,61 @@
+sequenceDiagram
+    participant GameC as GameController
+    participant Player
+    participant PhysicsS as PhysicsSystem
+    participant CollisionS as CollisionSystem
+    participant World
+    participant Chunk
+    participant Block as AbstractBlock
+    
+    GameC->>GameC: update(deltaTime)
+    GameC->>Player: update(deltaTime)
+    Player->>PhysicsS: updatePlayerPhysics(player, deltaTime)
+    
+    PhysicsS->>PhysicsS: updateVelocity(player, deltaTime)
+    PhysicsS->>PhysicsS: isBlockBelow(player)
+    PhysicsS->>World: getBlock(position)
+    World->>Chunk: getBlock(position)
+    Chunk-->>World: AbstractBlock
+    World-->>PhysicsS: AbstractBlock
+    
+    PhysicsS->>Player: setVelocity(velocity)
+    PhysicsS->>PhysicsS: updatePosition(player, deltaTime)
+    
+    PhysicsS->>PhysicsS: tryMove(player, newPosition, delta)
+    PhysicsS->>PhysicsS: canMoveTo(player, testPos)
+    PhysicsS->>Player: getBoundingBox()
+    Player-->>PhysicsS: BoundingBox
+    PhysicsS->>BoundingBox: update(position)
+    
+    PhysicsS->>CollisionS: checkCollision(boundingBox)
+    CollisionS->>CollisionS: getNearbyBlocks(box)
+    CollisionS->>World: getVisibleBlocks()
+    World-->>CollisionS: List<AbstractBlock>
+    
+    loop For each nearby block
+        CollisionS->>Block: getBoundingBox()
+        Block-->>CollisionS: BoundingBox
+        CollisionS->>BoundingBox: intersects(blockBoundingBox)
+        BoundingBox-->>CollisionS: boolean
+    end
+    
+    CollisionS-->>PhysicsS: collision result
+    
+    alt Collision Detected
+        PhysicsS->>PhysicsS: tryXMovement(player, newPosition, delta)
+        PhysicsS->>PhysicsS: tryYMovement(player, newPosition, delta)
+        PhysicsS->>PhysicsS: tryZMovement(player, newPosition, delta)
+        
+        alt Grounded
+            PhysicsS->>Player: setGrounded(true)
+            PhysicsS->>Player: getVelocity().y = 0
+        else In Air
+            PhysicsS->>Player: setGrounded(false)
+        end
+    else No Collision
+        PhysicsS->>PhysicsS: newPosition.set(testPos)
+    end
+    
+    PhysicsS->>Player: setPosition(newPosition)
+    Player->>Player: updateBoundingBox()
+    Player->>Camera: setPosition(position)

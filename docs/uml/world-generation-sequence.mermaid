@@ -1,0 +1,51 @@
+sequenceDiagram
+    participant Player
+    participant World
+    participant EventB as EventBus
+    participant ChunkL as ChunkLoader
+    participant Noise as PerlinNoiseGenerator
+    participant BlockF as BlockFactory
+    participant Chunk
+    participant Block as AbstractBlock
+    participant OcclusionC as OcclusionCulling
+    
+    Player->>World: update(playerPos, projectionViewMatrix)
+    World->>World: updateLoadedChunks(playerPos)
+    World->>World: calculateChunkCoordinates(playerPos)
+    World->>World: findMissingChunks(playerChunkPos)
+    
+    loop For each missing chunk
+        World->>EventB: post(WorldGenerationEvent(chunkPos))
+        EventB->>ChunkL: queueChunkLoad(chunkPos)
+        ChunkL->>ChunkL: ChunkLoadTask(chunkPos)
+        ChunkL->>EventB: post(WorldGenerationEvent(chunkPos))
+        EventB->>World: onEvent(WorldGenerationEvent)
+        
+        World->>World: generateChunkTerrain(chunkPos)
+        World->>Chunk: new Chunk(chunkPos)
+        
+        loop For each block position
+            World->>Noise: noise(worldX, worldZ)
+            Noise-->>World: heightValue
+            World->>Noise: noise3D(worldX, worldY, worldZ)
+            Noise-->>World: caveValue
+            
+            alt Should generate block
+                World->>World: determineBlockType(worldY, height)
+                World->>BlockF: createBlock(type, blockPos)
+                BlockF-->>World: AbstractBlock
+                World->>Chunk: setBlock(abstractBlock)
+            end
+        end
+        
+        World->>World: updateChunkBlockFaces(chunk)
+        World->>OcclusionC: updateOcclusion(chunk, world)
+        
+        loop For each block in chunk
+            World->>Block: updateVisibleFaces(world)
+            OcclusionC->>OcclusionC: isFullyOccluded(position, world)
+            OcclusionC->>Block: setVisible(!isOccluded)
+        end
+    end
+    
+    World->>World: updateAffectedChunks(newChunks)

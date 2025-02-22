@@ -1,0 +1,33 @@
+erDiagram
+    GAME_STATISTICS {
+        TEXT world_name PK "World name (part of composite key)"
+        INTEGER world_seed PK "World seed (part of composite key)"
+        INTEGER blocks_placed "Total blocks placed"
+        INTEGER blocks_destroyed "Total blocks destroyed"
+        REAL play_time_seconds "Play time in seconds"
+    }
+
+    BLOCKS_PLACED_BY_TYPE {
+        TEXT world_name PK "World name (part of composite key)"
+        INTEGER world_seed PK "World seed (part of composite key)"
+        TEXT block_type PK "Block type name (part of composite key)"
+        INTEGER count "Number of blocks placed"
+    }
+
+    BLOCKS_DESTROYED_BY_TYPE {
+        TEXT world_name PK "World name (part of composite key)"
+        INTEGER world_seed PK "World seed (part of composite key)"
+        TEXT block_type PK "Block type name (part of composite key)"
+        INTEGER count "Number of blocks destroyed"
+    }
+
+    WORLD_METADATA {
+        TEXT world_name PK "World name (primary key)"
+        INTEGER world_seed "World generation seed"
+        REAL created_date "Creation timestamp"
+        REAL last_played "Last played timestamp"
+    }
+
+    GAME_STATISTICS ||--o{ BLOCKS_PLACED_BY_TYPE : "tracks details for"
+    GAME_STATISTICS ||--o{ BLOCKS_DESTROYED_BY_TYPE : "tracks details for"
+    GAME_STATISTICS }|--|| WORLD_METADATA : "belongs to"

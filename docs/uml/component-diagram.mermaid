@@ -1,0 +1,157 @@
+flowchart TB
+    subgraph Controller["Controller Layer"]
+        InputSystem["Input System\n(InputController)"]
+        GameControl["Game Controller\n(GameController)"]
+        PlayerControl["Player Controller\n(PlayerController)"]
+        MenuControl["Menu Controller\n(MenuController)"]
+        EventSystem["Event System\n(EventBus)"]
+    end
+    
+    subgraph Model["Model Layer"]
+        GameModel["Game Model\n(Model)"]
+        
+        subgraph World["World System"]
+            WorldModel["World\n(World)"]
+            TerrainGen["Terrain Generator\n(PerlinNoiseGenerator)"]
+            ChunkSystem["Chunk System\n(Chunk, ChunkLoader)"]
+            DayNight["Day/Night Cycle\n(DayNightCycle)"]
+            CullingSystem["Culling System\n(OcclusionCulling, Frustum)"]
+        end
+        
+        subgraph Entities["Entity System"]
+            PlayerModel["Player\n(Player)"]
+            Camera["Camera\n(Camera)"]
+        end
+        
+        subgraph Physics["Physics System"]
+            PhysicsEngine["Physics Engine\n(PhysicsSystem)"]
+            Collision["Collision Detection\n(CollisionSystem)"]
+            Raycasting["Raycasting\n(RayCaster)"]
+            BoundingB["Bounding Boxes\n(BoundingBox)"]
+        end
+        
+        subgraph Blocks["Block System"]
+            BlockEntity["Block\n(AbstractBlock, TerrainBlock)"]
+            BlockTypes["Block Types\n(BlockType)"]
+            BlockFactory["Block Factory\n(BlockFactory)"]
+            BlockDirections["Block Directions\n(BlockDirection)"]
+        end
+        
+        subgraph Persistence["Persistence System"]
+            SaveSystem["Save System\n(WorldManager)"]
+            Statistics["Statistics\n(GameStatistics, DatabaseManager)"]
+            SaveData["Save Data\n(WorldSaveData, WorldData)"]
+        end
+    end
+    
+    subgraph View["View Layer"]
+        GameView["Game View\n(View)"]
+        
+        subgraph Rendering["Rendering System"]
+            Renderer["Master Renderer\n(MasterRenderer)"]
+            Meshes["Mesh System\n(BatchedMesh)"]
+            ShaderSystem["Shader System\n(ShaderProgram, ShaderUtils)"]
+            TextureSystem["Texture System\n(TextureManager)"]
+        end
+        
+        subgraph Display["Display System"]
+            Window["Window Manager\n(WindowManager)"]
+            HUD["HUD Renderer\n(HUDRenderer)"]
+        end
+        
+        subgraph UI["UI System"]
+            MenuView["Menu View\n(MenuView)"]
+            Dialogs["Dialogs\n(WorldListDialog, NewWorldDialog)"]
+            Panels["Panels\n(MainMenuPanel, SettingsPanel, StatisticsPanel)"]
+        end
+    end
+    
+    subgraph Config["Configuration"]
+        ConfigSystem["Configuration System\n(ConfigManager, GameConfig)"]
+    end
+    
+    subgraph Util["Utilities"]
+        Performance["Performance Metrics\n(PerformanceMetrics)"]
+    end
+    
+    %% Key interfaces
+    interface_WorldRenderer["«interface»\nWorldRenderer"]
+    interface_EventListener["«interface»\nEventListener"]
+    interface_GameEvent["«interface»\nGameEvent"]
+    interface_GameStatistics["«interface»\nGameStatistics"]
+    
+    %% Main connections between MVC components
+    InputSystem --> EventSystem
+    EventSystem --> GameControl
+    EventSystem --> PlayerControl
+    EventSystem --> MenuControl
+    EventSystem --> WorldModel
+    EventSystem --> GameView
+    
+    PlayerControl --> PlayerModel
+    PlayerControl --> Raycasting
+    PlayerControl --> WorldModel
+    
+    GameControl --> GameModel
+    GameControl --> GameView
+    
+    MenuControl --> MenuView
+    
+    GameModel --> WorldModel
+    GameModel --> PlayerModel
+    GameModel --> PhysicsEngine
+    GameModel --> Statistics
+    
+    WorldModel --> BlockEntity
+    WorldModel --> ChunkSystem
+    WorldModel --> TerrainGen
+    WorldModel --> CullingSystem
+    WorldModel --> DayNight
+    
+    %% Physical-block connections
+    BlockEntity --> BlockTypes
+    BlockFactory --> BlockEntity
+    BlockDirections --> BlockEntity
+    BlockEntity --> BoundingB
+    
+    %% Physics connections
+    PhysicsEngine --> Collision
+    PhysicsEngine --> WorldModel
+    PhysicsEngine --> PlayerModel
+    Collision --> BoundingB
+    Raycasting --> WorldModel
+    
+    %% Entity connections
+    PlayerModel --> Camera
+    PlayerModel --> BoundingB
+    
+    %% View connections
+    GameView --> Renderer
+    GameView --> Window
+    
+    Renderer --> Meshes
+    Renderer --> ShaderSystem
+    Renderer --> TextureSystem
+    Renderer --> HUD
+    Renderer --> CullingSystem
+    
+    %% Persistence connections
+    SaveSystem --> WorldModel
+    SaveSystem --> SaveData
+    Statistics --> SaveSystem
+    
+    %% Configuration connections
+    ConfigSystem --> GameModel
+    ConfigSystem --> GameView
+    ConfigSystem --> PhysicsEngine
+    
+    %% Performance monitoring connections
+    Performance --> Renderer
+    Performance --> ChunkSystem
+    
+    %% Interface implementations
+    Renderer -.-> interface_WorldRenderer
+    GameView -.-> interface_EventListener
+    WorldModel -.-> interface_EventListener
+    PlayerControl -.-> interface_EventListener
+    Statistics -.-> interface_GameStatistics

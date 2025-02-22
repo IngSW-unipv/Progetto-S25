@@ -1,0 +1,39 @@
+stateDiagram-v2
+    [*] --> MainMenu: Start Application
+    
+    MainMenu --> WorldSelection: Play
+    MainMenu --> Settings: Settings
+    MainMenu --> [*]: Exit
+    
+    WorldSelection --> NewWorld: Create World
+    WorldSelection --> LoadWorld: Load World
+    WorldSelection --> MainMenu: Back
+    
+    NewWorld --> LoadingWorld: Create
+    LoadWorld --> LoadingWorld: Select
+    
+    LoadingWorld --> RunningGame: World Generated
+    
+    RunningGame --> PausedGame: Escape Key
+    PausedGame --> RunningGame: Resume
+    PausedGame --> SaveAndExit: Save & Exit
+    
+    Settings --> MainMenu: Back
+    
+    SaveAndExit --> MainMenu: Show Statistics
+    
+    state RunningGame {
+        [*] --> GameLoop
+        
+        GameLoop --> PlayerMovement: Handle Input
+        GameLoop --> BlockInteraction: Handle Input
+        GameLoop --> WorldGeneration: Update Chunks
+        GameLoop --> Physics: Update Position
+        GameLoop --> Rendering: Draw Frame
+        
+        PlayerMovement --> GameLoop
+        BlockInteraction --> GameLoop
+        WorldGeneration --> GameLoop
+        Physics --> GameLoop
+        Rendering --> GameLoop
+    }

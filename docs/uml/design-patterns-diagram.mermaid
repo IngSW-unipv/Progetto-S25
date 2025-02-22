@@ -1,0 +1,254 @@
+classDiagram
+    %% MVC Pattern
+    class Model {
+        <<component>>
+        -Manages data
+        -Contains game logic
+        -Store/retrieve state
+    }
+    
+    class View {
+        <<component>>
+        -Renders model
+        -Provides UI
+        -Shows visual feedback
+    }
+    
+    class Controller {
+        <<component>>
+        -Handles input
+        -Updates model
+        -Controls view selection
+    }
+    
+    %% Singleton Pattern
+    class EventBus {
+        <<Singleton>>
+        -static EventBus instance
+        -Map~EventType, List~EventListener~~ listeners
+        -EventBus()
+        +getInstance() EventBus
+        +subscribe(EventType, EventListener) void
+        +unsubscribe(EventType, EventListener) void
+        +post(GameEvent) void
+    }
+    
+    class InputController {
+        <<Singleton>>
+        -static InputController instance
+        -long window
+        -InputController(long, Model)
+        +getInstance(long, Model) InputController
+        +pollInput() void
+    }
+    
+    %% Factory Pattern
+    class BlockFactory {
+        <<Factory>>
+        -BlockFactory() void
+        +createBlock(BlockType, Vector3f) AbstractBlock
+    }
+    
+    class AbstractBlock {
+        <<abstract>>
+        #Vector3f position
+        #BoundingBox boundingBox
+        +AbstractBlock(Vector3f)
+        +getType() BlockType
+        +isUnbreakable() boolean
+    }
+    
+    class TerrainBlock {
+        <<abstract>>
+        #float breakTime
+        #boolean opaque
+        #TerrainBlock(Vector3f, float, boolean)
+    }
+    
+    class DirtBlock {
+        +DirtBlock(Vector3f)
+        +getType() BlockType
+    }
+    
+    class GrassBlock {
+        +GrassBlock(Vector3f)
+        +getType() BlockType
+    }
+    
+    %% Observer Pattern
+    class EventListener {
+        <<Observer>>
+        +onEvent(GameEvent) void
+    }
+    
+    class GameEvent {
+        <<Event>>
+        +getType() EventType
+    }
+    
+    class EventBus {
+        <<Subject>>
+    }
+    
+    class View {
+        <<Observer>>
+        +onEvent(GameEvent) void
+    }
+    
+    class PlayerController {
+        <<Observer>>
+        +onEvent(GameEvent) void
+    }
+    
+    %% Strategy Pattern
+    class WorldRenderer {
+        <<Strategy>>
+        +render(List~AbstractBlock~, Camera, World) void
+    }
+    
+    class MasterRenderer {
+        <<ConcreteStrategy>>
+        +render(List~AbstractBlock~, Camera, World) void
+    }
+    
+    %% Builder Pattern
+    class BatchedMesh {
+        <<Builder>>
+        -List~Float~ vertices
+        -List~Integer~ indices
+        -boolean isDirty
+        +addBlockMesh(float[], int[], int, int) void
+        +updateGLBuffers() void
+        +render() void
+        +clear() void
+    }
+    
+    %% Command Pattern
+    class InputEvent {
+        <<Command>>
+        -InputAction action
+        -float value
+        +action() InputAction
+        +value() float
+        +getType() EventType
+    }
+    
+    class MenuEvent {
+        <<Command>>
+        -MenuAction action
+        +action() MenuAction
+        +getType() EventType
+    }
+    
+    %% Facade Pattern
+    class Model {
+        <<Facade>>
+        -GameState gameState
+        -Player player
+        -World world
+        +update(float)
+        +saveGame()
+    }
+    
+    %% Composite Pattern
+    class World {
+        <<Composite>>
+        -Set~Chunk~ chunks
+        +generateChunkTerrain(Vector3f) void
+        +getVisibleBlocks() List~AbstractBlock~
+    }
+    
+    class Chunk {
+        <<Composite>>
+        -Map~Vector3f, AbstractBlock~ blocks
+        +getBlocks() Collection~AbstractBlock~
+        +setBlock(AbstractBlock) void
+    }
+    
+    class AbstractBlock {
+        <<Leaf>>
+    }
+    
+    %% State Pattern
+    class GameState {
+        <<State>>
+        -boolean isRunning
+        +setRunning(boolean) void
+        +isRunning() boolean
+    }
+    
+    %% Template Method Pattern
+    class AbstractBlock {
+        <<AbstractClass>>
+        +updateVisibleFaces(World) void
+        #updateFaceVisibility(World) void
+        #onUpdate(World) void
+    }
+    
+    %% Proxy Pattern
+    class TextureManager {
+        <<Proxy>>
+        -Map~String, Integer~ textureMap
+        +loadTexture(String) int
+        +bindTexture(int, int) void
+        +cleanup() void
+    }
+    
+    %% Decorator Pattern
+    class TerrainBlock {
+        <<Decorator>>
+    }
+    
+    %% Adapter Pattern
+    class WindowManager {
+        <<Adapter>>
+        -static long window
+        +createDisplay() void
+        +updateDisplay() void
+        +closeDisplay() void
+    }
+    
+    %% Pattern Benefits
+    class PatternBenefits {
+        <<note>>
+        Singleton: Ensures single instance of system components
+        Factory: Centralizes object creation logic
+        Observer: Decouples components through events
+        Strategy: Swappable algorithms without changing context
+        Builder: Step-by-step construction of complex objects
+        Command: Encapsulates operations as objects
+        Facade: Simplified interface to complex subsystems
+        Composite: Treats object hierarchies uniformly
+        State: Clean state transitions without conditionals
+        Template Method: Defines algorithm skeleton with extension points
+        Proxy: Controls access to resources
+        Decorator: Adds behavior to objects dynamically
+        Adapter: Connects incompatible interfaces
+    }
+    
+    %% Relationships
+    Controller --> Model : updates
+    Controller --> View : updates
+    View --> Model : renders
+    
+    TerrainBlock --|> AbstractBlock : extends
+    DirtBlock --|> TerrainBlock : extends
+    GrassBlock --|> TerrainBlock : extends
+    
+    BlockFactory --> AbstractBlock : creates
+    BlockFactory --> TerrainBlock : creates
+    BlockFactory --> DirtBlock : creates
+    BlockFactory --> GrassBlock : creates
+    
+    MasterRenderer ..|> WorldRenderer : implements
+    View ..|> EventListener : implements
+    PlayerController ..|> EventListener : implements
+    
+    EventBus --> EventListener : notifies
+    EventBus --> GameEvent : distributes
+    
+    World --> Chunk : contains
+    Chunk --> AbstractBlock : contains
+    
+    InputEvent --|> GameEvent : implements
+    MenuEvent --|> GameEvent : implements

@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant User
+    participant InputC as InputController
+    participant EventB as EventBus
+    participant PlayerC as PlayerController
+    participant RC as RayCaster
+    participant World
+    participant BlockF as BlockFactory
+    participant Block
+    participant Chunk
+    participant View
+    
+    User->>InputC: Mouse Click
+    InputC->>EventB: Post InputEvent(PLACE_BLOCK/DESTROY_BLOCK)
+    EventB->>PlayerC: onEvent(InputEvent)
+    
+    alt Destroy Block
+        PlayerC->>RC: getTargetBlock()
+        RC->>World: getBlock(position)
+        World->>Chunk: getBlock(position)
+        Chunk-->>World: Block
+        World-->>RC: Block
+        RC-->>PlayerC: Block
+        PlayerC->>World: destroyBlock(position)
+        World->>Chunk: removeBlock(position)
+        World->>World: updateAdjacentBlockFaces()
+    else Place Block
+        PlayerC->>RC: getTargetBlock()
+        RC->>World: getBlock(position)
+        World->>Chunk: getBlock(position)
+        Chunk-->>World: Block
+        World-->>RC: Block
+        RC->>RC: getTargetFace()
+        RC-->>PlayerC: BlockDirection
+        PlayerC->>PlayerC: calculatePlacementPosition()
+        PlayerC->>PlayerC: validatePlacement()
+        PlayerC->>World: placeBlock(position, type)
+        World->>BlockF: createBlock(type, position)
+        BlockF-->>World: newBlock
+        World->>Chunk: setBlock(newBlock)
+        World->>Block: updateVisibleFaces()
+    end
+    
+    PlayerC->>EventB: Post BlockEvent(type, isPlacement)
+    EventB->>World: onEvent(BlockEvent)
+    EventB->>View: onEvent(BlockEvent)
+    View->>View: updateDisplay()

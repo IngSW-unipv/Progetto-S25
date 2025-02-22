@@ -1,0 +1,252 @@
+classDiagram
+    %% Core Interface
+    class WorldRenderer {
+        <<interface>>
+        +render(List~AbstractBlock~, Camera, World) void
+    }
+    
+    %% Core Renderer
+    class MasterRenderer {
+        -ShaderProgram blockShader
+        -ShaderProgram highlightShader
+        -ShaderProgram breakingShader
+        -Matrix4f projectionMatrix
+        -Matrix4f modelMatrix
+        -Matrix4f projectionViewMatrix
+        -TextureManager textureManager
+        -Map~BlockType, Integer~ blockTextureIds
+        -Map~BlockType, BatchedMesh~ blockMeshes
+        -BatchedMesh highlightMesh
+        -BatchedMesh breakingMesh
+        -HUDRenderer hudRenderer
+        -WindowManager windowManager
+        -Frustum frustum
+        +MasterRenderer(WindowManager)
+        -initializeOpenGL() void
+        -initializeShaders() void
+        -updateProjectionMatrix() void
+        +onEvent(GameEvent) void
+        +render(List~AbstractBlock~, Camera, World) void
+        -prepareFrame() void
+        -updateProjectionView(Matrix4f) void
+        -renderBreakingEffects() void
+        -renderBlocks() void
+        -renderHighlights() void
+        -renderHUD() void
+        -isBlockInView(AbstractBlock) boolean
+        -ensureBlockTextures() void
+        -renderBlockBatches(Map) void
+        -setupBlockShader(Matrix4f, float) void
+        -setupHighlightRendering(Matrix4f) void
+        -restoreHighlightRendering() void
+        +cleanUp() void
+    }
+    
+    %% Supporting Renderers
+    class HUDRenderer {
+        -int vaoID
+        -int vboID
+        -ShaderProgram shader
+        -float[] CROSSHAIR
+        +HUDRenderer()
+        -setupShader() void
+        -setupVAO() void
+        +render() void
+        +cleanUp() void
+    }
+    
+    %% Geometry Management
+    class BatchedMesh {
+        -int vaoID
+        -int vertexVBO
+        -int indexVBO
+        -int vertexCount
+        -List~Float~ vertices
+        -List~Integer~ indices
+        -boolean isDirty
+        +BatchedMesh()
+        -createVAO() void
+        +addBlockMesh(float[], int[], int, int) void
+        -addLightDataToVertices(float[], int) float[]
+        +updateGLBuffers() void
+        -configureVertexAttributes() void
+        +render() void
+        +cleanup() void
+        +clear() void
+    }
+    
+    %% Shader System
+    class ShaderProgram {
+        -int programID
+        +ShaderProgram(String, String)
+        -loadShader(String, int) int
+        +loadMatrix(String, Matrix4f) void
+        +start() void
+        +stop() void
+        +cleanup() void
+        +getProgramID() int
+    }
+    
+    class ShaderUtils {
+        <<static>>
+        +loadShaderFile(String) String
+    }
+    
+    %% Resource Management
+    class TextureManager {
+        -Map~String, Integer~ textureMap
+        +loadTexture(String) int
+        -configureTexture() void
+        +bindTexture(int, int) void
+        +cleanup() void
+    }
+    
+    %% Window Management
+    class WindowManager {
+        -static long window
+        -static boolean isFullscreen
+        -int currentWidth
+        -int currentHeight
+        -static final int WIDTH
+        -static final int HEIGHT
+        +createDisplay() void
+        -updateViewport() void
+        +toggleFullscreen() void
+        +updateDisplay() void
+        +closeDisplay() void
+        +getWindow() long
+        +getAspectRatio() float
+    }
+    
+    %% View Components
+    class View {
+        -WindowManager displayManager
+        -MasterRenderer renderer
+        -boolean f11Pressed
+        +View()
+        +createDisplay() void
+        +getDisplayManager() WindowManager
+        +updateDisplay() void
+        +closeDisplay() void
+        +onEvent(GameEvent) void
+        +onMenuEvent(GameEvent) void
+        -handleFullscreenToggle(float) void
+    }
+    
+    %% Rendering Optimizations
+    class Frustum {
+        -FrustumPlane[] planes
+        +Frustum()
+        +update(Matrix4f) void
+        +isBoxInFrustum(float, float, float, float) boolean
+        +isAABBInFrustum(float, float, float, float, float, float) boolean
+        +isChunkInFrustum(Vector3f, int) boolean
+    }
+    
+    %% Occlusion System
+    class OcclusionCulling {
+        -Map~Vector3f, OcclusionState~ blockStates
+        +updateOcclusion(Chunk, World) void
+        -isFullyOccluded(Vector3f, World) boolean
+        -isOpaqueBlock(float, float, float, World) boolean
+    }
+    
+    %% Performance Monitoring
+    class PerformanceMetrics {
+        <<static>>
+        -Queue~Long~ frameTimes
+        -long lastFrameTime
+        -int totalChunks
+        -int culledChunks
+        -int totalBlocks
+        -int renderedBlocks
+        -int occludedBlocks
+        -int culledBlocks
+        -int frameCount
+        -long lastSecond
+        -int fps
+        +startFrame() void
+        +resetFrameMetrics() void
+        +updateFrameMetrics() void
+        +logChunk(int, int) void
+        +logBlocks(int, int, int, int) void
+        +getMetricsString() String
+    }
+    
+    %% Block System (for context)
+    class AbstractBlock {
+        <<abstract>>
+        +getVertices() float[]
+        +getIndices() int[]
+        +isVisible() boolean
+        +isHighlighted() boolean
+        +getBreakProgress() float
+        +getLightLevel() int
+    }
+    
+    %% Camera System (for context)
+    class Camera {
+        -Vector3f position
+        -float pitch
+        -float yaw
+        -float roll
+        +getViewMatrix() Matrix4f
+        +getPosition() Vector3f
+    }
+    
+    %% World System (for context)
+    class World {
+        +getVisibleBlocks() List~AbstractBlock~
+        +getDayNightCycle() DayNightCycle
+    }
+    
+    %% Shader Pipeline
+    class ShaderPipeline {
+        <<diagram-only>>
+        Note: Shader flow
+        1. Select shader program
+        2. Bind uniforms & textures
+        3. Update view matrix
+        4. Render geometry
+        5. Unbind shader
+    }
+    
+    %% Render Pipeline
+    class RenderPipeline {
+        <<diagram-only>>
+        Note: Render flow
+        1. Frustum culling
+        2. Occlusion culling
+        3. Batch creation
+        4. Block rendering
+        5. Effect rendering
+        6. HUD rendering
+    }
+    
+    %% Relationships
+    MasterRenderer ..|> WorldRenderer : implements
+    MasterRenderer --> ShaderProgram : uses
+    MasterRenderer --> TextureManager : uses
+    MasterRenderer --> BatchedMesh : manages
+    MasterRenderer --> HUDRenderer : uses
+    MasterRenderer --> WindowManager : references
+    MasterRenderer --> Frustum : uses
+    MasterRenderer ..> PerformanceMetrics : updates
+    MasterRenderer ..> AbstractBlock : renders
+    MasterRenderer ..> Camera : uses view matrix
+    MasterRenderer ..> World : gets visibles blocks
+    
+    View --> WindowManager : owns
+    View --> MasterRenderer : owns
+    View ..> OcclusionCulling : indirectly uses
+    
+    ShaderProgram --> ShaderUtils : uses
+    ShaderProgram ..> ShaderPipeline : flow
+    
+    MasterRenderer ..> RenderPipeline : flow
+    
+    Frustum --> OcclusionCulling : works with
+    
+    BatchedMesh --> AbstractBlock : gets data from
+    
+    PerformanceMetrics --> MasterRenderer : monitors

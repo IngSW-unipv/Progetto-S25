@@ -1,0 +1,146 @@
+classDiagram
+    %% Error handling classes
+    class ErrorHandling {
+        <<component>>
+    }
+    
+    %% Core error types
+    class GameException {
+        <<abstract>>
+        -String message
+        -Throwable cause
+        +GameException(String)
+        +GameException(String, Throwable)
+        +getMessage() String
+        +getCause() Throwable
+    }
+    
+    class WorldGenerationException {
+        +WorldGenerationException(String)
+        +WorldGenerationException(String, Throwable)
+    }
+    
+    class ResourceLoadException {
+        +ResourceLoadException(String)
+        +ResourceLoadException(String, Throwable)
+    }
+    
+    class SaveLoadException {
+        +SaveLoadException(String)
+        +SaveLoadException(String, Throwable)
+    }
+    
+    class ShaderCompilationException {
+        +ShaderCompilationException(String)
+        +ShaderCompilationException(String, Throwable)
+    }
+    
+    class ConfigurationException {
+        +ConfigurationException(String)
+        +ConfigurationException(String, Throwable)
+    }
+    
+    %% Error handlers
+    class ShaderUtils {
+        +loadShaderFile(String) String
+        -handleShaderError(Exception) void
+    }
+    
+    class WindowManager {
+        +createDisplay() void
+        -handleWindowCreationError(Exception) void
+    }
+    
+    class WorldManager {
+        +saveWorldData(String, WorldSaveData) void
+        +loadWorldData(String) WorldSaveData
+        -handleIOException(IOException) void
+    }
+    
+    class ConfigManager {
+        +loadConfig() void
+        +saveConfig() void
+        -handleConfigError(Exception) void
+    }
+    
+    class TextureManager {
+        +loadTexture(String) int
+        -handleTextureLoadError(String, Exception) void
+    }
+    
+    %% Error flow
+    class ErrorFlow {
+        <<diagram-only>>
+        Note: Error Handling Flow
+        1. Try operation
+        2. Catch specific exception
+        3. Log error details
+        4. Convert to game exception
+        5. Handle gracefully or propagate
+    }
+    
+    %% Recovery strategies
+    class RecoveryStrategies {
+        <<diagram-only>>
+        Note: Recovery Strategies
+        - Retry Operation
+        - Use Fallback Resource
+        - Restore from Backup
+        - Rebuild from Scratch
+        - Notify User
+        - Clean Reset
+    }
+    
+    %% Error logging
+    class Logger {
+        <<static>>
+        +logError(String, Exception) void
+        +logWarning(String) void
+        +logInfo(String) void
+    }
+    
+    %% User notification
+    class ErrorNotification {
+        <<component>>
+        +showErrorDialog(String, String) void
+        +showWarningDialog(String, String) void
+    }
+    
+    %% Relationships
+    WorldGenerationException --|> GameException : extends
+    ResourceLoadException --|> GameException : extends
+    SaveLoadException --|> GameException : extends
+    ShaderCompilationException --|> GameException : extends
+    ConfigurationException --|> GameException : extends
+    
+    ShaderUtils ..> ShaderCompilationException : throws
+    ShaderUtils ..> Logger : uses
+    
+    WindowManager ..> ResourceLoadException : throws
+    WindowManager ..> Logger : uses
+    
+    WorldManager ..> SaveLoadException : throws
+    WorldManager ..> Logger : uses
+    
+    ConfigManager ..> ConfigurationException : throws
+    ConfigManager ..> Logger : uses
+    
+    TextureManager ..> ResourceLoadException : throws
+    TextureManager ..> Logger : uses
+    
+    ErrorHandling ..> ErrorFlow : follows
+    ErrorHandling ..> RecoveryStrategies : implements
+    ErrorHandling ..> ErrorNotification : uses
+    ErrorHandling ..> Logger : uses
+    
+    %% Main error handlers
+    ShaderProgram --> ShaderUtils : uses
+    View --> WindowManager : uses
+    Model --> WorldManager : uses
+    GameController --> ConfigManager : uses
+    
+    %% Error handling in main components
+    GameController --> ErrorHandling : uses
+    MenuController --> ErrorHandling : uses
+    World --> ErrorHandling : uses
+    View --> ErrorHandling : uses

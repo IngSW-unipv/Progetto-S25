@@ -1,0 +1,188 @@
+classDiagram
+    %% Interfaces
+    class GameEvent {
+        <<interface>>
+        +getType() EventType
+    }
+    
+    class EventListener {
+        <<interface>>
+        +onEvent(GameEvent) void
+    }
+    
+    %% Core Event Classes
+    class EventBus {
+        -Map~EventType, List~EventListener~~ listeners
+        -static EventBus instance
+        -EventBus()
+        +getInstance() EventBus
+        +subscribe(EventType, EventListener) void
+        +unsubscribe(EventType, EventListener) void
+        +post(GameEvent) void
+    }
+    
+    class EventType {
+        <<enumeration>>
+        INPUT
+        WORLD_GENERATION
+        RENDER
+        MENU
+        BLOCK_MODIFICATION
+    }
+    
+    %% Event Implementations
+    class InputEvent {
+        -InputAction action
+        -float value
+        +InputEvent(InputAction, float)
+        +action() InputAction
+        +value() float
+        +getType() EventType
+    }
+    
+    class MenuEvent {
+        -MenuAction action
+        -String worldName
+        -long seed
+        -List~WorldStats~ statistics
+        +MenuEvent(MenuAction, String, long, List)
+        +action() MenuAction
+        +worldName() String
+        +seed() long
+        +statistics() List~WorldStats~
+        +getType() EventType
+        +static action(MenuAction) MenuEvent
+        +static startGame(String, long) MenuEvent
+        +static showStatistics(List) MenuEvent
+    }
+    
+    class RenderEvent {
+        -Camera camera
+        -List~AbstractBlock~ blocks
+        -World world
+        +RenderEvent(Camera, List, World)
+        +camera() Camera
+        +abstractBlocks() List~AbstractBlock~
+        +world() World
+        +getType() EventType
+    }
+    
+    class WorldGenerationEvent {
+        -Vector3f chunkPosition
+        +WorldGenerationEvent(Vector3f)
+        +chunkPosition() Vector3f
+        +getType() EventType
+    }
+    
+    class BlockEvent {
+        -BlockType type
+        -boolean isPlacement
+        +BlockEvent(BlockType, boolean)
+        +type() BlockType
+        +isPlacement() boolean
+        +getType() EventType
+    }
+    
+    %% Action Enumerations
+    class InputAction {
+        <<enumeration>>
+        MOVE_FORWARD
+        MOVE_BACKWARD
+        MOVE_LEFT
+        MOVE_RIGHT
+        SPRINT
+        MOVE_UP
+        MOVE_DOWN
+        LOOK_X
+        LOOK_Y
+        TOGGLE_FULLSCREEN
+        PLACE_BLOCK
+        DESTROY_BLOCK
+        EXIT
+    }
+    
+    class MenuAction {
+        <<enumeration>>
+        SHOW_MAIN_MENU
+        SHOW_WORLD_SELECT
+        SHOW_SETTINGS
+        SHOW_NEW_WORLD_DIALOG
+        SHOW_LOAD_WORLD_DIALOG
+        SHOW_STATISTICS
+        BACK_TO_MAIN
+        RESUME_GAME
+        TOGGLE_PAUSE
+        SAVE_SETTINGS
+        QUIT_GAME
+    }
+    
+    %% Event Handlers
+    class View {
+        +onEvent(GameEvent) void
+        +onMenuEvent(GameEvent) void
+    }
+    
+    class World {
+        +onEvent(GameEvent) void
+    }
+    
+    class PlayerController {
+        +onEvent(GameEvent) void
+        +handleInput(InputEvent) void
+    }
+    
+    class MenuController {
+        -handleMenuAction(GameEvent) void
+    }
+    
+    class MasterRenderer {
+        +onEvent(GameEvent) void
+    }
+    
+    class Model {
+        -onBlockEvent(GameEvent) void
+    }
+    
+    %% Event Flow
+    class EventFlow {
+        <<diagram-only>>
+        Note: Event flow
+        1. Event created
+        2. Posted to EventBus
+        3. EventBus notifies subscribers
+        4. Listeners handle event
+        5. System state updated
+    }
+    
+    %% Relationships
+    EventBus --> EventListener : notifies
+    EventBus --> GameEvent : distributes
+    
+    InputEvent ..|> GameEvent : implements
+    MenuEvent ..|> GameEvent : implements
+    RenderEvent ..|> GameEvent : implements
+    WorldGenerationEvent ..|> GameEvent : implements
+    BlockEvent ..|> GameEvent : implements
+    
+    InputEvent --> InputAction : uses
+    MenuEvent --> MenuAction : uses
+    
+    %% Subscription relationships
+    EventBus ..> EventFlow : follows
+    
+    View ..|> EventListener : implements
+    World ..|> EventListener : implements
+    PlayerController ..|> EventListener : implements
+    MenuController ..|> EventListener : implements
+    MasterRenderer ..|> EventListener : implements
+    Model ..|> EventListener : implements
+    
+    %% Handler relationships
+    View ..> RenderEvent : handles
+    View ..> MenuEvent : handles
+    World ..> WorldGenerationEvent : handles
+    World ..> BlockEvent : handles
+    PlayerController ..> InputEvent : handles
+    MenuController ..> MenuEvent : handles
+    MasterRenderer ..> RenderEvent : handles
+    Model ..> BlockEvent : handles
